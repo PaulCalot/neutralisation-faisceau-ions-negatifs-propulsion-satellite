@@ -56,8 +56,7 @@ git push origin le_nom_de_ma_branche
 
 ### 4) Il ne faut pas écrire sur les mêmes lignes que quelqu'un d'autre dans un même fichier !
   
-C.f. :
-https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging
+C.f. [here](https://git-scm.com/book/en/v2/Git-Branching-Basic-Branching-and-Merging)
 
 ### 5) Une façon d'utiliser git :
 - branche *master* : contient une version fonctionnelle du code ;
@@ -69,6 +68,23 @@ git checkout -b issXX
 ```shell
 git branch -d nom_de_la_branche
 ```
+
+## En cas de *merge conflict*
+
+1) Run following commands to config
+
+```shell
+git config merge.tool vimdiff
+git config merge.conflictstyle diff3
+git config mergetool.prompt false
+```
+
+2) run the terminal:
+git mergetool
+
+1) see [this link](https://stackoverflow.com/questions/161813/how-to-resolve-merge-conflicts-in-git)
+
+For more info, see gitlab merge request [resources](https://docs.gitlab.com/ee/user/project/merge_requests/index.html).
 
 ## Liens utiles pour comprendre git : 
 - [tuto](https://rachelcarmena.github.io/2018/12/12/how-to-teach-git.html)
