@@ -1,7 +1,7 @@
 # TODO list
 
 ## Premier temps
-- [ ] passage à un trou
+- [x] passage à un trou
 - [ ] diviser et simplifier le code
 - [ ] modifier les noms afin de respecter les conventions d'écriture (cf. *python_usage.md*)
 - [ ] faire la classe **Particule**
