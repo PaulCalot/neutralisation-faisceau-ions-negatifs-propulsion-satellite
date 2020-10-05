@@ -85,8 +85,8 @@ def get_mesh(mesh_dict):
         segment(P11+Point(L_1/2,0), P11),
         segment(P11, P10+Point(0,-l_1)),
         segment(P10+Point(0,-l_1), P10),
-        segment(P10, P10+Point(0,-Delta_vert_12)), #6
-        segment(P10+Point(0,-Delta_vert_12), P9),
+        segment(P10, P10+Point(0,-delta_vert_12)), #6
+        segment(P10+Point(0,-delta_vert_12), P9),
         segment(P9, P9+Point(0, -l_2)),
         segment(P9+Point(0, -l_2), P5),
         segment(P5, P5+Point(0,-l_vacuum)),
@@ -95,8 +95,8 @@ def get_mesh(mesh_dict):
         segment(P4+Point(0,l_vacuum), P8),
         segment(P8, P8+Point(0, l_2)),
         segment(P8+Point(0, l_2), P7),
-        segment(P7, P7+Point(0,Delta_vert_12)), #16
-        segment(P7+Point(0,Delta_vert_12), P6), 
+        segment(P7, P7+Point(0,delta_vert_12)), #16
+        segment(P7+Point(0,delta_vert_12), P6), 
         segment(P6, P6+Point(0,l_1)),
         segment(P6+Point(0,l_1),P1)
         ]
@@ -107,7 +107,7 @@ def get_mesh(mesh_dict):
 
     class To_refine(SubDomain):
         def inside(self, x, on_boundary):
-            return x[1]<=0 and x[1]>= -l_mot/2-h_grille-l_vide/4
+            return x[1]<=0 and x[1]>= -l_mot/2-h_grid-l_vacuum/4
 
     if(refine_mesh):
         to_refine = To_refine()
@@ -115,6 +115,6 @@ def get_mesh(mesh_dict):
         to_refine.mark(marker, True)
         mesh = refine(mesh,marker)
 
-    return mesh, segments_list
+    return mesh, segments_list, zone
 
 

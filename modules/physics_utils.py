@@ -12,8 +12,12 @@ from fenics import *
 
 
 # ------------------------- E and V computation ---------------------------- #
-def get_VandE(mesh_dict, phi_dict, physics_consts_dict):
-
+def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
+    
+        
+    V = FunctionSpace(mesh, 'P', 1)
+    W = VectorFunctionSpace(mesh, 'P', 1)
+    
     L_mot = mesh_dict['L_mot']
     l_mot = mesh_dict['l_mot']
     L_vacuum = mesh_dict['L_vacuum']
@@ -46,13 +50,13 @@ def get_VandE(mesh_dict, phi_dict, physics_consts_dict):
     class Boundary_inter_electrode(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] < - l_mot/2 - l_1 and x[1] > - l_mot/2 - l_1 - Delta_vert_12
+            return on_boundary and x[1] < - l_mot/2 - l_1 and x[1] > - l_mot/2 - l_1 - delta_vert_12
         
     class Boundary_electrode2(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] <= - l_mot/2 - l_1 - Delta_vert_12 and x[1] >= - l_mot/2 - \
-                l_1 - Delta_vert_12 - l_2 and abs(x[0])<=L_mot/2
+            return on_boundary and x[1] <= - l_mot/2 - l_1 - delta_vert_12 and x[1] >= - l_mot/2 - \
+                l_1 - delta_vert_12 - l_2 and abs(x[0])<=L_mot/2
         
     class Boundary_sup_vacuum(SubDomain):
         def inside(self, x, on_boundary):
@@ -77,13 +81,11 @@ def get_VandE(mesh_dict, phi_dict, physics_consts_dict):
         phi_dict['Phi_inter_electrode'], phi_dict['Phi_electrode2'],phi_dict['Phi_sup_vacuum'],phi_dict['Phi_inf_vacuum']]
     list_edges=[top_mot, bord_mot, electrode1, inter_electrode, electrode2, sup_vacuum, inf_vacuum]
     bc=[]
-
+    
     for i in range(len(list_edges)):
-        if liste_Phi[i]!='N':
+        if list_Phi[i]!='N':
             bc.append(DirichletBC(V, Constant(list_Phi[i]), list_edges[i]))
 
-    V = FunctionSpace(mesh, 'P', 1)
-    W = VectorFunctionSpace(mesh, 'P', 1)
 
     u = TrialFunction(V)
     v = TestFunction(V)
@@ -101,7 +103,7 @@ def get_VandE(mesh_dict, phi_dict, physics_consts_dict):
 
 # ------------------------------ Trajectory computation -------------------- #
 
-def compute_trajectory(integration_parameters_dict, particule_dict, f):
+def compute_trajectory(integration_parameters_dict, particule_dict, mesh_dict, f, segments_list, zone):
     tmax = integration_parameters_dict['tmax']
     dt = integration_parameters_dict['dt']
     t = integration_parameters_dict['t']
@@ -113,6 +115,10 @@ def compute_trajectory(integration_parameters_dict, particule_dict, f):
     vx0 = particule_dict['vx0']
     vy0 = particule_dict['vy0']
 
+    l_mot = mesh_dict['l_mot']
+    l_vacuum = mesh_dict['l_vacuum']
+    h_grid = mesh_dict['l_1'] + mesh_dict['l_2'] + mesh_dict['delta_vert_12']
+    
     Y=np.array([x0, y0, vx0, vy0])
     liste_x=[x0]
     liste_y=[y0]
@@ -127,24 +133,24 @@ def compute_trajectory(integration_parameters_dict, particule_dict, f):
         k3=np.array(f(Y+.5*dt*k2, t+.5*dt))
         k4=np.array(f(Y+dt*k3, t+dt))
         Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-        while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
-            xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1])
+        if zone.inside(Point(Y_pot[0],Y_pot[1]))==True:
+            Y=Y_pot
+        else:
+            xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1], segments_list)
+            N_impact+=1
             if n=='xm': #normale selon x avec miroir
-                Y,Y_pot=np.array([-xinter,-yinter,0,0]),np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
-            elif n=='x': #normale selon x
-                Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
-                N_impact+=1
+                Y=np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
+            if n=='x': #normale selon x
+                Y=np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
             else:
-                Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
-                N_impact+=1
-        Y=Y_pot
+                Y=np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
         liste_x.append(Y[0])
         liste_y.append(Y[1])
         liste_vx.append(Y[2])
         liste_vy.append(Y[3])
         listet.append(t)
         t+=dt
-        if Y[1]<-l_mot/2-h_grille-l _vide/2:
+        if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
             break
 
     return liste_x, liste_y, liste_vx, liste_vy, N_impact
@@ -186,14 +192,14 @@ def intersection(x1,y1,x2,y2,x3,y3,x4,y4): #donne les coords d'inters des segmen
             return (x_test,y3,'y')
         return (0,0,'NO')
 
-def coord_impact(x1,y1,x2,y2): #cherche où et selon quelle n le segments 1,2 coupe un bord
+def coord_impact(x1,y1,x2,y2, segments_list): #cherche où et selon quelle n le segments 1,2 coupe un bord
     """
     On sait que ce segment coupe un bord, On cherche alors quel segment il coupe ainsi que les coordonnées d'intersection et la normale
     Renvoie (xi,yi,n) ou n='x'ou'y'
     Par défaut (normalement jamais), renvoie (0,0,'NO') s'il ne coupe rien
     """
-    for i in range(len(liste_segment)):
-        x3,y3,x4,y4=liste_segment[i]
+    for i in range(len(segments_list)):
+        x3,y3,x4,y4=segments_list[i]
         xi,yi,n=intersection(x1,y1,x2,y2,x3,y3,x4,y4)
         if n!='NO':
             if i==0 or i==2 or i==6 or i==16:
@@ -238,5 +244,31 @@ Autre truc à étudier: si après le calcul du rebond ou du miroir, on retombe h
     liste_vy.append(Y[3])
     listet.append(t)
     t+=dt
-    if Y[1]<-l_mot/2-h_grille-l_vide/2:
+    if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
+        break'''
+    
+'''while t<=tmax:
+    k1=np.array(f(Y,t))
+    k2=np.array(f(Y+.5*dt*k1, t+.5*dt))
+    k3=np.array(f(Y+.5*dt*k2, t+.5*dt))
+    k4=np.array(f(Y+dt*k3, t+dt))
+    Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
+    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
+        xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1], segments_list)
+        if n=='xm': #normale selon x avec miroir
+            Y,Y_pot=np.array([-xinter,-yinter,0,0]),np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
+        elif n=='x': #normale selon x
+            Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
+            N_impact+=1
+        else:
+            Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
+            N_impact+=1
+    Y=Y_pot
+    liste_x.append(Y[0])
+    liste_y.append(Y[1])
+    liste_vx.append(Y[2])
+    liste_vy.append(Y[3])
+    listet.append(t)
+    t+=dt
+    if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
         break'''
