@@ -40,11 +40,12 @@ git status
 
 ### 2) A chaque fin de séance de prog faire :
 
+```
 git checkout le_nom_de_ma_branche
 git add -A
 git commit -m "Avec un commentaire pertinant qui décrit simplement ce que vous avez fait."
 git push origin branch_Name
-
+```
 ### 3) A chaque merge request acceptée faire, pull la branche master avec les nouvelles modifications :
 ```shell
 git checkout master
