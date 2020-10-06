@@ -9,12 +9,9 @@ import numpy as np
 import scipy.integrate as integrate
 from fenics import *
 
-
-
 # ------------------------- E and V computation ---------------------------- #
 def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
     
-        
     V = FunctionSpace(mesh, 'P', 1)
     W = VectorFunctionSpace(mesh, 'P', 1)
     
@@ -114,10 +111,11 @@ def compute_trajectory(integration_parameters_dict, particule_dict, mesh_dict, f
     y0 = particule_dict['y0']
     vx0 = particule_dict['vx0']
     vy0 = particule_dict['vy0']
-
+    num_hole = particule_dict['num_hole']
     l_mot = mesh_dict['l_mot']
     l_vacuum = mesh_dict['l_vacuum']
     h_grid = mesh_dict['l_1'] + mesh_dict['l_2'] + mesh_dict['delta_vert_12']
+    nb_hole = mesh_dirt['nb_hole']
     
     Y=np.array([x0, y0, vx0, vy0])
     liste_x=[x0]

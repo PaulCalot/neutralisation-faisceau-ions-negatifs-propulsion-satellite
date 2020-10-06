@@ -103,13 +103,15 @@ def get_mesh(mesh_dict):
     
     mesh=mshr.generate_mesh(zone, mesh_resolution)
     
-    d = mesh.topology().dim()
 
-    class To_refine(SubDomain):
-        def inside(self, x, on_boundary):
-            return x[1]<=0 and x[1]>= -l_mot/2-h_grid-l_vacuum/4
-
+    
     if(refine_mesh):
+        d = mesh.topology().dim()
+        
+        class To_refine(SubDomain):
+            def inside(self, x, on_boundary):
+                return x[1]<=0 and x[1]>= -l_mot/2-h_grid-l_vacuum/4
+
         to_refine = To_refine()
         marker = MeshFunction("bool", mesh, d, False)
         to_refine.mark(marker, True)
