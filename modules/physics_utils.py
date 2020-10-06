@@ -112,10 +112,11 @@ def compute_trajectory(integration_parameters_dict, particule_dict, mesh_dict, f
     vx0 = particule_dict['vx0']
     vy0 = particule_dict['vy0']
     num_hole = particule_dict['num_hole']
+    
     l_mot = mesh_dict['l_mot']
     l_vacuum = mesh_dict['l_vacuum']
     h_grid = mesh_dict['l_1'] + mesh_dict['l_2'] + mesh_dict['delta_vert_12']
-    nb_hole = mesh_dirt['nb_hole']
+    nb_hole = mesh_dict['nb_hole']
     
     Y=np.array([x0, y0, vx0, vy0])
     liste_x=[x0]
@@ -131,17 +132,25 @@ def compute_trajectory(integration_parameters_dict, particule_dict, mesh_dict, f
         k3=np.array(f(Y+.5*dt*k2, t+.5*dt))
         k4=np.array(f(Y+dt*k3, t+dt))
         Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-        if zone.inside(Point(Y_pot[0],Y_pot[1]))==True:
-            Y=Y_pot
-        else:
-            xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1], segments_list)
-            N_impact+=1
-            if n=='xm': #normale selon x avec miroir
-                Y=np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
-            if n=='x': #normale selon x
-                Y=np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
+
+        while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
+            xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1])
+            if n=='xm' and num_hole+np.sign(xinter)<=nb_hole and num_hole+np.sign(xinter)>=0: #normale selon x avec miroir
+                num_trou+=np.sign(xinter)
+                Y,Y_pot=np.array([-xinter, -yinter, 0, 0]),\
+                        np.array([-xinter-(xinter-Y_pot[0]), Y_pot[1], Y_pot[2], Y_pot[3]])
+
+            elif n=='x' or n=='xm': #normale selon x sans miroir (ou avec mais en bout de chaine)
+                Y,Y_pot=np.array([xinter, yinter, 0, 0]),\
+                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], -Y_pot[2], Y_pot[3]])
+                N_impact+=1
+
             else:
-                Y=np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
+                Y,Y_pot=np.array([xinter,yinter,0,0] ),\
+                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]), Y_pot[2], -Y_pot[3]])
+                N_impact+=1
+            
+        Y=Y_pot
         liste_x.append(Y[0])
         liste_y.append(Y[1])
         liste_vx.append(Y[2])

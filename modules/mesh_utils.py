@@ -83,8 +83,8 @@ def get_mesh(mesh_dict):
         segment(P2+Point(-L_mot,l_mot),P2), 
         segment(P2, P11+Point(L_1/2,0)), #2
         segment(P11+Point(L_1/2,0), P11),
-        segment(P11, P10+Point(0,-l_1)),
-        segment(P10+Point(0,-l_1), P10),
+        segment(P11, P11+Point(0,-l_1)),
+        segment(P11+Point(0,-l_1), P10),
         segment(P10, P10+Point(0,-delta_vert_12)), #6
         segment(P10+Point(0,-delta_vert_12), P9),
         segment(P9, P9+Point(0, -l_2)),
@@ -99,7 +99,7 @@ def get_mesh(mesh_dict):
         segment(P7+Point(0,delta_vert_12), P6), 
         segment(P6, P6+Point(0,l_1)),
         segment(P6+Point(0,l_1),P1)
-        ]
+    ]
     
     mesh=mshr.generate_mesh(zone, mesh_resolution)
     
