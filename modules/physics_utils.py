@@ -160,7 +160,7 @@ def compute_trajectory(integration_parameters_dict, particule_dict, mesh_dict, f
         if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
             break
 
-    return liste_x, liste_y, liste_vx, liste_vy, N_impact
+    return liste_x, liste_y, liste_vx, liste_vy, N_impact, num_hole
     
 
     
