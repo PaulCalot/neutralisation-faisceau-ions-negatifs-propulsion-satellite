@@ -39,3 +39,12 @@ my_grid.remove(part3)
 my_grid.to_string()
 
 print("\n[OK]")
+
+print("\nTesting vectors ...")
+
+v1 = Vector(0.5,0.5)
+v2 = Vector(1.0,0.5)
+alpha = 0.9
+
+v3 = v1 + alpha*v2
+print("V3 = ({},{})".format(v3.x, v3.y))
