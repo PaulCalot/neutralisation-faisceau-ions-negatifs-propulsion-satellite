@@ -1,7 +1,10 @@
-# local import
+# import
+import warnings
 
+# "my classes" import
 from  .vector import Vector
 
+# constant
 NUCLEON_MASS = 1.672e-27 # kg
 ELECTRON_MASS = 9.11e-31
 
@@ -12,6 +15,8 @@ IODINE_MASS = get_mass_part(53, 53, 88) # Iodine : 53 protons, 53 electrons, 131
 
 class Particule(object):
     
+    # TODO : consider adding an id to the particule ?
+
     e = 1.602e-19 # C
     types = ["I", "I2", "Im", "I2p", "e"]
     def __init__(self, charge = 0, mass = IODINE_MASS, pos = Vector(0,0), speed = Vector(0,0), \
@@ -28,9 +33,9 @@ class Particule(object):
         """
         
         if(type(charge)!=int):
-            print("Charge argument type *int* expected but got {}.".format(type(charge)))
+            warnings.warn("Charge argument type *int* expected but got {}.".format(type(charge)))
         if(not part_type in self.types):
-            print("Type not recognized. You should choose amongst {}.".format(self.types))
+            warnings.warn("Type not recognized. You should choose amongst {}.".format(self.types))
 
         self.charge = charge
         self.mass = mass
@@ -98,7 +103,6 @@ class Particule(object):
 
     def set_type(self, new_part_type):
         self.part_type = new_part_type
-
 
     # ----------------- to String -------------------- #
 
