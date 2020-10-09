@@ -13,7 +13,7 @@ IODINE_MASS = get_mass_part(53, 53, 88) # Iodine : 53 protons, 53 electrons, 131
 class Particule(object):
     
     e = 1.602e-19 # C
-
+    types = ["I", "I2", "Im", "I2p", "e"]
     def __init__(self, charge = 0, mass = IODINE_MASS, pos = Vector(0,0), speed = Vector(0,0), \
         part_type = "I", verbose = True):
         """ Create a particule, by default an neutral atom of mass ... (Iode).
@@ -21,16 +21,16 @@ class Particule(object):
         Args:
             charge (int): the charge of the particules will then be charge * e 
             mass (float): mass of the particule
-            x (float): position along x axis
-            y (float): position along x axis
-            vx (float): speed along y axis
-            vy (float): speed along y axis
+            pos (Vector): position of the particules
+            speed (Vector): speed of the particules
             type (String): a name for the given particule type - 
                            Available types : I, I2, Im, I2p, e
         """
         
-        # asserting we are indeed giving to charge an int
-        assert(type(charge)==int)
+        if(type(charge)!=int):
+            print("Charge argument type *int* expected but got {}.".format(type(charge)))
+        if(not part_type in self.types):
+            print("Type not recognized. You should choose amongst {}.".format(self.types))
 
         self.charge = charge
         self.mass = mass

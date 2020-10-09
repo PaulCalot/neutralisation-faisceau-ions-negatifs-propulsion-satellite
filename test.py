@@ -9,6 +9,7 @@ part1 = Particule()
 part2 = Particule(pos = Vector(0.5,0.5))
 part3 = Particule(pos = Vector(1.5, 0))
 
+print("\nTrying to get the charge of a particule ... {} [OK]".format(part1.get_charge()))
 
 print("\nAdding those particules :")
 my_grid.add(part1)
