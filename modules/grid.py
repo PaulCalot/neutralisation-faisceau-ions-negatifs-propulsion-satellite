@@ -59,10 +59,19 @@ class Grid(object):
     def get_pos_in_grid(self, position):
         return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
 
-    def get_closest_particules(self, particule):
+    def get_closest_particules(self, particule, return_list = True):
         pos = particule.get_pos()
         pos_in_grid = self.get_pos_in_grid(pos)
-        return self.grid[pos_in_grid[0],pos_in_grid[1]]
+        linkedlist = self.grid[pos_in_grid[0],pos_in_grid[1]]
+        if(return_list):
+            list_ = []
+            current = linkedlist.get_head()
+            while(current):
+                list_.append(current.get_data())
+                current = current.get_next()
+            return list_
+        else :
+            return linkedlist
 
     def list_to_string(self, position):
         pos_in_grid = self.get_pos_in_grid(position)

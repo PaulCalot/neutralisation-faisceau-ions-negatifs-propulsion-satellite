@@ -16,7 +16,7 @@ my_grid.add(part1)
 my_grid.add(part2)
 my_grid.add(part3)
 
-my_grid.to_string()
+my_grid.to_string() 
 
 print("\nChanging part 1 & 3 pos :")
 old_pos1 = part1.get_pos()
@@ -31,6 +31,11 @@ my_grid.update(part1, old_pos1)
 my_grid.update(part3, old_pos3)
 
 my_grid.to_string()
+
+print("\nTrying to have the closest particules ...")
+my_parts = my_grid.get_closest_particules(part1)
+for part in my_parts:
+    print(part.to_string())
 
 print("\nRemoving part 1 & 2 & 3 :")
 my_grid.remove(part1)

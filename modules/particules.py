@@ -14,7 +14,6 @@ def get_mass_part(electrons_nb, protons_number, neutrons_number):
 IODINE_MASS = get_mass_part(53, 53, 88) # Iodine : 53 protons, 53 electrons, 131 nucleons => 88 neutrons
 
 class Particule(object):
-    
     # TODO : consider adding an id to the particule ?
 
     e = 1.602e-19 # C
