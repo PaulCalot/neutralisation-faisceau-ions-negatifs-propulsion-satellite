@@ -103,8 +103,6 @@ def get_mesh(mesh_dict):
     
     mesh=mshr.generate_mesh(zone, mesh_resolution)
     
-
-    
     if(refine_mesh):
         d = mesh.topology().dim()
         

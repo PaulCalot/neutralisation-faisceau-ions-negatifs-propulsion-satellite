@@ -28,7 +28,7 @@ class Grid(object):
                 print("Created a new linkedlist.", end = " ")
         else:
             if(self.debug):
-                print("Added the particule to pre-existing linkelist", end = ' ')
+                print("Added the particule to pre-existing linkedlist", end = ' ')
         self.grid[pos_in_grid[0],pos_in_grid[1]].insert(particule)
         if(self.debug):
             print("     [OK]")
