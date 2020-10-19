@@ -2,6 +2,8 @@
 biblio/
 .vscode/
 
+nohup.out
+
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
