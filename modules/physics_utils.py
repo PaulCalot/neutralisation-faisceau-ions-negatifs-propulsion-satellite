@@ -1,5 +1,10 @@
 from __future__ import print_function
 
+# local import
+
+from .particules import Particule
+from .vector import MyVector
+
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -102,17 +107,17 @@ def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
 
 
 # ------------------------------ Trajectory computation auxiliary functions -------------------- #
-
+"""
 class Particule:
-    """Classe définissant une particule caractérisée par :
+    ""\"Classe définissant une particule caractérisée par :
     - son espèce
     - sa charge
     - sa masse
     - sa position x,y,z
     - sa vitesse vx, vy, vz
-    """
+    ""\"
     def __init__(self, espece, q, m, x, y, z, vx, vy, vz):
-        """Constructeur"""
+        ""\"Constructeur""\"
         self.espece = espece
         self.q = q
         self.m = m
@@ -122,7 +127,8 @@ class Particule:
         self.vx = vx
         self.vy = vy
         self.vz = vz
-        
+"""
+
 def moyenne_amelioree(liste):
     if len(liste)==0:
         return None
@@ -162,7 +168,6 @@ def distrib_init(espece, mesh_dict):
         vy=-v*np.sin(alpha)
         return x, y, 0, vx, vy, 0
 
-    
 def intersection(x1,y1,x2,y2,x3,y3,x4,y4): #donne les coords d'inters des segments 1,2 et 3,4 #n='NO' si n'existe pas, 'x'ou'y' selon la normale #d'impact de  1,2 sur 3,4
     """
     Donne les coordonnées d'intersection des segments 1,2 et 3,4 en assumant que 3,4 est forcément vertical ou horizontal
@@ -231,7 +236,6 @@ def f(Y,t,m,q,zone,E):
     return [vx, vy, vz, ax, ay, az]
 
 def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
-    
     Cond1=mode_dict['Elastique?']
     Cond2=mode_dict['Transfert de charge?']
     Cond3=mode_dict['Contact inter particules?']
@@ -242,10 +246,12 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
         print('error, Cond3 pas créée')
     
     particule=liste_Y[n][0]
-    m=particule.m
-    q=particule.q
-    espece=particule.espece
-    Y=np.array([particule.x, particule.y, particule.z, particule.vx, particule.vy, particule.vz])
+    m=particule.get_mass()
+    q=particule.get_charge()
+    espece=particule.get_part_type()
+    pos = particule.get_pos() # Vector object
+    speed = particule.get_speed() 
+    Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
     k1=np.array(f(Y,t,m,q,zone,E))
     k2=np.array(f(Y+.5*dt*k1, t+.5*dt,m,q,zone,E))
     k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
@@ -284,8 +290,16 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
                         np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta)*Y_pot[3], -(1-eta)*Y_pot[4],vz])
                 if Cond2==True and q!=0 and np.random.random_sample()<=p:
                     q,espece=0,'I'
-            
-    return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
+    
+    # update particule - what changes : charge, espece, 
+    # possiblity mass even if it seems ignored there, position and speed.
+    particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
+    particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))
+    particule.set_charge(q) # here q is expected to be an int but that can be changed at any moment in class Particule
+    particule.set_mass(m)
+    particule.set_part_type(espece)
+    
+    return particule #Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
 
 
 # ------------------------------ Trajectory computation main functions -------------------- #
@@ -326,13 +340,16 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
     
     for n in range (N1):
         x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
-        liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
+        #liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = 0, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I"),0]) # note that there still is a radius that can be set. By default it is set to IODINE_RADIUS.
     for n in range (N1,N1+N2):
         x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
-        liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
+        #liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+"),0])
     for n in range (N1+N2,N):
         x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
-        liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
+        #liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-"),0])
         
     np.random.shuffle(liste_Y)
     
@@ -373,7 +390,7 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
                 liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
+                if liste_Y[n][0].get_pos().y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
@@ -398,20 +415,22 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
    
     
     for n in range(N):
-        if liste_Y[n][1]==1 and liste_Y[n][0].vy!=0:
+        if liste_Y[n][1]==1 and liste_Y[n][0].get_speed().y!=0:
             particule=liste_Y[n][0]
-            if particule.espece=='I':
+            speed = particule.get_speed()
+            part_type = particule.get_part_type()
+            if part_type=='I':
                 N1f+=1
-                liste_vxf1.append(particule.vx)
-                liste_vyf1.append(particule.vy)
-            elif particule.espece=='I+':
+                liste_vxf1.append(speed.x)
+                liste_vyf1.append(speed.y)
+            elif part_type=='I+':
                 N2f+=1
-                liste_vxf2.append(particule.vx)
-                liste_vyf2.append(particule.vy)
-            elif particule.espece=='I-':
+                liste_vxf2.append(speed.x)
+                liste_vyf2.append(speed.y)
+            elif part_type=='I-':
                 N3f+=1
-                liste_vxf3.append(particule.vx)
-                liste_vyf3.append(particule.vy)
+                liste_vxf3.append(speed.x)
+                liste_vyf3.append(speed.y)
     
     if Nb_out!=0:
         p1f=N1f/Nb_out
@@ -477,16 +496,16 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     
     for n in range (N1):
         x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
-        liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = 0, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I"),0]) # note that there still is a radius that can be set. By default it is set to IODINE_RADIUS.
     for n in range (N1,N1+N2):
         x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
-        liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+"),0])
     for n in range (N1+N2,N):
         x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
-        liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
+        liste_Y.append([Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-"),0])
         
     np.random.shuffle(liste_Y)
-    
+ 
     liste_t=[0]
     listes_x=[]
     listes_y=[]
@@ -494,13 +513,15 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     listes_vy=[]
     listes_q=[]
     for n in range(N):
-        listes_x.append([liste_Y[n][0].x])
-        listes_y.append([liste_Y[n][0].y])
-        listes_vx.append([liste_Y[n][0].vx])
-        listes_vy.append([liste_Y[n][0].vy])
-        listes_q.append([liste_Y[n][0].q])
-    
-    
+        particule = liste_Y[n][0]
+        pos = particule.get_pos()
+        speed = particule.get_speed()
+        listes_x.append([pos.x])
+        listes_y.append([pos.y])
+        listes_vx.append([speed.x])
+        listes_vy.append([speed.y])
+        listes_q.append([particule.get_charge()])
+
     nombre_max_injecte_par_tour=int(DN*dt)+1
     nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour)
     nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
@@ -525,14 +546,14 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
                 liste_Y[n][1]=0
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
                 liste_Y[n][0]=particule
-                
-                listes_x[n].append(particule.x)
-                listes_y[n].append(particule.y)
-                listes_vx[n].append(particule.vx)
-                listes_vy[n].append(particule.vy)
-                listes_q[n].append(particule.q)
-                
-                if particule.y<-l_mot/2-h_grid-l_vacuum/2:
+                pos = particule.get_pos()
+                speed = particule.get_speed()
+                listes_x[n].append(pos.x)
+                listes_y[n].append(pos.y)
+                listes_vx[n].append(speed.x)
+                listes_vy[n].append(speed.y)
+                listes_q[n].append(particule.get_charge()) 
+                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
@@ -550,14 +571,16 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
                 liste_Y[n][1]=0
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
                 liste_Y[n][0]=particule
+                pos = particule.get_pos()
+                speed = particule.get_speed()
                 
-                listes_x[n].append(particule.x)
-                listes_y[n].append(particule.y)
-                listes_vx[n].append(particule.vx)
-                listes_vy[n].append(particule.vy)
-                listes_q[n].append(particule.q)
+                listes_x[n].append(pos.x)
+                listes_y[n].append(pos.y)
+                listes_vx[n].append(speed.x)
+                listes_vy[n].append(speed.y)
+                listes_q[n].append(particule.get_charge())
                 
-                if particule.y<-l_mot/2-h_grid-l_vacuum/2:
+                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
@@ -582,21 +605,24 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     liste_vyf3=[]
    
     
+     
     for n in range(N):
-        if liste_Y[n][1]==1 and liste_Y[n][0].vy!=0:
+        if liste_Y[n][1]==1 and liste_Y[n][0].get_speed().y!=0:
             particule=liste_Y[n][0]
-            if particule.espece=='I':
+            speed = particule.get_speed()
+            part_type = particule.get_part_type()
+            if part_type=='I':
                 N1f+=1
-                liste_vxf1.append(particule.vx)
-                liste_vyf1.append(particule.vy)
-            elif particule.espece=='I+':
+                liste_vxf1.append(speed.x)
+                liste_vyf1.append(speed.y)
+            elif part_type=='I+':
                 N2f+=1
-                liste_vxf2.append(particule.vx)
-                liste_vyf2.append(particule.vy)
-            elif particule.espece=='I-':
+                liste_vxf2.append(speed.x)
+                liste_vyf2.append(speed.y)
+            elif part_type=='I-':
                 N3f+=1
-                liste_vxf3.append(particule.vx)
-                liste_vyf3.append(particule.vy)
+                liste_vxf3.append(speed.x)
+                liste_vyf3.append(speed.y)
     
     if Nb_out!=0:
         p1f=N1f/Nb_out
