@@ -1,5 +1,6 @@
 # variable
 biblio/
+.vscode/
 
 # jupyter lab
 .ipynb_checkpoints
