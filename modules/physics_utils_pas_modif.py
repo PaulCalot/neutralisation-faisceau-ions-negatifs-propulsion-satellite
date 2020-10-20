@@ -251,8 +251,10 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
     k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
     k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))
     Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-
-    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
+    count = 0
+    max_count  = 20
+    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False and count <max_count:
+        count +=1
         xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list)
         z=Y_pot[2]
         vz=Y_pot[5]
@@ -284,7 +286,10 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
                         np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta)*Y_pot[3], -(1-eta)*Y_pot[4],vz])
                 if Cond2==True and q!=0 and np.random.random_sample()<=p:
                     q,espece=0,'I'
-            
+    #print("count {}".format(count))
+    if(count == max_count):
+        print("WARNING while loop count = {}".format(max_count))
+        
     return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
 
 

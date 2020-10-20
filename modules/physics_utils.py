@@ -16,6 +16,7 @@ from fenics import *
 
 import sys # to get the max float value
 from time import time # to time out if need
+from tqdm import tqdm
 u=1.7e-27
 e=1.6e-19
 
@@ -126,7 +127,7 @@ def distrib_init(espece, mesh_dict):
     
     if espece=='I':
         alpha=np.random.uniform(0,2*np.pi)
-        v=np.random.normal(3e3,1e3)
+        v=np.random.normal(200,1e3)
         x=np.random.uniform(-(L_mot-L_1)/2,(L_mot-L_1)/2)
         y=np.random.uniform(-l_mot/4,l_mot/4)
         return x, y, 0, v*np.cos(alpha), v*np.sin(alpha), 0
@@ -238,8 +239,10 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
     k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
     k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))
     Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-
-    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
+    count = 0
+    max_count = 3
+    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False and count < max_count:
+        count+=1
         xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list)
         z=Y_pot[2]
         vz=Y_pot[5]
@@ -271,7 +274,9 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
                         np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta)*Y_pot[3], -(1-eta)*Y_pot[4],vz])
                 if Cond2==True and q!=0 and np.random.random_sample()<=p:
                     q,espece=0,'I'
-    
+    #print("count {}".format(count))
+    if(count == max_count):
+        print("WARNING while loop count = {}".format(max_count))
     # update particule - what changes : charge, espece, 
     # possiblity mass even if it seems ignored there, position and speed.
     particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
@@ -399,7 +404,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     if(verbose):print('\t[OK]')
     
     elapsed_time = 0 # we don't want to spend more that time_out time in this loop (quick unsatisfactory solve)
-    while t<tmax: # replace it by a for loop
+    max_remaining_steps = int((tmax-t)/dt)+1
+    #while t<tmax: # replace it by a for loop
+    for k in tqdm(range(max_remaining_steps)):
+    #for k in range(max_remaining_steps):
         if(Nb_out == N):
             break
         if (elapsed_time > conditional_time_out and Nb_out>=time_out_tol*N): # could be integrated to the while condition
@@ -409,9 +417,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
             
         delta_elapsed_time = time()
         
-        if verbose and np.random.random_sample()<max(dt/tmax,0.05):
-            print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
-        for n in range (N):
+        #if verbose and np.random.random_sample()<max(dt/tmax,0.05):
+        #    print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
+        #for n in tqdm(range(N)):
+        for n in range(N):
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
@@ -428,7 +437,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     listes_q[n].append(particule.get_charge())
                     liste_t.append(t+dt)
 
-                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
+                if particule.get_pos().y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
