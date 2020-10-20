@@ -15,7 +15,7 @@ import scipy.integrate as integrate
 from fenics import *
 
 import sys # to get the max float value
-
+from time import time # to time out if need
 u=1.7e-27
 e=1.6e-19
 
@@ -286,7 +286,8 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
 # ------------------------------ Trajectory computation main function -------------------- #
 
 def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list,
-    zone, E, time_out = sys.float_info.max, time_out_tol = 0.8, save_trajectory = False, verbose = True):
+                       zone, E, conditional_time_out = sys.float_info.max, time_out_tol = 0.8, 
+                       absolute_time_out = sys.float_info.max, save_trajectory = False, verbose = True):
     """
     Renvoie la proportion d'espèce , 
     l'angle moyen, 
@@ -314,8 +315,11 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     ### On initialise une liste_Y comportant N lignes, chaque ligne correspond à une particule et est un couple (Particule,Entier)
     ### l'entier vaut -1 si la particule n'est pas encore injectée, 0 si est dedans et 1 si est sortie
     
-    if verbose : print("INITIALIZATION")
-
+    if verbose : 
+        print("INITIALIZING SIMULATION")
+        print('\t max simulation time : {} seconds \n\t time step : {} seconds \n\t Number of particules : {}'.format(tmax, dt, N)) 
+        print('\t particules proportions : \n\t\t I  : {:.0%} \n\t\t I+ : {:.0%} \n\t\t I- : {:.0%}'.format(p1, p2, p3))
+    
     N2=int(p2*N)
     N3=int(p3*N)
     N1=N-N2-N3
@@ -355,7 +359,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour)
     nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
     
-    if verbose : print("START : particules injection.")
+    if verbose : print("PARTICULES INJECTION ...", end = " ")
         
     for i in range(nombre_max_injecte_par_tour, N):
         liste_Y[i][1]=-1
@@ -373,6 +377,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         for n in range ((i+1)*nombre_max_injecte_par_tour):
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
+                
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
                 liste_Y[n][0]=particule
 
@@ -391,10 +396,19 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     Nb_out+=1
         t+=dt
         
-    if(verbose):print('END : particules injection')
+    if(verbose):print('\t[OK]')
     
     elapsed_time = 0 # we don't want to spend more that time_out time in this loop (quick unsatisfactory solve)
-    while t<tmax and Nb_out<N and (elapsed_time < time_out and Nb_out>time_out_tol*N):
+    while t<tmax: # replace it by a for loop
+        if(Nb_out == N):
+            break
+        if (elapsed_time > conditional_time_out and Nb_out>=time_out_tol*N): # could be integrated to the while condition
+            break
+        if(elapsed_time > absolute_time_out):
+            break
+            
+        delta_elapsed_time = time()
+        
         if verbose and np.random.random_sample()<max(dt/tmax,0.05):
             print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
         for n in range (N):
@@ -418,19 +432,21 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
-        elapsed_time+=dt
+        elapsed_time+=time()-delta_elapsed_time
         
     if(verbose): 
-        print("END : processing \n STOPPING CRITERION : \n\t")
+        print("END : processing \nSTOPPING CRITERION : ", end = " ")
         if(t>tmax):
-            print("TMAX REACHED : t = {} > {} = tmax sec".format(t,tmax))
+            print("TMAX REACHED ~> t = {} > {} = tmax seconds".format(t,tmax))
         elif(Nb_out==N):
-            print("ALL PARTICULES EXITED : Nb_out = N = {}".format(Nb_out))
+            print("ALL PARTICULES EXITED ~> Nb_out = N = {}".format(Nb_out))
+        elif(Nb_out>=time_out_tol*N) :
+            print("TIMED OUT ~> t = {} > {} seconds and Nb_out = {}>{}*N".format(t,conditional_time_out,Nb_out,time_out_tol))
         else :
-            print("TIMED OUT : t = {} > {} and Nb_out = {}>{}*N".format(t,time_out,Nb_out,time_out_tol))
+            print("TIMED OUT ~> t = {} > {} seconds".format(t,absolute_time_out))
 
     ### Traitement des données de sortie
-    if(verbose): print('\nSTART : data processing ...')
+    if(verbose): print('START : data processing ...', end = " ")
     
     N1f,N2f,N3f=0,0,0
     liste_vxf1,liste_vyf1=[],[]
@@ -479,7 +495,16 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
     liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
-
+    
+    if(verbose): 
+        print('\t[OK]')
+        print('RESULTS :')
+        print('\t Particules that exited : {} out of {}.'.format(Nb_out,N))
+        print('\t Proportions : \n\t\t I  : {:.0%} \n\t\t I+ : {:.0%} \n\t\t I- : {:.0%}'.format(p1f,p2f,p3f))
+        if(save_trajectory):
+            print("=> Intermediary positions returned")
+        print('\n')
+        
     if(save_trajectory):
         return [p1f,p2f,p3f], \
                 [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
