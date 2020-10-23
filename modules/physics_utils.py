@@ -504,7 +504,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
     liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
-    
+     # ajouter z
     if(verbose): 
         print('\t[OK]')
         print('RESULTS :')
