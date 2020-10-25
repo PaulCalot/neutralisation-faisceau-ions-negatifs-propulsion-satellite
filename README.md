@@ -17,12 +17,12 @@ TODO : test for *Windows* user
 
 Be careful that this command installs a pre-build version of *fenics* (made by the devs) which will not necessarily work on your system. Indeed, this pre-build version does not contain every dependency that is required to use *fenics*. In addition, and since we plan on using *mshr*, you should make sure that you have *dolfin* installed (otherwise you will ge an error).
 ```shell
-conda create --name NIRN -c conda-forge fenics
+conda create --name NIRN -c conda-forge fenics=2018
 conda activate NIRN
 conda install -c conda-forge matplotlib=3.3.2
 conda install -c anaconda scipy=1.5.2 
 #conda install pandas=0.20.3
-conda install -c conda-forge mshr
+conda install -c conda-forge mshr=2018
 ```
 
 If you want to use *jupyter notebook* or *jupyter lab*, please install : 
