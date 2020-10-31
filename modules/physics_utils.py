@@ -268,11 +268,11 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
    
     injection_finished = False
     for i in range(max_steps):
-    #for i in tqdm(range(max_steps)):
-        if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
-            print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
+    #for i in tqdm(range(max_steps)):*
         if(Nb_out >= N):
             break
+        if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
+            print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
         if(not injection_finished):
             for n in range (i*nombre_max_injecte_par_tour, (i+1)*nombre_max_injecte_par_tour):
                 list_parts[n].set_status(0)
@@ -282,25 +282,25 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     break
         
         collision_handler.step(dt, t, E, zone)
+        collision_handler.update_all_events()
+        if(True): print("Next time : {} sec. Time of next collision : {} sec.".format(t+dt,t+collision_handler.get_next_collision()))
+        if(injection_finished):
+            for n in range(N):
+                part = list_parts[n]
+                pos = part.get_pos()
 
-        
+                if(save_trajectory):
+                    speed = particule.get_speed()
+                    listes_x[n].append(pos.x)
+                    listes_y[n].append(pos.y)
+                    listes_vx[n].append(speed.x)
+                    listes_vy[n].append(speed.y)
+                    listes_q[n].append(particule.get_charge())
+                    liste_t.append(t+dt)
 
-        for n in range(min((i+1)*nombre_max_injecte_par_tour, N)):
-            part = list_parts[n]
-            pos = part.get_pos()
-
-            if(save_trajectory):
-                speed = particule.get_speed()
-                listes_x.append([pos.x])
-                listes_y.append([pos.y])
-                listes_vx.append([speed.x])
-                listes_vy.append([speed.y])
-                listes_q.append([particule.get_charge()])
-
-            if pos.y<-l_mot/2-h_grid-l_vacuum/2:
-                part.set_status(1)
-                Nb_out+=1
-        
+                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
+                    part.set_status(1)
+                    Nb_out+=1
         t+=dt
         
     if(verbose):print('\t[OK]')

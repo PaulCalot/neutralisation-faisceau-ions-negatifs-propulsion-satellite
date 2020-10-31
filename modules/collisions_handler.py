@@ -11,7 +11,7 @@ from .vector import MyVector
 class CollisionHandler(object):
     
     tolerance = 1e-12 # depends on the size of the atom
-
+    debug = False
     def __init__(self, particules, walls, f, eta, p):
         # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
@@ -56,7 +56,11 @@ class CollisionHandler(object):
             self.walls[i] = segment(Point(min_x, min_y),Point(max_x, max_y))
 
         # events table
-        self.events = np.array((self.nb_parts, self.nb_parts + self.nb_walls), dtype = float) # in the columns, walls come first
+        self.events = np.zeros((self.nb_parts, self.nb_parts + self.nb_walls), dtype = float) # in the columns, walls come first
+        for i in range(self.nb_parts): self.update_events(i)
+
+    def update_all_events(self):
+        for i in range(self.nb_parts): self.update_events(i)
 
     def update_events(self, p):
         """Update the events for the p^th disk"""
@@ -70,7 +74,7 @@ class CollisionHandler(object):
         r = self.particules[p].get_radius()
 
         # no self-collision!
-        self.events[p,p+self.nb_walls] = np.nan
+        self.events[p][p+self.nb_walls] = np.nan
         
         # collisions with a wall
         for i in range(self.nb_walls):
@@ -91,9 +95,9 @@ class CollisionHandler(object):
 
                 if((abs(x1)-self.tolerance < x_sol and abs(x2)+self.tolerance > x_sol) or \
                     (abs(y1)-self.tolerance < y_sol and abs(y2)+self.tolerance > y_sol)):
-                    self.event[p,i] = t_coll
+                    self.events[p,i] = t_coll
                 else :
-                    self.event[p,i] = np.nan
+                    self.events[p,i] = np.nan
             
             else : 
                 t_coll = max(t_coll1, t_coll2) 
@@ -103,12 +107,12 @@ class CollisionHandler(object):
                 # I think it just should not append however unless a particule starts too close from a wall.
                 # that's why I set "0" in this case.
                 if(t_coll >= 0):
-                    self.event[p,i] = 0
+                    self.events[p,i] = 0
                 else : 
-                    self.event[p,i] = np.nan
+                    self.events[p,i] = np.nan
     
         # collisions with other disks
-        for i in range(self.nb_walls, self.n_disks + self.nb_walls):
+        for i in range(0, self.nb_parts):
             if i != p:
                 t = self._time_to_collision(p, i)
                 self.events[p,i+self.nb_walls] = t
@@ -140,19 +144,23 @@ class CollisionHandler(object):
         particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))
 
     def step(self, dt, t, E, zone):
-        ind = np.unravel_index(np.nanargmin(self.events), self.events.shape)
-        t_coll = self.events[ind]
-        
+        try : 
+            ind = np.unravel_index(np.nanargmin(self.events), self.events.shape)
+            t_coll = self.events[ind]
+        except :
+            ind = 0
+            t_coll = 2*dt 
+        if(self.debug): print("Current time : {} sec. Time to next collision : {} sec.".format(t,t_coll))
         if dt < t_coll:
             for part_indx in range(len(self.particules)):
                 self.update_particule(dt, t, part_indx, E, zone)
-                self.events -= dt
+            self.events -= dt
         else:
             for part_indx in range(len(self.particules)):
                 self.update_particule(t_coll, t, part_indx, E, zone)
-                self.events -= t_coll
+            self.events -= t_coll
             self._new_velocities(ind) # update velocity of part of index ind
-            self.step(dt - t_coll)
+            self.step(dt - t_coll, t+t_coll, E, zone)
     
     # TODO : it could be best to add these functions to an external class so we can choose how we handle collision
     # independently from the algorithm that handles them (with the events table)
@@ -160,7 +168,6 @@ class CollisionHandler(object):
     def _time_to_collision(self, p, i):
         """Helper method to get the collision time between two disks of radius r"""
         # TODO : make it work with disks of different radius ? I think that we can approximate I, I-, I+  to the same radius.
-        # TODO : get_pos -> get_pos_2D
         # getting particules positions and speed
         part1 = self.particules[p]
         part2 = self.particules[i]
@@ -188,7 +195,7 @@ class CollisionHandler(object):
         return -alpha*(1-np.sqrt(beta))
     
     def _new_velocities(self, ind):
-
+        
         # TODO : make the collision more "realistic" : 3D collision, taking into account the angle for inelastic collision + best way to do it?
         # ind is the position in event matrix where the next collision occures
         p1 = ind[0] # the particule indx in the matrix
@@ -196,15 +203,16 @@ class CollisionHandler(object):
         
         # Event was a collision with wall
         if ind[1] < self.nb_walls:
+            
             a, b = self.walls_coeff[ind[1]]
             direction_vector = MyVector(a,1).normalize()
             normal = MyVector(-a,1).normalize()
             old_speed = part1.get_2D_speed()
-            theta = 2*np.arcos(direction_vector.inner(old_speed.normalize()))
+            theta = 2*np.arccos(direction_vector.inner(old_speed.normalize()))
             dot_product =  normal.inner(old_speed.normalize())
             if(dot_product>0):
                 theta = - theta
-            part1.rotate_speed_2D(theta) # rotate speed along +z axis. 
+            part1.rotate_speed_2D(float(theta)) # rotate speed along +z axis. 
             
             # at least we have theta so this should be ok if we want to take it into acount
             # not sure about this one (we lose speed weird ...)
@@ -251,3 +259,11 @@ class CollisionHandler(object):
 
             self.update_events(p1)
             self.update_events(p2)
+    
+    def get_next_collision(self):
+        try : 
+            ind = np.unravel_index(np.nanargmin(self.events), self.events.shape)
+            t_coll = self.events[ind]
+        except :
+            t_coll = np.nan 
+        return t_coll

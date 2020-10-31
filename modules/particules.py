@@ -73,8 +73,8 @@ class Particule(object):
             theta (float): the given angle
         """
         assert(type(theta) == type(1) or type(theta) == type(1.0))
-        self.speed = self.speed.rotate(theta)
-        
+        new_2D_speed = MyVector(self.speed.x, self.speed.y).rotate(theta)
+        self.speed = MyVector(new_2D_speed.x, new_2D_speed.y, self.speed.z)
         
     # ------------------------ Getter and Setter ----------------------------- #
 
@@ -111,7 +111,7 @@ class Particule(object):
 
     def set_2D_pos(self, new_pos):
         assert type(new_pos) == MyVector
-        self.pos.x, self.pos.y = new_pos.x, new_pos.y
+        self.pos = MyVector(new_pos.x, new_pos.y, self.pos.z)
 
         # speed
     def get_speed(self):
@@ -127,7 +127,7 @@ class Particule(object):
 
     def set_2D_speed(self, new_speed):
         assert type(new_speed) == MyVector
-        self.speed.x, self.speed.y = new_speed.x, new_speed.y
+        self.speed = MyVector(new_speed.x, new_speed.y, self.speed.z)
 
         # particule type
     def get_part_type(self):

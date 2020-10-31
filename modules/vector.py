@@ -63,7 +63,7 @@ class MyVector(object):
                 raise ValueError("Rotation matrix must be square and same dimensions as vector")
             return self.matrix_mult(matrix)
         
-    def rotate2D(self, theta):
+    def _rotate2D(self, theta):
         """ Rotate this vector by theta in degrees.
             
             Returns a new vector.
