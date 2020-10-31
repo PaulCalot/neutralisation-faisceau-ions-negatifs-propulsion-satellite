@@ -2,12 +2,11 @@
 import warnings
 import numpy as np
 
-from mshr import segment, Point
-
+from dolfin import Point
+from .utils import segment
 # local imports
-from vector import MyVector
+from .vector import MyVector
 
-class CollisionHandlerWithoutInterPartCollision(object):
 
 class CollisionHandler(object):
     
@@ -127,9 +126,10 @@ class CollisionHandler(object):
         pos = particule.get_pos() # MyVector object
         speed = particule.get_speed()
 
+        f = self.f
         # new speed and new position
         Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
-        k1=np.array(f(Y,t,m,q,self.zone,self.E))
+        k1=np.array(f(Y,t,m,q,zone,E))
         k2=np.array(f(Y+.5*dt*k1, t+.5*dt,m,q,zone,E))
         k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
         k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))

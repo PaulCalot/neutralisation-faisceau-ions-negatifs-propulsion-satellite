@@ -4,16 +4,15 @@ from __future__ import print_function
 
 from .particules import Particule
 from .vector import MyVector
-from .collisions_handler import CollisionHandlerWithoutInterPartCollision, CollisionHandler
+from .collisions_handler import CollisionHandler
 
-from mshr import FunctionSpace, VectorFunctionSpace, TrialFunction, TestFunction, \
-    Constant, DirichletBC, grad, dot, dx, Point
+import mshr
 import numpy as np
-from fenics import Function, solve, project
+from fenics import *
 
 import sys # to get the max float value
 from time import time # to time out if need
-from tqdm import tqdm
+#from tqdm import tqdm
 u=1.7e-27
 e=1.6e-19
 
@@ -211,10 +210,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         list_parts.append(Particule(charge = 0, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I", status = 0)) # note that there still is a radius that can be set. By default it is set to IODINE_RADIUS.
     for n in range (N1,N1+N2):
         x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
-        list_parts.append(Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+"), status = 0)
+        list_parts.append(Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+", status = 0))
     for n in range (N1+N2,N):
         x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
-        list_parts.append(Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-"), status = 0)
+        list_parts.append(Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-", status = 0))
     
     max_steps = int(tmax/dt)+1
     nombre_max_injecte_par_tour=int(DN*dt)+1
@@ -234,10 +233,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     p=mode_dict['proba perte q par contact'] if Cond2 else 0 # a priori idem pr I+ et I-
 
     if(Cond3):
-        collision_handler = CollisionHandler(list_parts, segments_list, zone, f, eta, p)
+        collision_handler = CollisionHandler(list_parts, segments_list, f, eta, p)
     else :
-        collision_handler = CollisionHandlerWithoutInterPartCollision(list_parts, segments_list, zone, f, eta, p)
-
+        #collision_handler = CollisionHandlerWithoutInterPartCollision(list_parts, segments_list, zone, f, eta, p)
+        pass
     # END
         # is it useful ?
     if(save_trajectory):
@@ -248,7 +247,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         listes_vy=[]
         listes_q=[]
         for n in range(N):
-            particule = list_parts[n][0]
+            particule = list_parts[n]
             pos = particule.get_pos()
             speed = particule.get_speed()
             listes_x.append([pos.x])
@@ -268,27 +267,39 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
 
    
     injection_finished = False
-    for i in tqdm(range(max_steps)):
-        if (verbose and np.random.random_sample()<max(dt/tmax,0.05)):
+    for i in range(max_steps):
+    #for i in tqdm(range(max_steps)):
+        if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
             print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
-        
+        if(Nb_out >= N):
+            break
         if(not injection_finished):
             for n in range (i*nombre_max_injecte_par_tour, (i+1)*nombre_max_injecte_par_tour):
                 list_parts[n].set_status(0)
                 if n==N-1: 
                     if(verbose): print("INJECTION FINISHED")
                     injection_finished = True
+                    break
         
-        collision_handler.step(dt)
+        collision_handler.step(dt, t, E, zone)
 
-        if(save_trajectory):
-            # TODO
-            pass
-    
-        if pos.y<-l_mot/2-h_grid-l_vacuum/2: # if we are outside the zone, then we have to do something (set stauts to 1 and increment Nb_out)
+        
 
-            liste_Y[n][1]=1
-            Nb_out+=1
+        for n in range(min((i+1)*nombre_max_injecte_par_tour, N)):
+            part = list_parts[n]
+            pos = part.get_pos()
+
+            if(save_trajectory):
+                speed = particule.get_speed()
+                listes_x.append([pos.x])
+                listes_y.append([pos.y])
+                listes_vx.append([speed.x])
+                listes_vy.append([speed.y])
+                listes_q.append([particule.get_charge()])
+
+            if pos.y<-l_mot/2-h_grid-l_vacuum/2:
+                part.set_status(1)
+                Nb_out+=1
         
         t+=dt
         

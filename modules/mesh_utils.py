@@ -7,15 +7,9 @@ import mshr
 import numpy as np
 import scipy.integrate as integrate
 from fenics import *
+from .utils import segment
 # TODO : delete unused imporrt
 
-
-def segment(Point1,Point2):
-    """
-    Renvoie une liste des 4 coordonnées des extrémités à partir des deux points donnés
-    [x1,y1,x2,y2]
-    """
-    return [Point1[0],Point1[1],Point2[0],Point2[1]]
 
 
 def get_mesh(mesh_dict):
