@@ -19,8 +19,8 @@ class Particule(object):
 
     e = 1.602e-19 # C
     types = ["I", "I2", "I-", "I+", "e"]
-    def __init__(self, charge = 0, mass = IODINE_MASS, pos = MyVector(0,0), speed = MyVector(0,0,0), \
-        part_type = "I", radius = IODINE_RADIUS,verbose = False):
+    def __init__(self, charge = 0, mass = IODINE_MASS, pos = MyVector(0,0,0), speed = MyVector(0,0,0), \
+        part_type = "I", radius = IODINE_RADIUS, verbose = False, status = -1):
         """ Create a particule, by default an neutral atom of mass ... (Iode).
 
         Args:
@@ -45,10 +45,16 @@ class Particule(object):
         self.speed = speed
         self.part_type = part_type
         self.radius = radius
-
+        self.status = status
         if(verbose):
             print("Created a " + self.to_string())
     
+    # ------------------------ Particules functions -------------------------- #
+    def lose_charge(self):
+        # see if there is another possibility
+        if(self.part_type=="I-"):
+            self.part_type = "I"
+            self.charge = 0.0
     # ------------------------ Utils functions ------------------------------ #
 
     def multiply_speed(self, scalar):
@@ -99,6 +105,14 @@ class Particule(object):
         assert type(new_pos) == MyVector
         self.pos = new_pos
     
+        # position
+    def get_2D_pos(self):
+        return MyVector(self.pos.x, self.pos.y)
+
+    def set_2D_pos(self, new_pos):
+        assert type(new_pos) == MyVector
+        self.pos.x, self.pos.y = new_pos.x, new_pos.y
+
         # speed
     def get_speed(self):
         return self.speed
@@ -129,7 +143,13 @@ class Particule(object):
     def set_radius(self,new_radius):
         self.radius = new_radius
 
-    
+        # status
+    def get_status(self):
+        return self.status
+
+    def set_status(self, new_status):
+        self.status = new_status
+
     # ----------------- to String -------------------- #
 
     def to_string(self):

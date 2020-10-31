@@ -4,15 +4,12 @@ from __future__ import print_function
 
 from .particules import Particule
 from .vector import MyVector
+from .collisions_handler import CollisionHandlerWithoutInterPartCollision, CollisionHandler
 
-
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
-import dolfin
-import mshr
+from mshr import FunctionSpace, VectorFunctionSpace, TrialFunction, TestFunction, \
+    Constant, DirichletBC, grad, dot, dx, Point
 import numpy as np
-import scipy.integrate as integrate
-from fenics import *
+from fenics import Function, solve, project
 
 import sys # to get the max float value
 from time import time # to time out if need
@@ -150,55 +147,6 @@ def distrib_init(espece, mesh_dict):
         vy=-v*np.sin(alpha)
         return x, y, 0, vx, vy, 0
 
-def intersection(x1,y1,x2,y2,x3,y3,x4,y4): #donne les coords d'inters des segments 1,2 et 3,4 #n='NO' si n'existe pas, 'x'ou'y' selon la normale #d'impact de  1,2 sur 3,4
-    """
-    Donne les coordonnées d'intersection des segments 1,2 et 3,4 en assumant que 3,4 est forcément vertical ou horizontal
-    Renvoie aussi la normale au segment 3,4 (ici la normale au plan percuté)
-    
-    Si impact il y a eu, la sortie est de type (xi,yi,'x') ou (xi,yi,'y'). Sinon, renvoie (0,0,'NO')
-    """
-    if x3==x4: #segment vert
-        if x2==x1: #parallelisme
-            return (0,0,'NO')
-        if (x1-x3)*(x2-x3)>0:  #du meme cote de ce segment
-            return (0,0,'NO')
-        pente_traj=(y2-y1)/(x2-x1)
-        b_traj=y1-pente_traj*x1
-        y_test=pente_traj*x3+b_traj
-        if y_test<=max(y3,y4) and y_test>=min(y3,y4):
-            return (x3,y_test,'x')
-        return (0,0,'NO')
-    else:    #segment horiz
-        if y1==y2: #parallelisme
-            return (0,0,'NO')
-        if (y1-y3)*(y2-y3)>0:  #du meme cote de ce segment
-            return (0,0,'NO')
-        if x1==x2: #autre seg ss notion de pente
-            if x1<=max(x3,x4) and x1>=min(x3,x4):
-                return (x1,y3,'y')
-            return (0,0,'NO')
-        pente_traj=(y2-y1)/(x2-x1)
-        b_traj=y1-pente_traj*x1
-        x_test=(y3-b_traj)/pente_traj
-        if x_test<=max(x3,x4) and x_test>=min(x3,x4):
-            return (x_test,y3,'y')
-        return (0,0,'NO')
-
-def coord_impact(x1,y1,x2,y2, segments_list): #cherche où et selon quelle n le segments 1,2 coupe un bord
-    """
-    On sait que ce segment coupe un bord, On cherche alors quel segment il coupe ainsi que les coordonnées d'intersection et la normale
-    Renvoie (xi,yi,n) ou n='x'ou'y'
-    Par défaut (normalement jamais), renvoie (0,0,'NO') s'il ne coupe rien
-    """
-    for i in range(len(segments_list)):
-        x3,y3,x4,y4=segments_list[i]
-        xi,yi,n=intersection(x1,y1,x2,y2,x3,y3,x4,y4)
-        if n!='NO':
-            if i==0 or i==2 or i==6 or i==16:
-                return (xi,yi,'xm')
-            return (xi,yi,n)
-    return (0,0,'NO')
-
 def f(Y,t,m,q,zone,E):
     '''
     Renvoie la dérivée de Y en y (en faisant un bilan des forces notamment) pr être entré dans RK4
@@ -217,82 +165,10 @@ def f(Y,t,m,q,zone,E):
     az=0
     return [vx, vy, vz, ax, ay, az]
 
-def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
-    Cond1=mode_dict['Elastique?']
-    Cond2=mode_dict['Transfert de charge?']
-    Cond3=mode_dict['Contact inter particules?']
-    eta=mode_dict['perte u par contact'] #a priori idem pr I, I+ et I-
-    p=mode_dict['proba perte q par contact'] #a priori idem pr I+ et I-
-
-    if Cond3==True:
-        print('error, Cond3 pas créée')
-    
-    particule=liste_Y[n][0]
-    m=particule.get_mass()
-    q=particule.get_charge()
-    espece=particule.get_part_type()
-    pos = particule.get_pos() # Vector object
-    speed = particule.get_speed() 
-    Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
-    k1=np.array(f(Y,t,m,q,zone,E))
-    k2=np.array(f(Y+.5*dt*k1, t+.5*dt,m,q,zone,E))
-    k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
-    k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))
-    Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-    count = 0
-    max_count = 3
-    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False and count < max_count:
-        count+=1
-        xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list)
-        z=Y_pot[2]
-        vz=Y_pot[5]
-        
-        if n=='x'or n=='xm': #normale selon x 
-            #incidence = np.arctan((Y_pot[1]-Y[1])/(Y_pot[0]-Y[0]))
-            #remplacer p par p*np.cos(incidence) et (1-eta) par (1-eta*np.cos(incidence)
-            if Cond1==True:
-                Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
-                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -Y_pot[3], Y_pot[4], vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p: 
-                    q,espece=0,'I'
-            else:
-                Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
-                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -(1-eta)*Y_pot[3], (1-eta)*Y_pot[4], vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p:
-                    q,espece=0,'I'
-                    
-        else: #normale selon y 
-            #incidence = np.arctan((Y_pot[0]-Y[0])/(Y_pot[1]-Y[1]))
-            #remplacer p par p*np.cos(incidence) et (1-eta) par (1-eta*np.cos(incidence)
-            if Cond1==True:    
-                Y,Y_pot=np.array([xinter,yinter,z, 0,0,vz] ),\
-                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]), z, Y_pot[3], -Y_pot[4],vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p:
-                    q,espece=0,'I'
-            else:
-                Y,Y_pot=np.array([xinter,yinter,z,0,0,vz] ),\
-                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta)*Y_pot[3], -(1-eta)*Y_pot[4],vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p:
-                    q,espece=0,'I'
-    #print("count {}".format(count))
-    if(count == max_count):
-        print("WARNING while loop count = {}".format(max_count))
-    # update particule - what changes : charge, espece, 
-    # possiblity mass even if it seems ignored there, position and speed.
-    particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
-    particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))
-    particule.set_charge(q) # here q is expected to be an int but that can be changed at any moment in class Particule
-    particule.set_mass(m)
-    particule.set_part_type(espece)
-    
-    return particule #Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
-
-
 # ------------------------------ Trajectory computation main function -------------------- #
 
 def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list,
-                       zone, E, conditional_time_out = sys.float_info.max, time_out_tol = 0.8, 
-                       absolute_time_out = sys.float_info.max, save_trajectory = False, verbose = True):
+                       zone, E, save_trajectory = False, verbose = True):
     """
     Renvoie la proportion d'espèce , 
     l'angle moyen, 
@@ -329,20 +205,41 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     N3=int(p3*N)
     N1=N-N2-N3
     
-    liste_Y=[]
-    
+    list_parts=[]
     for n in range (N1):
         x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
-        liste_Y.append([Particule(charge = 0, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I"),0]) # note that there still is a radius that can be set. By default it is set to IODINE_RADIUS.
+        list_parts.append(Particule(charge = 0, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I", status = 0)) # note that there still is a radius that can be set. By default it is set to IODINE_RADIUS.
     for n in range (N1,N1+N2):
         x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
-        liste_Y.append([Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+"),0])
+        list_parts.append(Particule(charge = e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I+"), status = 0)
     for n in range (N1+N2,N):
         x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
-        liste_Y.append([Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-"),0])
-        
-    np.random.shuffle(liste_Y)
- 
+        list_parts.append(Particule(charge = -e, mass = 127*u, pos = MyVector(x,y,z), speed = MyVector(vx,vy,vz), part_type = "I-"), status = 0)
+    
+    max_steps = int(tmax/dt)+1
+    nombre_max_injecte_par_tour=int(DN*dt)+1
+    #nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour)
+    #nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
+
+    np.random.shuffle(list_parts)
+    for i in range(nombre_max_injecte_par_tour, N):
+        # setting particules not yet injected to status -1
+        list_parts[i].set_status(-1)
+    # /!\ creating the collision handler /!\
+        # we had to wait for the shuffle of liste_Y as the index we'll have is the on in liste_Y
+    Cond1=mode_dict['Elastique?']
+    Cond2=mode_dict['Transfert de charge?']
+    Cond3=mode_dict['Contact inter particules?']
+    eta=mode_dict['perte u par contact'] if Cond1 else 0 # a priori idem pr I, I+ et I-
+    p=mode_dict['proba perte q par contact'] if Cond2 else 0 # a priori idem pr I+ et I-
+
+    if(Cond3):
+        collision_handler = CollisionHandler(list_parts, segments_list, zone, f, eta, p)
+    else :
+        collision_handler = CollisionHandlerWithoutInterPartCollision(list_parts, segments_list, zone, f, eta, p)
+
+    # END
+        # is it useful ?
     if(save_trajectory):
         liste_t=[0]
         listes_x=[]
@@ -351,7 +248,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         listes_vy=[]
         listes_q=[]
         for n in range(N):
-            particule = liste_Y[n][0]
+            particule = list_parts[n][0]
             pos = particule.get_pos()
             speed = particule.get_speed()
             listes_x.append([pos.x])
@@ -359,15 +256,8 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
             listes_vx.append([speed.x])
             listes_vy.append([speed.y])
             listes_q.append([particule.get_charge()])
-
-    nombre_max_injecte_par_tour=int(DN*dt)+1
-    nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour)
-    nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
     
-    if verbose : print("PARTICULES INJECTION ...", end = " ")
-        
-    for i in range(nombre_max_injecte_par_tour, N):
-        liste_Y[i][1]=-1
+    if verbose : print("PARTICULES INJECTION AND SIMULATION ...", end = " ")
         
     ### On calcule les trajectoires en 2 temps
     ### On fait d'abord les tours où il y a injection au débit max en ne traitant qu'une partie des particules
@@ -376,83 +266,40 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     t=0
     Nb_out=0
 
-    for i in range (nombre_tour_plein_debit):
+   
+    injection_finished = False
+    for i in tqdm(range(max_steps)):
         if (verbose and np.random.random_sample()<max(dt/tmax,0.05)):
             print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
-        for n in range ((i+1)*nombre_max_injecte_par_tour):
-            if liste_Y[n][1]!=1: 
-                liste_Y[n][1]=0
-                
-                particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                liste_Y[n][0]=particule
+        
+        if(not injection_finished):
+            for n in range (i*nombre_max_injecte_par_tour, (i+1)*nombre_max_injecte_par_tour):
+                list_parts[n].set_status(0)
+                if n==N-1: 
+                    if(verbose): print("INJECTION FINISHED")
+                    injection_finished = True
+        
+        collision_handler.step(dt)
 
-                if(save_trajectory):
-                    pos = particule.get_pos()
-                    speed = particule.get_speed()
-                    listes_x[n].append(pos.x)
-                    listes_y[n].append(pos.y)
-                    listes_vx[n].append(speed.x)
-                    listes_vy[n].append(speed.y)
-                    listes_q[n].append(particule.get_charge()) 
-                    liste_t.append(t+dt)
+        if(save_trajectory):
+            # TODO
+            pass
+    
+        if pos.y<-l_mot/2-h_grid-l_vacuum/2: # if we are outside the zone, then we have to do something (set stauts to 1 and increment Nb_out)
 
-                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
-                    liste_Y[n][1]=1
-                    Nb_out+=1
+            liste_Y[n][1]=1
+            Nb_out+=1
+        
         t+=dt
         
     if(verbose):print('\t[OK]')
-    
-    elapsed_time = 0 # we don't want to spend more that time_out time in this loop (quick unsatisfactory solve)
-    max_remaining_steps = int((tmax-t)/dt)+1
-    #while t<tmax: # replace it by a for loop
-    for k in tqdm(range(max_remaining_steps)):
-    #for k in range(max_remaining_steps):
-        if(Nb_out == N):
-            break
-        if (elapsed_time > conditional_time_out and Nb_out>=time_out_tol*N): # could be integrated to the while condition
-            break
-        if(elapsed_time > absolute_time_out):
-            break
-            
-        delta_elapsed_time = time()
-        
-        #if verbose and np.random.random_sample()<max(dt/tmax,0.05):
-        #    print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
-        #for n in tqdm(range(N)):
-        for n in range(N):
-            if liste_Y[n][1]!=1: 
-                liste_Y[n][1]=0
-                particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                
-                if(save_trajectory):
-                    liste_Y[n][0]=particule
-                    pos = particule.get_pos()
-                    speed = particule.get_speed()
-                    
-                    listes_x[n].append(pos.x)
-                    listes_y[n].append(pos.y)
-                    listes_vx[n].append(speed.x)
-                    listes_vy[n].append(speed.y)
-                    listes_q[n].append(particule.get_charge())
-                    liste_t.append(t+dt)
 
-                if particule.get_pos().y<-l_mot/2-h_grid-l_vacuum/2:
-                    liste_Y[n][1]=1
-                    Nb_out+=1
-        t+=dt
-        elapsed_time+=time()-delta_elapsed_time
-        
     if(verbose): 
         print("END : processing \nSTOPPING CRITERION : ", end = " ")
         if(t>tmax):
             print("TMAX REACHED ~> t = {} > {} = tmax seconds".format(t,tmax))
         elif(Nb_out==N):
             print("ALL PARTICULES EXITED ~> Nb_out = N = {}".format(Nb_out))
-        elif(Nb_out>=time_out_tol*N) :
-            print("TIMED OUT ~> t = {} > {} seconds and Nb_out = {}>{}*N".format(t,conditional_time_out,Nb_out,time_out_tol))
-        else :
-            print("TIMED OUT ~> t = {} > {} seconds".format(t,absolute_time_out))
 
     ### Traitement des données de sortie
     if(verbose): print('START : data processing ...', end = " ")
@@ -463,8 +310,8 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_vxf3,liste_vyf3=[],[]
 
     for n in range(N):
-        if liste_Y[n][1]==1 and liste_Y[n][0].get_speed().y!=0:
-            particule=liste_Y[n][0]
+        if list_parts[n].get_status()==1 and list_parts[n].get_speed().y!=0:
+            particule=list_parts[n]
             speed = particule.get_speed()
             part_type = particule.get_part_type()
             if part_type=='I':
@@ -502,6 +349,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_alpha1=-np.arctan(liste_vxf1/liste_vyf1)
     liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2), 1/2)
     liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
+    # TODO problem here, see what Edouard made 
     liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
      # ajouter z

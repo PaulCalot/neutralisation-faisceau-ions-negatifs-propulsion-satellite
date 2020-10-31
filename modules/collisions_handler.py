@@ -5,19 +5,24 @@ import numpy as np
 from mshr import segment, Point
 
 # local imports
-from vector import Vector
+from vector import MyVector
 
-class CollisionHandlerNaiveVersion(object):
+class CollisionHandlerWithoutInterPartCollision(object):
+
+class CollisionHandler(object):
     
     tolerance = 1e-12 # depends on the size of the atom
 
-    def __init__(self, particules, walls):
+    def __init__(self, particules, walls, f, eta, p):
+        # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
         self.walls = walls
         self.nb_parts = len(particules)
         self.nb_walls = len(walls)
         self.walls_coeff = np.zeros((self.nb_walls,2))
-
+        self.f = f 
+        self.eta = eta
+        self.lose_charge_proba = p
         # precomputing coefficients for the walls
         # and sorting segments point by incrementing x
         for i, wall in enumerate(walls):
@@ -58,7 +63,7 @@ class CollisionHandlerNaiveVersion(object):
         """Update the events for the p^th disk"""
     
         # getting particules positions and speed
-        pos = [part.get_pos() for part in self.particules]
+        pos = [part.get_2D_pos() for part in self.particules]
         speed = [part.get_2D_speed() for part in self.particules]
 
         # current particule pos and speed :
@@ -109,34 +114,58 @@ class CollisionHandlerNaiveVersion(object):
                 t = self._time_to_collision(p, i)
                 self.events[p,i+self.nb_walls] = t
                 self.events[i,p+self.nb_walls] = t
+    
 
-    def step(self, dt):
-        """Make a time step dt"""
-        
-        # find event with smallest time
+
+    def update_particule(self, dt, t, part_indx, E, zone):
+        particule=self.particules[part_indx]
+
+        # particule params
+        m=particule.get_mass()
+        q=particule.get_charge()
+        espece=particule.get_part_type()
+        pos = particule.get_pos() # MyVector object
+        speed = particule.get_speed()
+
+        # new speed and new position
+        Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
+        k1=np.array(f(Y,t,m,q,self.zone,self.E))
+        k2=np.array(f(Y+.5*dt*k1, t+.5*dt,m,q,zone,E))
+        k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
+        k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))
+        Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
+
+        # updating speed and position
+        particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
+        particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))
+
+    def step(self, dt, t, E, zone):
         ind = np.unravel_index(np.nanargmin(self.events), self.events.shape)
         t_coll = self.events[ind]
         
         if dt < t_coll:
-            self.positions += self.velocities * dt
-            self.events -= dt
+            for part_indx in range(len(self.particules)):
+                self.update_particule(dt, t, part_indx, E, zone)
+                self.events -= dt
         else:
-            self.positions += self.velocities * t_coll
-            self.events -= t_coll
-            self._new_velocities(ind)
+            for part_indx in range(len(self.particules)):
+                self.update_particule(t_coll, t, part_indx, E, zone)
+                self.events -= t_coll
+            self._new_velocities(ind) # update velocity of part of index ind
             self.step(dt - t_coll)
-            
+    
     # TODO : it could be best to add these functions to an external class so we can choose how we handle collision
     # independently from the algorithm that handles them (with the events table)
+    
     def _time_to_collision(self, p, i):
         """Helper method to get the collision time between two disks of radius r"""
         # TODO : make it work with disks of different radius ? I think that we can approximate I, I-, I+  to the same radius.
-
+        # TODO : get_pos -> get_pos_2D
         # getting particules positions and speed
         part1 = self.particules[p]
         part2 = self.particules[i]
 
-        dr = part2.get_pos() - part1.get_pos()
+        dr = part2.get_2D_pos() - part1.get_2D_pos()
         dv = part2.get_2D_speed() - part1.get_2D_speed()
         dvdr = np.dot(dv,dr)
         
@@ -159,21 +188,31 @@ class CollisionHandlerNaiveVersion(object):
         return -alpha*(1-np.sqrt(beta))
     
     def _new_velocities(self, ind):
+
+        # TODO : make the collision more "realistic" : 3D collision, taking into account the angle for inelastic collision + best way to do it?
         # ind is the position in event matrix where the next collision occures
-        p1 = ind[0] # the particule
+        p1 = ind[0] # the particule indx in the matrix
         part1 = self.particules[p1]
         
         # Event was a collision with wall
         if ind[1] < self.nb_walls:
             a, b = self.walls_coeff[ind[1]]
-            direction_vector = Vector(a,1).normalize()
-            normal = Vector(-a,1).normalize()
+            direction_vector = MyVector(a,1).normalize()
+            normal = MyVector(-a,1).normalize()
             old_speed = part1.get_2D_speed()
             theta = 2*np.arcos(direction_vector.inner(old_speed.normalize()))
             dot_product =  normal.inner(old_speed.normalize())
             if(dot_product>0):
                 theta = - theta
             part1.rotate_speed_2D(theta) # rotate speed along +z axis. 
+            
+            # at least we have theta so this should be ok if we want to take it into acount
+            # not sure about this one (we lose speed weird ...)
+            part1.set_2D_speed(part1.get_2D_speed()*(1-self.eta))
+
+            if(np.random.random_sample()<self.lose_charge_proba):
+                part1.lose_charge()
+
             self.update_events(p1)
 
         # Event was collision with another disk
@@ -188,7 +227,7 @@ class CollisionHandlerNaiveVersion(object):
             old_speed2 = part2.get_2D_speed()
 
             delta_v = part2.get_2D_speed() - part1.get_2D_speed()
-            delta_r = part2.get_pos() - part1.get_pos()
+            delta_r = part2.get_2D_pos() - part1.get_2D_pos()
 
             dvdr = np.dot(delta_v, delta_r)
 
@@ -197,5 +236,18 @@ class CollisionHandlerNaiveVersion(object):
         
             part1.set_2D_speed(part1.get_2D_speed() + imp_v)
             part2.set_2D_speed(part2.get_2D_speed() - imp_v)
+
+            # in the case of a two-disk collisions, we should have something different
+            # as for the charge loss etc.
+            part1.set_2D_speed(part1.get_2D_speed()*(1-self.eta))
+
+            if(np.random.random_sample()<self.lose_charge_proba):
+                part1.lose_charge()
+
+            part2.set_2D_speed(part2.get_2D_speed()*(1-self.eta))
+
+            if(np.random.random_sample()<self.lose_charge_proba):
+                part2.lose_charge()
+
             self.update_events(p1)
             self.update_events(p2)
