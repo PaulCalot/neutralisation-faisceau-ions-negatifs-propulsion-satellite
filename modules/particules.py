@@ -68,9 +68,9 @@ class Particule(object):
 
     def rotate_speed_2D(self, theta):
         """ Rotate the supposed 2D speed by theta (around +z axis)
-
+        Theta in degree.
         Args:
-            theta (float): the given angle
+            theta (float): the given angle in degree.
         """
         assert(type(theta) == type(1) or type(theta) == type(1.0))
         new_2D_speed = MyVector(self.speed.x, self.speed.y).rotate(theta)
@@ -154,4 +154,4 @@ class Particule(object):
 
     def to_string(self):
         return "{} particule of charge {} C and mass {} kg in position ({},{}) m with speed ({},{}) m/s" \
-            .format(self.part_type, self.charge, self.mass,self.pos.x, self.pos.y, self.speed.x, self.speed.y)
+            .format(self.part_type, self.charge, self.mass, round(self.pos.x,3), round(self.pos.y,3), round(self.speed.x,3), round(self.speed.y,3))

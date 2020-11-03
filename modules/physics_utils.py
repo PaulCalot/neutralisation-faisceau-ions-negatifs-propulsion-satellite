@@ -6,6 +6,11 @@ from .particules import Particule
 from .vector import MyVector
 from .collisions_handler import CollisionHandler
 
+# animation
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+
+
 import mshr
 import numpy as np
 from fenics import *
@@ -167,7 +172,7 @@ def f(Y,t,m,q,zone,E):
 # ------------------------------ Trajectory computation main function -------------------- #
 
 def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list,
-                       zone, E, save_trajectory = False, verbose = True):
+                       zone, E, save_trajectory = False, verbose = True, animate = True):
     """
     Renvoie la proportion d'espèce , 
     l'angle moyen, 
@@ -264,11 +269,88 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         
     t=0
     Nb_out=0
-
-   
+    
     injection_finished = False
+    """ try for animating the particules
+    if(animate):
+        NE=sqrt(dot(E,E))
+        fig = plt.figure(figsize=(10,10))
+        #fig=plot(NE)
+        #fig.set_cmap("viridis")
+        #lt.colorbar(fig)
+        ax = fig.add_subplot(111, aspect='equal')
+        X_pos = []
+        Y_pos = []
+            
+        for n in range(N):
+            part = list_parts[n]
+            pos = part.get_pos()
+
+            # setting position for animating
+            X_pos.append(pos.x)
+            Y_pos.append(pos.y)
+            
+        line, = ax.plot(X_pos, Y_pos, 'ro', ms=3)
+        ax.set_xlim(-0.05,0.05)
+        ax.set_ylim(-0.03,0)
+        
+        def init():
+            return line,
+        
+        def animate_func(i):
+            print("DEBUG")
+            if(Nb_out >= N):
+                #return
+                pass
+            if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
+                print ('elapsed time : {:.0%} , particules remaining : {:.0%}.'.format(t/tmax,1-Nb_out/N))
+            if(not injection_finished):
+                for n in range (i*nombre_max_injecte_par_tour, (i+1)*nombre_max_injecte_par_tour):
+                    list_parts[n].set_status(0)
+                    if n==N-1: 
+                        if(verbose): print("INJECTION FINISHED")
+                        injection_finished = True
+                        #break
+            collision_handler.step(dt, t, E, zone)
+            collision_handler.update_all_events()
+            if(verbose): print("Next time : {} sec. Time of next collision : {} sec.".format(t+dt,t+collision_handler.get_next_collision()))
+            print("DEBUG"
+
+            X_pos = []
+            Y_pos = []
+            
+            for n in range(N):
+                print("DEBUG")
+                part = list_parts[n]
+                pos = part.get_pos()
+                
+                # setting position for animating
+                X_pos.append(pos.x)
+                Y_pos.append(pos.y)
+                
+                if(save_trajectory):
+                    speed = particule.get_speed()
+                    listes_x[n].append(pos.x)
+                    listes_y[n].append(pos.y)
+                    listes_vx[n].append(speed.x)
+                    listes_vy[n].append(speed.y)
+                    listes_q[n].append(particule.get_charge())
+                    liste_t.append(t+dt)
+
+                if pos.y<-l_mot/2-h_grid-l_vacuum/2:
+                    part.set_status(1)
+                    Nb_out+=1
+            t+=dt
+            line.set_data(X_pos, Y_pos)
+            return line,
+    
+        anim = animation.FuncAnimation(fig, animate_func, init_func=init, interval=dt*1000, blit=False)
+        plt.show()
+    """
+
+
     for i in range(max_steps):
-    #for i in tqdm(range(max_steps)):*
+    #for i in tqdm(range(max_steps)):
         if(Nb_out >= N):
             break
         if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
@@ -280,10 +362,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     if(verbose): print("INJECTION FINISHED")
                     injection_finished = True
                     break
-        
-        collision_handler.step(dt, t, E, zone)
+
+        collision_handler.step(dt, t, f_args = [zone, E])
         collision_handler.update_all_events()
-        if(True): print("Next time : {} sec. Time of next collision : {} sec.".format(t+dt,t+collision_handler.get_next_collision()))
+        if(verbose): print("Next time : {} sec. Time of next collision : {} sec.".format(t+dt,t+collision_handler.get_next_collision()))
         if(injection_finished):
             for n in range(N):
                 part = list_parts[n]
@@ -302,7 +384,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
                     part.set_status(1)
                     Nb_out+=1
         t+=dt
-        
+
     if(verbose):print('\t[OK]')
 
     if(verbose): 
