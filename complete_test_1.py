@@ -47,8 +47,8 @@ Ex, Ey = E.split(deepcopy=True)
 NE=sqrt(dot(E,E))
 
 integration_parameters_dict = {
-    'tmax' : 1e-5,
-    'dt' : 1e-9,
+    'tmax' : 4e-6,
+    'dt' : 5e-10,
 }
 
 injection_dict = {
