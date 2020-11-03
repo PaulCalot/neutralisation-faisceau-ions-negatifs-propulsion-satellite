@@ -17,7 +17,7 @@ from fenics import *
 
 import sys # to get the max float value
 from time import time # to time out if need
-#from tqdm import tqdm
+from tqdm import tqdm
 u=1.7e-27
 e=1.6e-19
 
@@ -349,8 +349,8 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     """
 
 
-    for i in range(max_steps):
-    #for i in tqdm(range(max_steps)):
+      #for i in range(max_steps):
+    for i in tqdm(range(max_steps)):
         if(Nb_out >= N):
             break
         if (verbose): #and np.random.random_sample()<max(dt/tmax,0.05)):
