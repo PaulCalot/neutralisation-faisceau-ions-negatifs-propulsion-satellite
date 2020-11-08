@@ -9,9 +9,6 @@ import numpy as np
 import scipy.integrate as integrate
 from fenics import *
 
-u=1.7e-27
-e=1.6e-19
-
 # ------------------------- E and V computation ---------------------------- #
 def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
     
@@ -128,6 +125,11 @@ def moyenne_amelioree(liste):
         return None
     return np.mean(liste)
 
+def ecart_type_ameliore(liste):
+    if len(liste)==0:
+        return None
+    return np.std(liste)
+
 def distrib_init(espece, mesh_dict):
     """
     Renvoie x,y,z aléatoirement en suivant une distribution propre à l'espèce
@@ -139,14 +141,14 @@ def distrib_init(espece, mesh_dict):
     
     if espece=='I':
         alpha=np.random.uniform(0,2*np.pi)
-        v=np.random.normal(3e3,1e3)
+        v=np.random.normal(200,100)
         x=np.random.uniform(-(L_mot-L_1)/2,(L_mot-L_1)/2)
         y=np.random.uniform(-l_mot/4,l_mot/4)
         return x, y, 0, v*np.cos(alpha), v*np.sin(alpha), 0
     
     elif espece=='I+':
         alpha=np.random.uniform(0,np.pi)
-        v=np.random.normal(5e3,1e3)
+        v=np.random.normal(5e3,5e2)
         x=(L_mot-L_1)/2*np.cos(alpha)
         y=(L_mot-L_1)/2*np.sin(alpha)-l_mot/2
         vx=v*np.cos(alpha)
@@ -155,7 +157,7 @@ def distrib_init(espece, mesh_dict):
     
     elif espece=='I-':
         alpha=np.random.uniform(0,np.pi)
-        v=np.random.normal(5e3,1e3)
+        v=np.random.normal(5e3,5e2)
         x=(L_mot-L_1)/2*np.cos(alpha)
         y=(L_mot-L_1)/2*np.sin(alpha)-l_mot/2
         vx=-v*np.cos(alpha)
@@ -197,20 +199,21 @@ def intersection(x1,y1,x2,y2,x3,y3,x4,y4): #donne les coords d'inters des segmen
             return (x_test,y3,'y')
         return (0,0,'NO')
 
-def coord_impact(x1,y1,x2,y2, segments_list): #cherche où et selon quelle n le segments 1,2 coupe un bord
+def coord_impact(x1,y1,x2,y2, segments_list, last_impact): #cherche où et selon quelle n le segments 1,2 coupe un bord
     """
-    On sait que ce segment coupe un bord, On cherche alors quel segment il coupe ainsi que les coordonnées d'intersection et la normale
-    Renvoie (xi,yi,n) ou n='x'ou'y'
-    Par défaut (normalement jamais), renvoie (0,0,'NO') s'il ne coupe rien
+    On sait que ce segment coupe un bord, On cherche alors quel segment il coupe ainsi que les coordonnées d'intersection, la normale et le numéro du segment en question. L'argument last_impact est éventuellement le dernier segment impacté, qu'il ne faut pas reprendre en compte
+    Renvoie (xi,yi,n,i) ou n='x'ou'y'
+    Par défaut (normalement jamais), renvoie (0,0,'NO',None) s'il ne coupe rien
     """
     for i in range(len(segments_list)):
-        x3,y3,x4,y4=segments_list[i]
-        xi,yi,n=intersection(x1,y1,x2,y2,x3,y3,x4,y4)
-        if n!='NO':
-            if i==0 or i==2 or i==6 or i==16:
-                return (xi,yi,'xm')
-            return (xi,yi,n)
-    return (0,0,'NO')
+        if i!=last_impact :
+            x3,y3,x4,y4=segments_list[i]
+            xi,yi,n=intersection(x1,y1,x2,y2,x3,y3,x4,y4)
+            if n!='NO':
+                if i==0 or i==2 or i==6 or i==16:
+                    return (xi,yi,'xm',i)
+                return (xi,yi,n,i)
+    return (0,0,'NO',None)
 
 def f(Y,t,m,q,zone,E):
     '''
@@ -231,7 +234,10 @@ def f(Y,t,m,q,zone,E):
     return [vx, vy, vz, ax, ay, az]
 
 def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
-    
+    """
+    liste_Y est la liste des couples [particule,i] de la simulation, n est la particule à faire avancer.
+    renvoie la particule dans son nouvel état.
+    """
     Cond1=mode_dict['Elastique?']
     Cond2=mode_dict['Transfert de charge?']
     Cond3=mode_dict['Contact inter particules?']
@@ -251,38 +257,37 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
     k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,zone,E))
     k4=np.array(f(Y+dt*k3, t+dt,m,q,zone,E))
     Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
+    last_impact=None
 
     while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
-        xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list)
+        xinter,yinter,n,last_impact=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list,last_impact)
         z=Y_pot[2]
         vz=Y_pot[5]
         
         if n=='x'or n=='xm': #normale selon x 
-            #incidence = np.arctan((Y_pot[1]-Y[1])/(Y_pot[0]-Y[0]))
-            #remplacer p par p*np.cos(incidence) et (1-eta) par (1-eta*np.cos(incidence)
+            incidence = np.arctan((Y_pot[1]-Y[1])/(Y_pot[0]-Y[0]))
             if Cond1==True:
                 Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
                         np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -Y_pot[3], Y_pot[4], vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p: 
+                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence): 
                     q,espece=0,'I'
             else:
                 Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
-                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -(1-eta)*Y_pot[3], (1-eta)*Y_pot[4], vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p:
+                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -(1-eta*np.cos(incidence))*Y_pot[3], (1-eta*np.cos(incidence))*Y_pot[4], (1-eta*np.cos(incidence))*vz])
+                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
                     q,espece=0,'I'
                     
         else: #normale selon y 
-            #incidence = np.arctan((Y_pot[0]-Y[0])/(Y_pot[1]-Y[1]))
-            #remplacer p par p*np.cos(incidence) et (1-eta) par (1-eta*np.cos(incidence)
+            incidence = np.arctan((Y_pot[0]-Y[0])/(Y_pot[1]-Y[1]))
             if Cond1==True:    
                 Y,Y_pot=np.array([xinter,yinter,z, 0,0,vz] ),\
                         np.array([Y_pot[0], yinter+(yinter-Y_pot[1]), z, Y_pot[3], -Y_pot[4],vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p:
+                if Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
                     q,espece=0,'I'
             else:
                 Y,Y_pot=np.array([xinter,yinter,z,0,0,vz] ),\
-                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta)*Y_pot[3], -(1-eta)*Y_pot[4],vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p:
+                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta*np.cos(incidence))*Y_pot[3], -(1-eta*np.cos(incidence))*Y_pot[4],(1-eta*np.cos(incidence))*vz])
+                if Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
                     q,espece=0,'I'
             
     return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
@@ -290,156 +295,7 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
 
 # ------------------------------ Trajectory computation main functions -------------------- #
 
-def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone,E):
-    """
-    Renvoie la proportion d'espèce , 
-    l'angle moyen, 
-    et la norme de la vitesse moyenne en sortie.
-    """
-    
-    tmax=integration_parameters_dict['tmax']
-    dt=integration_parameters_dict['dt']
-    
-    l_mot=mesh_dict['l_mot']
-    l_1=mesh_dict['l_1']
-    l_2=mesh_dict['l_2']
-    delta_vert_12=mesh_dict['delta_vert_12']
-    l_vacuum=mesh_dict['l_vacuum']
-    h_grid=l_1 + l_2 + delta_vert_12
-    
-    N=injection_dict['Nombre de particules']
-    p1=injection_dict['proportion de I']
-    p2=injection_dict['proportion de I+']
-    p3=injection_dict['proportion de I-']
-    DN=injection_dict['débit de particule en entrée de la grille']
-    
-    ### On initialise une liste_Y comportant N lignes, chaque ligne correspond à une particule et est un couple (Particule,Entier)
-    ### l'entier vaut -1 si la particule n'est pas encore injectée, 0 si est dedans et 1 si est sortie
-    
-    print("début d'initialisation")
-    
-    N2=int(p2*N)
-    N3=int(p3*N)
-    N1=N-N2-N3
-    
-    liste_Y=[]
-    
-    for n in range (N1):
-        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
-        liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
-    for n in range (N1,N1+N2):
-        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
-        liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
-    for n in range (N1+N2,N):
-        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
-        liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
-        
-    np.random.shuffle(liste_Y)
-    
-    nombre_max_injecte_par_tour=int(DN*dt)+1 #au moins 1 si Dn trop petit
-    nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour) 
-    nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
-    
-    for i in range(nombre_max_injecte_par_tour, N):
-        liste_Y[i][1]=-1
-        
-    ### On calcule les trajectoires en 2 temps
-    ### On fait d'abord les tours où il y a injection au débit max en ne traitant qu'une partie des particules
-    ### Puis on fait tourner en continu jusqu'à tmax ou à ce qu'il n'y ait plus de particules à l'intérieur
-    
-    print("début de l'injection")
-        
-    t=0
-    Nb_out=0
-
-    for i in range (nombre_tour_plein_debit):
-        if np.random.random_sample()<max(dt/tmax,0.05):
-            print ('Avancement de '+str(100*(t/tmax)%10)+'%, '+str(Nb_out)+' particules sorties')
-        for n in range ((i+1)*nombre_max_injecte_par_tour):
-            if liste_Y[n][1]!=1: 
-                liste_Y[n][1]=0
-                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
-                    liste_Y[n][1]=1
-                    Nb_out+=1
-        t+=dt
-    
-    print('toutes les particules sont injectées')
-    
-    while t<tmax and Nb_out<N:
-        if np.random.random_sample()<max(dt/tmax,0.05):
-            print ('Avancement de '+str(100*(t/tmax)%10)+'%, '+str(Nb_out)+' particules sorties')
-        for n in range (N):
-            if liste_Y[n][1]!=1: 
-                liste_Y[n][1]=0
-                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
-                    liste_Y[n][1]=1
-                    Nb_out+=1
-        t+=dt
-        
-    if Nb_out==N:
-        print("fin du calcul, critère d'arret: Nb_out")
-    else:
-        print("fin du calcul, critère d'arret: tmax")
-    
-    ### Traitement des données de sortie
-    print('début traitement de données')
-    
-    N1f=0
-    N2f=0
-    N3f=0
-    liste_vxf1=[]
-    liste_vyf1=[]
-    liste_vxf2=[]
-    liste_vyf2=[]
-    liste_vxf3=[]
-    liste_vyf3=[]
-   
-    
-    for n in range(N):
-        if liste_Y[n][1]==1 and liste_Y[n][0].vy!=0:
-            particule=liste_Y[n][0]
-            if particule.espece=='I':
-                N1f+=1
-                liste_vxf1.append(particule.vx)
-                liste_vyf1.append(particule.vy)
-            elif particule.espece=='I+':
-                N2f+=1
-                liste_vxf2.append(particule.vx)
-                liste_vyf2.append(particule.vy)
-            elif particule.espece=='I-':
-                N3f+=1
-                liste_vxf3.append(particule.vx)
-                liste_vyf3.append(particule.vy)
-    
-    if Nb_out!=0:
-        p1f=N1f/Nb_out
-        p2f=N2f/Nb_out
-        p3f=N3f/Nb_out
-    else:
-        p1f=0
-        p2f=0
-        p3f=0
-    liste_vxf1=np.array(liste_vxf1)
-    liste_vyf1=np.array(liste_vyf1)
-    liste_vxf2=np.array(liste_vxf2)
-    liste_vyf2=np.array(liste_vyf2)
-    liste_vxf3=np.array(liste_vxf3)
-    liste_vyf3=np.array(liste_vyf3)
-    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2), 1/2)
-    liste_alpha1=-np.arctan(liste_vxf1/liste_vyf1)
-    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2), 1/2)
-    liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
-    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
-    liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
-    
-    return [p1f,p2f,p3f], \
-           [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
-           [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)]
-    
-
-def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone,E):
+def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone, E, physics_consts_dict, details):
     """
     Renvoie la proportion d'espèce , 
     l'angle moyen, 
@@ -451,6 +307,9 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     tmax=integration_parameters_dict['tmax']
     dt=integration_parameters_dict['dt']
     
+    e=physics_consts_dict['CHARGE']
+    u=physics_consts_dict['M_NUCLEON']
+    
     l_mot=mesh_dict['l_mot']
     l_1=mesh_dict['l_1']
     l_2=mesh_dict['l_2']
@@ -487,18 +346,21 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
         
     np.random.shuffle(liste_Y)
     
-    liste_t=[0]
-    listes_x=[]
-    listes_y=[]
-    listes_vx=[]
-    listes_vy=[]
-    listes_q=[]
-    for n in range(N):
-        listes_x.append([liste_Y[n][0].x])
-        listes_y.append([liste_Y[n][0].y])
-        listes_vx.append([liste_Y[n][0].vx])
-        listes_vy.append([liste_Y[n][0].vy])
-        listes_q.append([liste_Y[n][0].q])
+    if details==True:
+        liste_t=[0]
+        listes_x=[]
+        listes_y=[]
+        listes_vx=[]
+        listes_vy=[]
+        listes_vz=[]
+        listes_q=[]
+        for n in range(N):
+            listes_x.append([liste_Y[n][0].x])
+            listes_y.append([liste_Y[n][0].y])
+            listes_vx.append([liste_Y[n][0].vx])
+            listes_vy.append([liste_Y[n][0].vy])
+            listes_vz.append([liste_Y[n][0].vz])
+            listes_q.append([liste_Y[n][0].q])
     
     
     nombre_max_injecte_par_tour=int(DN*dt)+1
@@ -518,50 +380,56 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     Nb_out=0
 
     for i in range (nombre_tour_plein_debit):
-        if np.random.random_sample()<max(dt/tmax,0.05):
-            print ('Avancement de '+str(100*(t/tmax)%10)+'%, '+str(Nb_out)+' particules sorties')
+        if np.random.random_sample()<max(dt/tmax,0.1):
+            print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
         for n in range ((i+1)*nombre_max_injecte_par_tour):
+            #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
                 liste_Y[n][0]=particule
-                
-                listes_x[n].append(particule.x)
-                listes_y[n].append(particule.y)
-                listes_vx[n].append(particule.vx)
-                listes_vy[n].append(particule.vy)
-                listes_q[n].append(particule.q)
+                if details==True:
+                    listes_x[n].append(particule.x)
+                    listes_y[n].append(particule.y)
+                    listes_vx[n].append(particule.vx)
+                    listes_vy[n].append(particule.vy)
+                    listes_vz[n].append(particule.vz)
+                    listes_q[n].append(particule.q)
                 
                 if particule.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
-        liste_t.append(t)
+        if details==True:
+            liste_t.append(t)
         
     print('toutes les particules sont injectées')
     
     
                  
     while t<tmax and Nb_out<N:
-        if np.random.random_sample()<max(dt/tmax,0.05):
-            print ('Avancement de '+str(100*(t/tmax)%10)+'%, '+str(Nb_out)+' particules sorties')
+        if np.random.random_sample()<max(dt/tmax,0.1):
+            print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
         for n in range (N):
+            #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
                 particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
                 liste_Y[n][0]=particule
-                
-                listes_x[n].append(particule.x)
-                listes_y[n].append(particule.y)
-                listes_vx[n].append(particule.vx)
-                listes_vy[n].append(particule.vy)
-                listes_q[n].append(particule.q)
+                if details==True:
+                    listes_x[n].append(particule.x)
+                    listes_y[n].append(particule.y)
+                    listes_vx[n].append(particule.vx)
+                    listes_vy[n].append(particule.vy)
+                    listes_vz[n].append(particule.vz)
+                    listes_q[n].append(particule.q)
                 
                 if particule.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
-        liste_t.append(t)
+        if details==True:
+            liste_t.append(t)
         
     if Nb_out==N:
         print("fin du calcul, critère d'arret: Nb_out")
@@ -576,10 +444,13 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
     N3f=0
     liste_vxf1=[]
     liste_vyf1=[]
+    liste_vzf1=[]
     liste_vxf2=[]
     liste_vyf2=[]
+    liste_vzf2=[]
     liste_vxf3=[]
     liste_vyf3=[]
+    liste_vzf3=[]
    
     
     for n in range(N):
@@ -589,14 +460,17 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
                 N1f+=1
                 liste_vxf1.append(particule.vx)
                 liste_vyf1.append(particule.vy)
+                liste_vzf1.append(particule.vz)
             elif particule.espece=='I+':
                 N2f+=1
                 liste_vxf2.append(particule.vx)
                 liste_vyf2.append(particule.vy)
+                liste_vzf2.append(particule.vz)
             elif particule.espece=='I-':
                 N3f+=1
                 liste_vxf3.append(particule.vx)
                 liste_vyf3.append(particule.vy)
+                liste_vzf3.append(particule.vz)
     
     if Nb_out!=0:
         p1f=N1f/Nb_out
@@ -608,22 +482,32 @@ def compute_trajectory_smallN(integration_parameters_dict, injection_dict, mesh_
         p3f=0
     liste_vxf1=np.array(liste_vxf1)
     liste_vyf1=np.array(liste_vyf1)
+    liste_vzf1=np.array(liste_vzf1)
     liste_vxf2=np.array(liste_vxf2)
     liste_vyf2=np.array(liste_vyf2)
+    liste_vzf2=np.array(liste_vzf2)
     liste_vxf3=np.array(liste_vxf3)
     liste_vyf3=np.array(liste_vyf3)
-    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2), 1/2)
+    liste_vzf3=np.array(liste_vzf3)
+    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2)+np.power(liste_vzf1,2), 1/2)
     liste_alpha1=-np.arctan(liste_vxf1/liste_vyf1)
-    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2), 1/2)
+    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2)+np.power(liste_vzf2,2), 1/2)
     liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
-    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
+    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2)+np.power(liste_vzf3,2), 1/2)
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
     
+    if details==True:
+        return [p1f,p2f,p3f], \
+                [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
+                [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
+                [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
+                [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)], \
+                listes_x, listes_y, listes_vx, listes_vy, listes_q, liste_t
     return [p1f,p2f,p3f], \
-            [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
-            [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
-            listes_x, listes_y, listes_vx, listes_vy, listes_q, liste_t
-
+                [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
+                [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
+                [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
+                [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)]
 
 
 
@@ -699,3 +583,152 @@ Autre truc à étudier: si après le calcul du rebond ou du miroir, on retombe h
     t+=dt
     if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
         break'''
+
+'''
+def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone,E):
+    """
+    Renvoie la proportion d'espèce , 
+    l'angle moyen, 
+    et la norme de la vitesse moyenne en sortie.
+    """
+    
+    tmax=integration_parameters_dict['tmax']
+    dt=integration_parameters_dict['dt']
+    
+    l_mot=mesh_dict['l_mot']
+    l_1=mesh_dict['l_1']
+    l_2=mesh_dict['l_2']
+    delta_vert_12=mesh_dict['delta_vert_12']
+    l_vacuum=mesh_dict['l_vacuum']
+    h_grid=l_1 + l_2 + delta_vert_12
+    
+    N=injection_dict['Nombre de particules']
+    p1=injection_dict['proportion de I']
+    p2=injection_dict['proportion de I+']
+    p3=injection_dict['proportion de I-']
+    DN=injection_dict['débit de particule en entrée de la grille']
+    
+    ### On initialise une liste_Y comportant N lignes, chaque ligne correspond à une particule et est un couple (Particule,Entier)
+    ### l'entier vaut -1 si la particule n'est pas encore injectée, 0 si est dedans et 1 si est sortie
+    
+    print("début d'initialisation")
+    
+    N2=int(p2*N)
+    N3=int(p3*N)
+    N1=N-N2-N3
+    
+    liste_Y=[]
+    
+    for n in range (N1):
+        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
+        liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
+    for n in range (N1,N1+N2):
+        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
+        liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
+    for n in range (N1+N2,N):
+        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
+        liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
+        
+    np.random.shuffle(liste_Y)
+    
+    nombre_max_injecte_par_tour=int(DN*dt)+1 #au moins 1 si Dn trop petit
+    nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour) 
+    nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
+    
+    for i in range(nombre_max_injecte_par_tour, N):
+        liste_Y[i][1]=-1
+        
+    ### On calcule les trajectoires en 2 temps
+    ### On fait d'abord les tours où il y a injection au débit max en ne traitant qu'une partie des particules
+    ### Puis on fait tourner en continu jusqu'à tmax ou à ce qu'il n'y ait plus de particules à l'intérieur
+    
+    print("début de l'injection")
+        
+    t=0
+    Nb_out=0
+
+    for i in range (nombre_tour_plein_debit):
+        if np.random.random_sample()<max(dt/tmax,0.1):
+            print ('Avancement de '+str(100*(t/tmax))+'%, '+str(Nb_out)+' particules sorties')
+        for n in range ((i+1)*nombre_max_injecte_par_tour):
+            if liste_Y[n][1]!=1: 
+                liste_Y[n][1]=0
+                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
+                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
+                    liste_Y[n][1]=1
+                    Nb_out+=1
+        t+=dt
+    
+    print('toutes les particules sont injectées')
+    
+    while t<tmax and Nb_out<N:
+        if np.random.random_sample()<max(dt/tmax,0.1):
+            print ('Avancement de '+str(100*(t/tmax))+'%, '+str(Nb_out)+' particules sorties')
+        for n in range (N):
+            if liste_Y[n][1]!=1: 
+                liste_Y[n][1]=0
+                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
+                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
+                    liste_Y[n][1]=1
+                    Nb_out+=1
+        t+=dt
+        
+    if Nb_out==N:
+        print("fin du calcul, critère d'arret: Nb_out")
+    else:
+        print("fin du calcul, critère d'arret: tmax")
+    
+    ### Traitement des données de sortie
+    print('début traitement de données')
+    
+    N1f=0
+    N2f=0
+    N3f=0
+    liste_vxf1=[]
+    liste_vyf1=[]
+    liste_vxf2=[]
+    liste_vyf2=[]
+    liste_vxf3=[]
+    liste_vyf3=[]
+   
+    
+    for n in range(N):
+        if liste_Y[n][1]==1 and liste_Y[n][0].vy!=0:
+            particule=liste_Y[n][0]
+            if particule.espece=='I':
+                N1f+=1
+                liste_vxf1.append(particule.vx)
+                liste_vyf1.append(particule.vy)
+            elif particule.espece=='I+':
+                N2f+=1
+                liste_vxf2.append(particule.vx)
+                liste_vyf2.append(particule.vy)
+            elif particule.espece=='I-':
+                N3f+=1
+                liste_vxf3.append(particule.vx)
+                liste_vyf3.append(particule.vy)
+    
+    if Nb_out!=0:
+        p1f=N1f/Nb_out
+        p2f=N2f/Nb_out
+        p3f=N3f/Nb_out
+    else:
+        p1f=0
+        p2f=0
+        p3f=0
+    liste_vxf1=np.array(liste_vxf1)
+    liste_vyf1=np.array(liste_vyf1)
+    liste_vxf2=np.array(liste_vxf2)
+    liste_vyf2=np.array(liste_vyf2)
+    liste_vxf3=np.array(liste_vxf3)
+    liste_vyf3=np.array(liste_vyf3)
+    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2), 1/2)
+    liste_alpha1=-np.arctan(liste_vxf1/liste_vyf1)
+    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2), 1/2)
+    liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
+    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
+    liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
+    
+    return [p1f,p2f,p3f], \
+           [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
+           [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)]'''

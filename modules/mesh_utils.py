@@ -79,8 +79,8 @@ def get_mesh(mesh_dict):
     zone -= (rect_1 + rect_2 + rect_3 + rect_4)
 
     segments_list=[
-        segment(P1,P2+Point(-L_mot,l_mot)), #0
-        segment(P2+Point(-L_mot,l_mot),P2), 
+        segment(P1,P2+Point(-L_mot,0)), #0
+        segment(P2+Point(-L_mot,0),P2), 
         segment(P2, P11+Point(L_1/2,0)), #2
         segment(P11+Point(L_1/2,0), P11),
         segment(P11, P11+Point(0,-l_1)),
