@@ -3,7 +3,7 @@ biblio/
 .vscode/
 *.png
 nohup.out
-
+tests/
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
