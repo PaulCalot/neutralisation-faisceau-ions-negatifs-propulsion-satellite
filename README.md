@@ -32,17 +32,13 @@ conda install -c conda-forge notebook
 conda install -c conda-forge jupyterlab
 ```
 
-To handle slide show :
+To handle slide show in the jupyter notebook :
 ```shell
 conda install -c conda-forge rise
 ```
 
-If it does not work for some reason, you can try installing *mshr* first : 
-```
-conda create -n NIRN -c conda-forge mshr=2019.1.0
-conda install -c conda-forge matplotlib=3.3.2
-```
-It will automatically download *python*, *fenics* and *numpy* amongst other as they are part of its dependencies.
+If it does not work for some reason, you can try installing 2018 versions. 
+
 
 **Note : *fenicsy* already contains *numpy* which is consequently installed whith *fenicsy*.**
 
