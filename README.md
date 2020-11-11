@@ -32,6 +32,11 @@ conda install -c conda-forge notebook
 conda install -c conda-forge jupyterlab
 ```
 
+To handle slide show :
+```shell
+conda install -c conda-forge rise
+```
+
 If it does not work for some reason, you can try installing *mshr* first : 
 ```
 conda create -n NIRN -c conda-forge mshr=2019.1.0

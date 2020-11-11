@@ -1,3 +1,5 @@
+# TODO : nettoyer le code ; ajouter params en entrée lorsqu'on lance (ou via un cfg plus tard)
+
 from __future__ import print_function
 
 import matplotlib.pyplot as plt
