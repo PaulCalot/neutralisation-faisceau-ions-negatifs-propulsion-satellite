@@ -7,10 +7,12 @@ from dolfin import Point
 # local imports
 from .utils import segment
 from .vector import MyVector
+from .grid import Grid
 
 class CollisionHandler(object):
     debug = False
-    def __init__(self, particules, walls, f, eta = 0, p = 0):
+    def __init__(self, particules, walls, f, eta = 0, p = 0, use_particles_collisions = False, \
+        use_DSMC = True, grid = None):
         # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
         self.walls = walls
@@ -24,6 +26,12 @@ class CollisionHandler(object):
         # probability of losing a charge for the particule when colliding
         self.lose_charge_proba = p 
 
+        # if we use particles collisions 
+        self.use_particles_collisions = use_particles_collisions
+
+        # Use DSMC
+        self.use_DSMC = use_DSMC
+        self.grid = grid
         # and sorting segments point by incrementing x
         # /!\ useful ? Pretty sure it's not.
         for i, wall in enumerate(self.walls):
@@ -52,7 +60,11 @@ class CollisionHandler(object):
         #self.walls_vector = np.array(self.walls_vector, dtype = MyVector)
 
         # events table
-        self.events = np.zeros((self.nb_parts, self.nb_parts + self.nb_walls), dtype = float) # in the columns, walls come first
+        if(self.use_particles_collisions):
+            self.events = np.zeros((self.nb_parts, self.nb_parts + self.nb_walls), dtype = float) # in the columns, walls come first
+        else:
+            self.events = np.zeros((self.nb_parts, self.nb_walls), dtype = float)
+
         for i in range(self.nb_parts): self.update_events(i)
 
     # ------------------- Updating events functions ------------------------- #
@@ -78,19 +90,21 @@ class CollisionHandler(object):
         r = part.get_radius()
 
         # no self-collision !
-        self.events[p][p+self.nb_walls] = np.nan
+        if(self.use_particles_collisions):
+            self.events[p][p+self.nb_walls] = np.nan
         
         # collisions with a wall
         for i in range(self.nb_walls):
             self.events[p,i] = self.handler_wall_collision(pos, speed, r, i)
 
         # collisions with other disks
-        for i in range(0, self.nb_parts):
-            # updating only if particule i is not p.
-            if i != p:
-                t = self.handler_particules_collision(p, i)
-                self.events[p,i+self.nb_walls] = t
-                self.events[i,p+self.nb_walls] = t
+        if(self.use_particles_collisions):
+            for i in range(0, self.nb_parts):
+                # updating only if particule i is not p.
+                if i != p:
+                    t = self.handler_particules_collision(p, i)
+                    self.events[p,i+self.nb_walls] = t
+                    self.events[i,p+self.nb_walls] = t
     
         if(self.debug): print("\nUpdated events of particule {} : {}\n".format(p,self.events))
 
@@ -105,7 +119,15 @@ class CollisionHandler(object):
         except :
             ind = 0
             t_coll = np.nan
+        
+        if(self.use_DSMC): # we have to store all the particles previous positions
+            # to delete it later on
+            list_previous_positions = []
+            for i, part in enumerate(self.particules):
+                list_previous_positions.append(part.get_2D_pos())
+                
         if(self.debug): print("Current time : {} sec. Time before next collision : {} sec.".format(t,t_coll))
+        
         if dt < t_coll or np.isnan(t_coll):
             for part_indx in range(len(self.particules)):
                 self._one_particule_step(dt, t, part_indx, f_args)
@@ -118,7 +140,15 @@ class CollisionHandler(object):
             self.events -= t_coll
             self._new_velocities_collision(ind) # update velocity of part of index ind
             self.step(dt - t_coll, t+t_coll, f_args)
-    
+        
+        if(self.use_DSMC):
+            # updating position of particles in the grid
+            for i, part in enumerate(self.particules):
+                self.grid.update(part, list_previous_positions[i])
+            
+            # calling the 2nd step function in the DSMC case.
+            self.DSMC_collisions()
+
     # ----------------------------- Collision handlers ------------------------------- #
 
     def handler_wall_collision(self, position, speed, radius, wall_indx):
@@ -374,3 +404,10 @@ class CollisionHandler(object):
         except :
             t_coll = np.nan 
         return t_coll
+
+    
+    # ------------------------------ DSMC --------------------------- #
+
+    def DSMC_collisions(self):
+
+        return 0

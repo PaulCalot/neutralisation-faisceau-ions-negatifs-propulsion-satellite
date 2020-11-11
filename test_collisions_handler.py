@@ -1,10 +1,10 @@
 # TODO : this script does not work yet. I should fix the saving to mpeg stuff.
 
 # my modules imports
-from ..modules.collisions_handler import CollisionHandler
-from .modules.particules import Particule
-from .modules.utils import segment
-from .modules.vector import MyVector
+from modules.collisions_handler import CollisionHandler
+from modules.particules import Particule
+from modules.utils import segment
+from modules.vector import MyVector
 
 # imports
 import matplotlib
@@ -18,8 +18,8 @@ import matplotlib.animation as animation
 debug = True
 
 # particules
-parts_nb = 100
-particules = [Particule(speed=MyVector(random(),random(),0),pos=MyVector(0.25+random()/2,0.25+random()/2,0)) for k in range(parts_nb)]
+parts_nb = 10
+particules = [Particule(radius = 0.01, speed=MyVector(random(),random(),0),pos=MyVector(0.25+random()/2,0.25+random()/2,0)) for k in range(parts_nb)]
 
 # walls
 walls = [segment(Point(0,0),Point(0,1)), segment(Point(0,0),Point(1,0)), \
@@ -48,15 +48,16 @@ dt = 0.01
 t = 0
 max_t = 20
 
-"""while t < max_t :
+while t < max_t :
     collisionHandler.step(dt, t, [])
     t+=dt
     if(debug):
         for i,part in enumerate(particules):
             print("[{}] - pos : {} - speed : {}".format(i,(round(part.get_2D_pos().x,3),round(part.get_2D_pos().y,3)),\
                 (round(part.get_2D_speed().x,3),round(part.get_2D_speed().y,3))))
-"""
 
+
+"""
 # For animation - works only in notebook
 #%matplotlib notebook
 import matplotlib.pyplot as plt
@@ -92,4 +93,5 @@ anim = animation.FuncAnimation(fig, animate, interval=max_t, blit=False)
 
 
 
-anim.save('lines.mp4', writer=writer)
+anim.save('lines.mp4', writer=writer)$
+"""

@@ -1,13 +1,13 @@
 from modules.particules import Particule
 from modules.grid import Grid
-from modules.vector import Vector
+from modules.vector import MyVector
 
 my_grid = Grid(10,20,[10,20])
 
 print("\nDefining several particules :")
 part1 = Particule()
-part2 = Particule(pos = Vector(0.5,0.5))
-part3 = Particule(pos = Vector(1.5, 0))
+part2 = Particule(pos = MyVector(0.5,0.5))
+part3 = Particule(pos = MyVector(1.5, 0))
 
 print("\nTrying to get the charge of a particule ... {} [OK]".format(part1.get_charge()))
 
@@ -20,9 +20,9 @@ my_grid.to_string()
 
 print("\nChanging part 1 & 3 pos :")
 old_pos1 = part1.get_pos()
-part1.set_pos(Vector(0.2,0))
+part1.set_pos(MyVector(0.2,0))
 old_pos3 = part3.get_pos()
-part3.set_pos(Vector(0.5,0.6))
+part3.set_pos(MyVector(0.5,0.6))
 
 my_grid.to_string()
 
@@ -48,8 +48,8 @@ print("\n[OK]")
 
 print("\nTesting vectors ...")
 
-v1 = Vector(0.5,0.5)
-v2 = Vector(1.0,0.5)
+v1 = MyVector(0.5,0.5)
+v2 = MyVector(1.0,0.5)
 alpha = 0.9
 
 v3 = v1 + alpha*v2
