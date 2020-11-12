@@ -134,22 +134,32 @@ class CollisionHandler(object):
             for part_indx in range(len(self.particules)):
                 self._one_particule_step(dt, t, part_indx, f_args)
             self.events -= dt
+
+            if(self.use_DSMC):
+                # updating position of particles in the grid
+                for i, part in enumerate(self.particules):
+                    self.grid.update(part, list_previous_positions[i])
+                
+                # calling the 2nd step function in the DSMC case.
+                self.DSMC_collisions(dt)
         else:
             # TODO : make sure there is no problem here with updating the position and speed of the particule WHEREAS there will be a collision.
-            # i.e. We certainly don't want to have the particule going to far in the wall as it will "keep bouncing" in such a case.
+            # i.e. We certainly don't want to have the particule going to far in the wall as it could "keep bouncing" in such a case.
             for part_indx in range(len(self.particules)):
                 self._one_particule_step(t_coll, t, part_indx, f_args)
             self.events -= t_coll
             self._new_velocities_collision(ind) # update velocity of part of index ind
+
+            if(self.use_DSMC):
+                # updating position of particles in the grid
+                for i, part in enumerate(self.particules):
+                    self.grid.update(part, list_previous_positions[i])
+                
+                # calling the 2nd step function in the DSMC case.
+                self.DSMC_collisions(t_coll)
+
             self.step(dt - t_coll, t+t_coll, f_args)
         
-        if(self.use_DSMC):
-            # updating position of particles in the grid
-            for i, part in enumerate(self.particules):
-                self.grid.update(part, list_previous_positions[i])
-            
-            # calling the 2nd step function in the DSMC case.
-            self.DSMC_collisions(dt)
 
     # ----------------------------- Collision handlers ------------------------------- #
 
@@ -443,7 +453,7 @@ class CollisionHandler(object):
                     for k in range(int(Mcand)):
                         i,j = randint(0,Nc-1), randint(0,Nc-1)
                         while(i==j):
-                            j = randint(0,Nc)
+                            j = randint(0,Nc-1)
                         # at this point we don't assert that we are not computing several time the same pairs
                         # but since Mcand << Nc in theory, we should be fine most of the time
                         part1, part2 = cell.get_pair(i, j) # this is O(N) which is pretty long
@@ -456,7 +466,6 @@ class CollisionHandler(object):
                             self.update_speed_DSMC(part1, part2, r, v_r_norm)
                             self.collisions_count+=1
                
-
     def update_speed_DSMC(self, part1, part2, r, v_r_norm):
         # for now, no loss of energy
         # page 5/7 of the Direct Simulation MC method paper
@@ -472,4 +481,7 @@ class CollisionHandler(object):
         # setting the new speeds
         part1.set_speed(v_cm+0.5*v_r_) 
         part2.set_speed(v_cm-0.5*v_r_)
-    
+
+        # TODO : 
+        # problem : we now have to update the event table, but we don't have the id of the particule
+        # we should store it

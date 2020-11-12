@@ -17,7 +17,7 @@ debug = True
 
 #----------------- physics property --------------------#
 
-real_particle_density = 10e20 # for I2
+real_particle_density = 1e20 # for I2
 effective_diameter = 4e-10 # roughly the diameter of I2
 max_speed = 4e4 # 4000 m/s we say ~> Maxwellian distribution
 
@@ -75,10 +75,22 @@ m = 2.0*a*np.sqrt(2.0/np.pi)
 
 loc = μ - m
 
-list_particles = [Particule(charge = charge, radius = radius, mass = mass, \
-    part_type = part_type, speed=MyVector(maxwell.rvs(loc, a),maxwell.rvs(loc, a),0), \
-        pos=MyVector(l1*(0.25+random()/2),l2*(0.25+random()/2),0), \
-            verbose = verbose) for k in range(N_particles_simu)]
+list_particles=[]
+for k in range(N_particles_simu):
+    theta = random()*2*np.pi
+    norm_speed = float(maxwell.rvs(loc, a))
+    cTheta = float(np.cos(theta))
+    sTheta = float(np.sin(theta))
+    
+    x = max(effective_diameter, min(random(),1.0-effective_diameter))
+    y = max(effective_diameter, min(random(),1.0-effective_diameter))
+
+    list_particles.append(Particule(charge = charge, radius = radius, 
+        mass = mass, part_type = part_type, \
+            speed=MyVector(norm_speed*cTheta,norm_speed*sTheta,0), \
+                pos=MyVector(l1*random(),l2*random(),0), \
+                    verbose = verbose))
+
 
 #--------------- Rectangle creation -------------------#
 

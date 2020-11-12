@@ -37,6 +37,11 @@ To handle slide show in the jupyter notebook :
 conda install -c conda-forge rise
 ```
 
+To handle animation saving :
+```shell
+conda install -c conda-forge ffmpeg
+```
+
 If it does not work for some reason, you can try installing 2018 versions. 
 
 

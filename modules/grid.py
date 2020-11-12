@@ -57,7 +57,10 @@ class Grid(object):
             print("     [OK]")
 
     def get_pos_in_grid(self, position):
-        return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
+        #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
+        pos_x = int(position.x*self.res[0]/self.lx)
+        pos_y = int(position.y*self.res[1]/self.ly)
+        return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
 
     def get_closest_particules(self, particule, return_list = True):
         pos = particule.get_pos()
