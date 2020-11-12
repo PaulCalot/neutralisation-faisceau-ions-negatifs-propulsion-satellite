@@ -1,9 +1,9 @@
 # import
 import warnings
 import numpy as np
-
+from math import pi as math_pi
 from dolfin import Point
-
+from random import random, randint
 # local imports
 from .utils import segment
 from .vector import MyVector
@@ -12,7 +12,7 @@ from .grid import Grid
 class CollisionHandler(object):
     debug = False
     def __init__(self, particules, walls, f, eta = 0, p = 0, use_particles_collisions = False, \
-        use_DSMC = True, grid = None):
+        use_DSMC = False, grid = None, DSMC_params = None):
         # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
         self.walls = walls
@@ -32,8 +32,10 @@ class CollisionHandler(object):
         # Use DSMC
         self.use_DSMC = use_DSMC
         self.grid = grid
+        self.DSMC_params = DSMC_params
         # and sorting segments point by incrementing x
-        # /!\ useful ? Pretty sure it's not.
+        self.collisions_count = 0
+        # /!\ useful ? Pretty sure it's not
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall
             min_x, max_x, min_y, max_y = x1, x2, y1, y2
@@ -147,7 +149,7 @@ class CollisionHandler(object):
                 self.grid.update(part, list_previous_positions[i])
             
             # calling the 2nd step function in the DSMC case.
-            self.DSMC_collisions()
+            self.DSMC_collisions(dt)
 
     # ----------------------------- Collision handlers ------------------------------- #
 
@@ -406,8 +408,68 @@ class CollisionHandler(object):
         return t_coll
 
     
+    def get_collisions_count(self):
+        return self.collisions_count
     # ------------------------------ DSMC --------------------------- #
 
-    def DSMC_collisions(self):
+    def DSMC_collisions(self, dt):
+        # this algo is pretty expensive
+        # basically its O(Number of cells * Number of pairs per cell * Number of pairs to compute collision from per cell (this depends on the cell))
+        # a better way could be to use array list for which we store an index which corresponds to the actual size of the list
+        # in this case, we are roughly O(1) for adding / deleting (it's not strictly true, we sometime have to multiply by two the size of the list)
+        # but this allows us to have this current algorithm to be : O(Number of cells * Number of pairs to compute collision from per cell) !! We coulg gain a 50 factor or so
+        # (that is the number of particles in the cell)
+        vr_max = self.DSMC_params['vr_max']
+        M_ =  (math_pi * self.DSMC_params['effective_diameter']*self.DSMC_params['effective_diameter']*\
+            vr_max*self.DSMC_params['Ne']*dt)/(2*self.DSMC_params['cell_volume'])
+              # when multiplied by the number of particules in the cell,
+              # gives the number of pairs to select for collision
+              # in average we expect it to give the right results.
+        grid = self.grid.get_grid()
+        for line in grid:
+            for cell in line : # cell is a linkedlist (cf. grid.py)
+                               # this should change because this is not at all adapted to a get method...
+                               # how do we do ? Linkedlist are good because they computationnaly good for pop / insert tasks : O(1)
+                               # however, the search methods (or get method) is O(N) is N is the size of the list 
+                               # another possibility (in the book) was to choose a fixed number of couples and say that it will 
+                               # average to the correct value. This is what we are going to be using here.
+                if(cell!=None):
+                    Nc = cell.get_size()
+                    Mcand = Nc*Nc*M_ # number of pairs to select to compute
+                    if(self.debug): print("Number of pairs candidate : {}".format(Mcand))
+                    # TODO:
+                    # the book advises to us a mean value of Nc : Mcand = mean_Nc * Nc * M_ 
+                    # (because there is a lot of variations etc.)
+                    for k in range(int(Mcand)):
+                        i,j = randint(0,Nc-1), randint(0,Nc-1)
+                        while(i==j):
+                            j = randint(0,Nc)
+                        # at this point we don't assert that we are not computing several time the same pairs
+                        # but since Mcand << Nc in theory, we should be fine most of the time
+                        part1, part2 = cell.get_pair(i, j) # this is O(N) which is pretty long
+                        v_r_norm = (part2.get_speed()-part1.get_speed()).norm()
+                        #If this relative speed norm is higher than the one we set so far, we update.
+                        #if(Vr_norm>vr_max):
+                        #    vr_max = Vr_norm
+                        r = random() # uniform deviate in (0,1)
+                        if(r<v_r_norm/vr_max):
+                            self.update_speed_DSMC(part1, part2, r, v_r_norm)
+                            self.collisions_count+=1
+               
 
-        return 0
+    def update_speed_DSMC(self, part1, part2, r, v_r_norm):
+        # for now, no loss of energy
+        # page 5/7 of the Direct Simulation MC method paper
+        q = 2*r-1
+        cTheta = q
+        sTheta = np.sqrt(1-q*q)
+        phi = 2*math_pi*r
+
+        # computations of the speed
+        v_cm = 0.5*(part1.get_speed()+part2.get_speed()) # this quantity is conserved
+        v_r_ = v_r_norm*(MyVector(sTheta*np.cos(phi), sTheta*np.sin(phi), cTheta))
+        
+        # setting the new speeds
+        part1.set_speed(v_cm+0.5*v_r_) 
+        part2.set_speed(v_cm-0.5*v_r_)
+    
