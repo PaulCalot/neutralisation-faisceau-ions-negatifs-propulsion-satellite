@@ -442,7 +442,7 @@ class CollisionHandler(object):
               # in average we expect it to give the right results.
         grid = self.grid.get_grid()
         for line in grid:
-            for cell in line : # cell is a linkedlist (cf. grid.py)
+            for cell in line : # cell is a linkedlist or a dynamic array (cf. grid.py)
                                # this should change because this is not at all adapted to a get method...
                                # how do we do ? Linkedlist are good because they computationnaly good for pop / insert tasks : O(1)
                                # however, the search methods (or get method) is O(N) is N is the size of the list 

@@ -2,7 +2,7 @@ from modules.particules import Particule
 from modules.grid import Grid
 from modules.vector import MyVector
 
-my_grid = Grid(10,20,[10,20])
+my_grid = Grid(10,20,[10,20], dtype = "DynamicArray") # DynamicArray, LinkedList
 
 print("\nDefining several particules :")
 part1 = Particule()
@@ -32,7 +32,7 @@ my_grid.update(part3, old_pos3)
 
 my_grid.to_string()
 
-print("\nTrying to have the closest particules ...")
+print("\nTrying to have the closest particules of particule {}...".format(part1.to_string()))
 my_parts = my_grid.get_closest_particules(part1)
 for part in my_parts:
     print(part.to_string())
