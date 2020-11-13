@@ -67,7 +67,12 @@ class CollisionHandler(object):
         else:
             self.events = np.zeros((self.nb_parts, self.nb_walls), dtype = float)
 
-        for i in range(self.nb_parts): self.update_events(i)
+        for i in range(self.nb_parts):
+            self.update_events(i)
+            
+            # setting ids now :
+            self.particules[i].set_id(i)
+        
 
     # ------------------- Updating events functions ------------------------- #
 
@@ -483,5 +488,8 @@ class CollisionHandler(object):
         part2.set_speed(v_cm-0.5*v_r_)
 
         # TODO : 
-        # problem : we now have to update the event table, but we don't have the id of the particule
-        # we should store it
+        # problem : we now have to update the event table, but we don't have the id of the particules
+        # it is now stored
+        # we update the collision table now
+        self.update_events(part1.get_id())
+        self.update_events(part2.get_id())

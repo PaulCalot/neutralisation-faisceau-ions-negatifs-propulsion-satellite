@@ -41,6 +41,7 @@ class Particule(object):
         self.part_type = part_type
         self.radius = radius
         self.status = status
+        self.id = None
         if(verbose):
             print("Created a " + self.to_string())
     
@@ -145,6 +146,13 @@ class Particule(object):
     def set_status(self, new_status):
         self.status = new_status
 
+        #id
+    def get_id(self):
+        return self.id
+    
+    def set_id(self, new_id):
+        assert(type(new_id) == type(1))
+        self.id = new_id
     # ----------------- to String -------------------- #
 
     def to_string(self):
