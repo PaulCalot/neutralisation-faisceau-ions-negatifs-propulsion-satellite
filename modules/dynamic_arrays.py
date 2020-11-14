@@ -64,8 +64,7 @@ class DynamicArray(object):
         self.n+=1
   
   
-          
-    def delete(self):
+    def delete_(self):
         """ 
         This function deletes item from the end of array 
         """

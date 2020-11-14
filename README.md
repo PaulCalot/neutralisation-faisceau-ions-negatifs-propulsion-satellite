@@ -24,6 +24,7 @@ conda install -c anaconda scipy=1.5.2
 #conda install pandas=0.20.3
 conda install -c conda-forge mshr
 conda install -c conda-forge tqdm # progress bar
+conda install pandas=1.0.5 
 ```
 
 If you want to use *jupyter notebook* or *jupyter lab*, please install : 

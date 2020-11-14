@@ -6,19 +6,30 @@ from modules.vector import MyVector
 from modules.grid import Grid
 from modules.utils import get_mass_part
 
+# import for analysis
+from modules.data_analysis import DataSaver, DataAnalyser
 # imports
 from dolfin import Point
 from random import random
 import numpy as np
 from scipy.stats import maxwell
 
+# comparaison
+from time import time
+# ----------------- saving test to file ? --------------- #
+saving_directory = 'tests/' # be careful, it won't check if this the directory is already created ...
+tests_summary_file_name = "tests_summary"
+save_test = True
+# ----------------- id test -------------------- #
+id_test = 0
+# --------------- Default analysis ? ---------------- #
+perform_default_analysis = False
 #----------------- debug parameters --------------------#
 debug = True
+#----------------- physics properties --------------------#
 
-#----------------- physics property --------------------#
-
-real_particle_density = 1e20 # for I2
-effective_diameter = 4e-10 # roughly the diameter of I2
+real_particle_density = 1e20 # for I
+effective_diameter = 4e-10 # roughly the diameter of I
 max_speed = 4e4 # 4000 m/s we say ~> Maxwellian distribution
 
 mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_particle_density)
@@ -31,7 +42,7 @@ MAX_INTEGRATION_STEP = 10
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
-
+nb_cells = res1*res2
 # rectangle of size l1*l2
 l1,l2 = res1*mean_free_path,res2*mean_free_path
 
@@ -40,8 +51,8 @@ if(debug): print("Dimension : {}x{} m".format(round(l1,2),round(l2,2)))
 l3 = 0.1 # 10 cm ?
 
 #----------------- Grid creation ----------------------#
-
-my_grid = Grid(l1,l2,[res1,res2])
+dtype = "DynamicArray"
+my_grid = Grid(l1,l2,[res1,res2], dtype = dtype) # LinkedList,DynamicArray
 
 #-------------- Particles properties -------------------#
 IODINE_MASS = get_mass_part(53, 53, 88)
@@ -62,35 +73,48 @@ N_particles_real = int(real_particle_density*l1*l2*l3) # this is the REAL number
 N_particles_simu = int(mean_particles_number_per_cell*res1*res2)
 Ne = int(N_particles_real/N_particles_simu)
 
-if(debug): print("There is {} particles in the simulation. One particle account for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
+if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
+
+init_type = "maxwellian" # uniform
+
+    # Maxwellian distribution parameters
 # parameters of the maxwellian distribution
 # https://stackoverflow.com/questions/63300833/maxwellian-distribution-in-python-scipy
 σ = 300
 μ = 3000
-
 a = σ * np.sqrt(np.pi/(3.0*np.pi - 8.0))
-
 m = 2.0*a*np.sqrt(2.0/np.pi)
-
 loc = μ - m
 
+    # uniform distribution parameters
+min_speed_uniform_distribution = 2500
+max_speed_uniform_distribution = 3500
+
 list_particles=[]
+
 for k in range(N_particles_simu):
+    # norm of the speed
+    if(init_type=='maxwellian'):
+        norm_speed = float(maxwell.rvs(loc, a))
+    else :
+        norm_speed = min_speed_uniform_distribution+random()*\
+            (max_speed_uniform_distribution-min_speed_uniform_distribution)
+    # direction of the speed
     theta = random()*2*np.pi
-    norm_speed = float(maxwell.rvs(loc, a))
     cTheta = float(np.cos(theta))
     sTheta = float(np.sin(theta))
-    
-    x = max(effective_diameter, min(random(),1.0-effective_diameter))
-    y = max(effective_diameter, min(random(),1.0-effective_diameter))
-
+    # position
+    x, y = random(), random()
+    while(x==0.0 or x==1.0): # avoiding walls
+        x=random()
+    while(y==0.0 or y==1.0):
+        y=random()  
     list_particles.append(Particule(charge = charge, radius = radius, 
         mass = mass, part_type = part_type, \
             speed=MyVector(norm_speed*cTheta,norm_speed*sTheta,0), \
                 pos=MyVector(l1*random(),l2*random(),0), \
                     verbose = verbose))
-
 
 #--------------- Rectangle creation -------------------#
 
@@ -144,19 +168,50 @@ collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, 
         use_DSMC = True, grid = my_grid, DSMC_params = DSMC_params)
 
 #------------------- Simulation -------------------#
-
-# integration params
+if(save_test):
+    params_dict = {
+        'id_test' : id_test,
+        'total_number_of_particles' : N_particles_simu,
+        'path_to_data' : saving_directory+str(id_test),
+        'real_particle_density' : real_particle_density,
+        'effective_diameter' : effective_diameter,
+        'max_speed' : max_speed,
+        'mean_particles_number_per_cell' : mean_particles_number_per_cell,
+        'nb_cells' : nb_cells,
+        'mean_free_path' : mean_free_path,
+        'mean_free_time' : mean_free_time,
+        'dt' : dt,
+        'MAX_INTEGRATION_STEP' : MAX_INTEGRATION_STEP,
+        'nb_I' : N_particles_simu,
+        'nb_I_real' : N_particles_real,
+        'Ne' : Ne,
+        'eta': eta,
+        'loss_charge_proba' : p
+    }
+    data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
+    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    # integration params
 t = 0
 
 if(debug): print("\nSTARTING SIMULATION...\n")
 # simulation
+
+
+elapsed_time = time()
+
 for k in range(MAX_INTEGRATION_STEP):
     if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
     collisionHandler.step(dt, t, [])
     t+=dt
-    #if(debug):
-    #    for i, part in enumerate(list_particles):
-    #       print("[{}] - pos : {} - speed : {}".format(i,(round(part.get_2D_pos().x,3),round(part.get_2D_pos().y,3)),\
-    #           (round(part.get_2D_speed().x,3),round(part.get_2D_speed().y,3))))
+    if(save_test):
+        data_analyser.save_everything_to_one_csv()
+
+if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
+
 
 if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHandler.get_collisions_count())))
+
+
+if(perform_default_analysis):
+    data_analyser = DataAnalyser(tests_summary_file_name)
+    data_analyser.draw_speed_norm_distribution(id_test)
