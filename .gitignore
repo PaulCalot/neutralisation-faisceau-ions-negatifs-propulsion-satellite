@@ -3,6 +3,7 @@ biblio/
 .vscode/
 *.png
 *.mp4
+*.csv
 nohup.out
 tests/
 # jupyter lab

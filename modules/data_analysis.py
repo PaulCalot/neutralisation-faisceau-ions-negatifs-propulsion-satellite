@@ -37,10 +37,15 @@ class DataSaver :
         self.save_to_csv_(self.name_test + "_iter{}".format(iter), list_data)
 
     def save_everything_to_one_csv(self):
-        # will add to the following
-        list_data = [self.particles[0].get_headers()]
+        list_data=[]
+        path = self.saving_directory + self.name_test
+        if(not isfile(path + '.csv')):
+            # does not already exist
+            list_data = [self.particles[0].get_headers()] 
+   
         for k in range(len(self.particles)):
             list_data.append(self.particles[k].to_list())
+        
         self.save_to_csv_(self.name_test, list_data, erase = False)
 
     # saving test params
@@ -66,43 +71,83 @@ class DataSaver :
 
 import pandas as pd
 import numpy as np
+import scipy.stats as ss
 
 # animation
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 class DataAnalyser :
     def __init__(self, path_to_test_summary):
-        self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0,index_colint=0) # take first line as headers
-
+        self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0,index_col=0) # take first line as headers
+        self.df.convert_dtypes().dtypes
 
     def draw_speed_norm_distribution(self, test_id, save_animation = True):
-        path_to_data = self.df.loc[[self.df['id_test'] == test_id,'path_to_data']]
-        nb_parts = self.df.loc[[self.df['id_test'] == test_id,'total_number_of_particles']]
-        self.df = pd.read_csv(path_to_data+'.csv', sep = ',', header=0,index_colint=0) # take first line as headers
+        path_to_data = self.df.loc[test_id].at['path_to_data'] # df.loc[5].at['B']
+        nb_parts = self.df.loc[test_id].at['total_number_of_particles']
+        df_data = pd.read_csv(path_to_data+'.csv', sep = ',', header=0, index_col=0) # take first line as headers
 
-        df['speed_norm'] = df.apply(compute_speed_norm, axis=1) # 1 for columns 
+        # converting :
+        df_data['vx'] = df_data['vx'].astype(float)
+        df_data['vy'] = df_data['vy'].astype(float) 
+        df_data['vz'] = df_data['vz'].astype(float) 
+
+        df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
 
         # trying to create a group ... a group is {all particles at a time step}
         # In practice, we split the dataframe into several 
-        row_count = len(DataFrame.index)
-        lst = [df.iloc[i:i+nb_parts] for i in range(0,row_count-nb_parts+1,nb_parts)]
+        row_count = len(df_data.index)
+        lst = [df_data.iloc[i:i+nb_parts] for i in range(0,row_count-nb_parts+1,nb_parts)]
         number_of_frames = len(lst)
-        
+
         def update_hist(num, lst):
-            plt.cla()
-            lst[num].hist['speed_norm']
+            #plt.cla() # to clear the current axis
+            plt.clf() # to clear the current figure
 
-        fig = plt.figure()
-        fig.suptitle('{} : Speed distribution - {} iterations'.format(test_id,number_of_frames), fontsize=12)
-        hist = lst[0].hist['speed_norm']
-    
-        animation = animation.FuncAnimation(fig, update_hist, number_of_frames, fargs=(lst, ) )
+            col = lst[num]['speed_norm']
+            plt.hist(col, bins = 'auto', density=True)
+
+            min_ = np.min(col)
+            max_ = np.max(col)
+            μ = np.mean(col) 
+            σ = np.std(col)
+            a = σ * np.sqrt(np.pi/(3.0*np.pi - 8.0)) # https://mathworld.wolfram.com/MaxwellDistribution.html
+            m = 2.0*a*np.sqrt(2.0/np.pi)
+            loc = μ - m
+
+            X = np.linspace(min_, max_, 1000)
+            Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
+            plt.plot(X,Y)
+
+            fig.suptitle('{} : Speed distribution - iteration {}/{} - mean value {}'.format(test_id+1, num, number_of_frames,round(μ,1)), fontsize=12)
+
+        fig = plt.figure(figsize=(10,10))
+
+        
+        col = lst[0]['speed_norm']
+        plt.hist(col, bins = 'auto')
+
+        min_ = np.min(col)
+        max_ = np.max(col)
+        μ = np.mean(col) # loc in the ss.maxwell function
+        σ = np.std(col)
+        a = σ * np.sqrt(np.pi/(3.0*np.pi - 8.0)) # https://mathworld.wolfram.com/MaxwellDistribution.html
+        m = 2.0*a*np.sqrt(2.0/np.pi)
+        loc = μ - m
+        
+        X = np.linspace(min_, max_, 1000)
+        Y = ss.maxwell.pdf(X, loc = μ, scale = a) 
+        plt.plot(X,Y)
+
+        fig.suptitle('{} : Speed distribution - iteration {}/{} - mean value {}'.format(test_id, 1, number_of_frames,round(μ,1)), fontsize=12)
+
+        interval = 200
+        anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=number_of_frames, fargs=(lst, ), save_count=number_of_frames)
         if(save_animation):
-            animation.save('{}_speed_norm_distribution_evolution.mp4'.format(test_id))
-        plt.show()
-
+            anim.save('{}_speed_norm_distribution_evolution.mp4'.format(test_id))
+        else:
+            plt.show()
     # --------------- utils ---------------- #
-    def compute_speed_norm(row):
+    def compute_speed_norm(self, row):
         return np.sqrt(row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
 
 

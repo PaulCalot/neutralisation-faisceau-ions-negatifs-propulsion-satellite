@@ -464,13 +464,12 @@ class CollisionHandler(object):
                         part1, part2 = cell.get_pair(i, j) # this is O(N) which is pretty long
                         v_r_norm = (part2.get_speed()-part1.get_speed()).norm()
                         #If this relative speed norm is higher than the one we set so far, we update.
-                        #if(Vr_norm>vr_max):
-                        #    vr_max = Vr_norm
+                        if(v_r_norm>self.DSMC_params['vr_max']): # remember for next time
+                            self.DSMC_params['vr_max'] = Vr_norm
                         r = random() # uniform deviate in (0,1)
                         if(r<v_r_norm/vr_max):
                             self.update_speed_DSMC(part1, part2, r, v_r_norm)
                             self.collisions_count+=1
-               
     def update_speed_DSMC(self, part1, part2, r, v_r_norm):
         # for now, no loss of energy
         # page 5/7 of the Direct Simulation MC method paper

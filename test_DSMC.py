@@ -8,11 +8,15 @@ from modules.utils import get_mass_part
 
 # import for analysis
 from modules.data_analysis import DataSaver, DataAnalyser
+
 # imports
 from dolfin import Point
 from random import random
 import numpy as np
 from scipy.stats import maxwell
+
+# plotting 
+from tqdm import tqdm
 
 # comparaison
 from time import time
@@ -23,14 +27,15 @@ save_test = True
 # ----------------- id test -------------------- #
 id_test = 0
 # --------------- Default analysis ? ---------------- #
-perform_default_analysis = False
+perform_default_analysis = True
 #----------------- debug parameters --------------------#
 debug = True
 #----------------- physics properties --------------------#
 
 real_particle_density = 1e20 # for I
 effective_diameter = 4e-10 # roughly the diameter of I
-max_speed = 4e4 # 4000 m/s we say ~> Maxwellian distribution
+max_speed = 20000 # 20000 m/s we say ~> Maxwellian distribution
+# TODO investigate max_speed importance
 
 mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_particle_density)
 mean_free_time = mean_free_path/max_speed
@@ -38,7 +43,7 @@ dt = 0.25 * mean_free_time
 
 mean_particles_number_per_cell = 50
 
-MAX_INTEGRATION_STEP = 10
+MAX_INTEGRATION_STEP = 1000
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
@@ -67,8 +72,19 @@ verbose = False
 
 
 #--------------- Particles creation -------------------#
-# TODO : add maxwellian distribution for speed
 
+# /!\ explanation of the calculus of Ne /!\
+"""
+Density of I : [I] = n = 10e20
+size of the system : l1*l2*l3 (here)
+Number of particles in the real system :  [I2]*l1*l2*l3 (if we inject them, we can go straight to here with the number of particles injected)
+Remember that : mean free path is 0.01 m. (𝜆=1/(√2𝜋𝜎²𝑛)) (𝜎 : effective diameter of the particles)
+At max speed (no electromagnetic field, no acceleration) : 3400 m/s (Note : Maxwellian distribution.)
+That yields here : 𝑀𝑒𝑎𝑛𝐹𝑟𝑒𝑒𝑇𝑖𝑚𝑒 ≈ 3×10−6 𝑠 which yields Δ ≤ 3×10−7 𝑠. Which is what we'll choose.
+In addition, we have a particles-per-cell-target of : Nc_mean = 50 particles
+Which yields : Number_of_cells = res1*res2*Nc_mean particles.
+
+"""
 N_particles_real = int(real_particle_density*l1*l2*l3) # this is the REAL number of particles
 N_particles_simu = int(mean_particles_number_per_cell*res1*res2)
 Ne = int(N_particles_real/N_particles_simu)
@@ -76,7 +92,7 @@ Ne = int(N_particles_real/N_particles_simu)
 if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
 
-init_type = "maxwellian" # uniform
+init_type ="uniform" # "maxwellian" # uniform
 
     # Maxwellian distribution parameters
 # parameters of the maxwellian distribution
@@ -97,7 +113,7 @@ for k in range(N_particles_simu):
     # norm of the speed
     if(init_type=='maxwellian'):
         norm_speed = float(maxwell.rvs(loc, a))
-    else :
+    else:
         norm_speed = min_speed_uniform_distribution+random()*\
             (max_speed_uniform_distribution-min_speed_uniform_distribution)
     # direction of the speed
@@ -144,18 +160,6 @@ p = 0
 
     # DSMC params
 
-# /!\ explanation of the calculus of Ne /!\
-"""
-Density of I : [I] = n = 10e20
-size of the system : l1*l2*l3 (here)
-Number of particles in the real system :  [I2]*l1*l2*l3 (if we inject them, we can go straight to here with the number of particles injected)
-Remember that : mean free path is 0.01 m. (𝜆=1/(√2𝜋𝜎²𝑛)) (𝜎 : effective diameter of the particles)
-At max speed (no electromagnetic field, no acceleration) : 3400 m/s (Note : Maxwellian distribution.)
-That yields here : 𝑀𝑒𝑎𝑛𝐹𝑟𝑒𝑒𝑇𝑖𝑚𝑒 ≈ 3×10−6 𝑠 which yields Δ ≤ 3×10−7 𝑠. Which is what we'll choose.
-In addition, we have a particles-per-cell-target of : Nc_mean = 50 particles
-Which yields : Number_of_cells = res1*res2*Nc_mean particles.
-
-"""
 
 DSMC_params = {
     'vr_max' : 2*max_speed,
@@ -199,11 +203,18 @@ if(debug): print("\nSTARTING SIMULATION...\n")
 
 elapsed_time = time()
 
-for k in range(MAX_INTEGRATION_STEP):
-    if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
+if(save_test):
+        data_analyser.save_everything_to_one_csv()
+
+for k in tqdm(range(MAX_INTEGRATION_STEP)):
+    #if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
     collisionHandler.step(dt, t, [])
     t+=dt
     if(save_test):
+        # TODO : add params with "callback functions"
+        # that we would do each time (or initialize them before in some way)
+        # if it requires some initializing (parameters to set etc.)
+        
         data_analyser.save_everything_to_one_csv()
 
 if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))

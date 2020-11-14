@@ -27,6 +27,7 @@ class Grid(object):
     
         if(self.debug):
             print("Adding ... " + particule.to_string() + " in grid position {}.".format(pos_in_grid), end=" " )
+        
         if(self.grid[pos_in_grid[0],pos_in_grid[1]] == None): # checking if we already created this list or not
             self.grid[pos_in_grid[0],pos_in_grid[1]] = self.data_structure_class()
             if(self.debug):
@@ -35,6 +36,7 @@ class Grid(object):
             if(self.debug):
                 print("Added the particule to pre-existing data structure (type {})".format(self.dtype), end = ' ')
         self.grid[pos_in_grid[0],pos_in_grid[1]].insert(particule)
+        
         if(self.debug):
             print("     [OK]")
 
@@ -66,8 +68,8 @@ class Grid(object):
         #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
         pos_x = int(position.x*self.res[0]/self.lx)
         pos_y = int(position.y*self.res[1]/self.ly)
-        #return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
-        return [pos_x, pos_y]
+        return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
+        #return [pos_x, pos_y]
 
     # TODO : change theses functions to take into account both data structure
     # for now we don't use it so I ignore it.
