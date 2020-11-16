@@ -25,7 +25,7 @@ saving_directory = 'tests/' # be careful, it won't check if this the directory i
 tests_summary_file_name = "tests_summary"
 save_test = True
 # ----------------- id test -------------------- #
-id_test = 0
+id_test = 3
 # --------------- Default analysis ? ---------------- #
 perform_default_analysis = True
 #----------------- debug parameters --------------------#
@@ -41,9 +41,9 @@ mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_
 mean_free_time = mean_free_path/max_speed
 dt = 0.25 * mean_free_time
 
-mean_particles_number_per_cell = 50
+mean_particles_number_per_cell = 100
 
-MAX_INTEGRATION_STEP = 1000
+MAX_INTEGRATION_STEP = 500
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
@@ -56,7 +56,7 @@ if(debug): print("Dimension : {}x{} m".format(round(l1,2),round(l2,2)))
 l3 = 0.1 # 10 cm ?
 
 #----------------- Grid creation ----------------------#
-dtype = "DynamicArray"
+dtype = "LinkedList"
 my_grid = Grid(l1,l2,[res1,res2], dtype = dtype) # LinkedList,DynamicArray
 
 #-------------- Particles properties -------------------#
@@ -214,7 +214,6 @@ for k in tqdm(range(MAX_INTEGRATION_STEP)):
         # TODO : add params with "callback functions"
         # that we would do each time (or initialize them before in some way)
         # if it requires some initializing (parameters to set etc.)
-        
         data_analyser.save_everything_to_one_csv()
 
 if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
@@ -225,4 +224,8 @@ if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHan
 
 if(perform_default_analysis):
     data_analyser = DataAnalyser(tests_summary_file_name)
-    data_analyser.draw_speed_norm_distribution(id_test)
+    data_analyser.load_test(id_test)
+    data_analyser.draw_speed_norm_distribution()
+    data_analyser.draw_speed_spatial_distribution(grid_size = 20, vmin = 0, vmax = 5e3)
+    data_analyser.draw_particles_density_distribution(grid_size = 20, vmin = 0, vmax = 2*mean_particles_number_per_cell)
+    data_analyser.draw_particles()

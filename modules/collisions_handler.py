@@ -310,6 +310,8 @@ class CollisionHandler(object):
         speed = particule.get_speed()
 
         f = self.f
+
+        # TODO : see if changing the computation here impact the result
         # new speed and new position
         Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
         k1=np.array(f(Y,t,m,q,*f_args))
@@ -470,6 +472,7 @@ class CollisionHandler(object):
                         if(r<v_r_norm/vr_max):
                             self.update_speed_DSMC(part1, part2, r, v_r_norm)
                             self.collisions_count+=1
+
     def update_speed_DSMC(self, part1, part2, r, v_r_norm):
         # for now, no loss of energy
         # page 5/7 of the Direct Simulation MC method paper
