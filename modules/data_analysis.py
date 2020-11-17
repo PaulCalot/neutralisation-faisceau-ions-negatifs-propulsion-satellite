@@ -148,12 +148,15 @@ class DataAnalyser :
 
             μ =np.mean(col)
 
-            if(plot_maxwellian):
+            if(plot_maxwellian or plot_gaussian):
                 min_ = np.min(col)
                 max_ = np.max(col)
                 X = np.linspace(min_, max_, 1000)
-                loc, a = get_maxwellian_params(μ, np.std(col))
-                Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
+                if(plot_maxwellian):
+                    loc, a = get_maxwellian_params(μ, np.std(col))
+                    Y = ss.maxwell.pdf(X, loc = loc, scale = a)
+                else :
+                    Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
                 plt.plot(X,Y)
 
             fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id+1, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
@@ -187,12 +190,19 @@ class DataAnalyser :
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
             return
+    
+        if(name == None):
+            name = 'particles'
 
         lst = self.current
         def update_hist(num, lst, cb):
             plt.cla() # to clear the current figure
             df = lst[num]
-            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+            if(name != 'particles' and name != None):
+                hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+            else :
+                hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+
             fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id+1, name, num+1, self.number_of_frames), fontsize=12)
 
         fig, ax = plt.subplots(figsize=(10,10))
