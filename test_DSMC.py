@@ -13,7 +13,7 @@ from modules.data_analysis import DataSaver, DataAnalyser
 from dolfin import Point
 from random import random
 import numpy as np
-from scipy.stats import maxwell
+from scipy.stats import maxwell, norm
 
 # plotting 
 from tqdm import tqdm
@@ -25,7 +25,7 @@ saving_directory = 'tests/' # be careful, it won't check if this the directory i
 tests_summary_file_name = "tests_summary"
 save_test = True
 # ----------------- id test -------------------- #
-id_test = 3
+id_test = 4
 # --------------- Default analysis ? ---------------- #
 perform_default_analysis = True
 #----------------- debug parameters --------------------#
@@ -43,7 +43,7 @@ dt = 0.25 * mean_free_time
 
 mean_particles_number_per_cell = 100
 
-MAX_INTEGRATION_STEP = 500
+MAX_INTEGRATION_STEP = 200  
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
@@ -93,6 +93,10 @@ if(debug): print("There is {} particles in the simulation. One particle accounts
 
 
 init_type ="uniform" # "maxwellian" # uniform
+speed_init_type ="2" # 2 
+
+# type 1 : with theta and norm
+# type 2 : with each vx, vy initialized and then normalized
 
     # Maxwellian distribution parameters
 # parameters of the maxwellian distribution
@@ -110,27 +114,52 @@ max_speed_uniform_distribution = 3500
 list_particles=[]
 
 for k in range(N_particles_simu):
+    # TODO : Distribution à faire sur vx / vy
     # norm of the speed
-    if(init_type=='maxwellian'):
-        norm_speed = float(maxwell.rvs(loc, a))
-    else:
-        norm_speed = min_speed_uniform_distribution+random()*\
-            (max_speed_uniform_distribution-min_speed_uniform_distribution)
-    # direction of the speed
-    theta = random()*2*np.pi
-    cTheta = float(np.cos(theta))
-    sTheta = float(np.sin(theta))
-    # position
-    x, y = random(), random()
-    while(x==0.0 or x==1.0): # avoiding walls
-        x=random()
-    while(y==0.0 or y==1.0):
-        y=random()  
-    list_particles.append(Particule(charge = charge, radius = radius, 
-        mass = mass, part_type = part_type, \
-            speed=MyVector(norm_speed*cTheta,norm_speed*sTheta,0), \
-                pos=MyVector(l1*random(),l2*random(),0), \
-                    verbose = verbose))
+    if(init_type=='1'):
+        if(init_type=='maxwellian'):
+            norm_speed = float(maxwell.rvs(loc, a))
+        else:
+            norm_speed = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+        # direction of the speed
+
+        theta = random()*2*np.pi
+        cTheta = float(np.cos(theta))
+        sTheta = float(np.sin(theta))
+        # position
+        x, y = random(), random()
+        while(x==0.0 or x==1.0): # avoiding walls
+            x=random()
+        while(y==0.0 or y==1.0):
+            y=random()  
+        list_particles.append(Particule(charge = charge, radius = radius, 
+            mass = mass, part_type = part_type, \
+                speed=MyVector(norm_speed*cTheta,norm_speed*sTheta,0), \
+                    pos=MyVector(l1*random(),l2*random(),0), \
+                        verbose = verbose))
+
+    else :
+        
+        if(init_type=='maxwellian'):
+            vx = maxwell.rvs(0, a_) # ...
+            vy = maxwell.rvs(0, a_)
+            vz = 0
+        else:
+            norm_speed = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+            vx = 1-2*random()
+            vy = 1-2*random()
+        x, y = random(), random()
+        while(x==0.0 or x==1.0): # avoiding walls
+            x=random()
+        while(y==0.0 or y==1.0):
+            y=random()  
+        list_particles.append(Particule(charge = charge, radius = radius, 
+            mass = mass, part_type = part_type, \
+                speed=norm_speed*MyVector(vx,vy,0).normalize(), \
+                    pos=MyVector(l1*random(),l2*random(),0), \
+                        verbose = verbose))    
 
 #--------------- Rectangle creation -------------------#
 
@@ -225,7 +254,14 @@ if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHan
 if(perform_default_analysis):
     data_analyser = DataAnalyser(tests_summary_file_name)
     data_analyser.load_test(id_test)
-    data_analyser.draw_speed_norm_distribution()
-    data_analyser.draw_speed_spatial_distribution(grid_size = 20, vmin = 0, vmax = 5e3)
-    data_analyser.draw_particles_density_distribution(grid_size = 20, vmin = 0, vmax = 2*mean_particles_number_per_cell)
     data_analyser.draw_particles()
+    data_analyser.draw_hist_distribution('vx')
+    data_analyser.draw_hist_distribution('vy')
+    data_analyser.draw_hist_distribution('speed_norm_squared')
+    data_analyser.draw_hist_distribution('speed_norm')
+    data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 1.5*mean_particles_number_per_cell)
+    data_analyser.draw_spatial_distribution('vx', vmin = -5e3, vmax = 5e3)
+    data_analyser.draw_spatial_distribution('vy', vmin = -5e3, vmax = 5e3)
+    data_analyser.draw_spatial_distribution('speed_norm_squared', vmin = 1e6, vmax = 25e6)
+    data_analyser.draw_spatial_distribution('speed_norm', vmin = 1e3, vmax = 5e3)
+

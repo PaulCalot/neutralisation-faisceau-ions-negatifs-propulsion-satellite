@@ -349,15 +349,17 @@ class CollisionHandler(object):
             # theta must be in degree .... 
             theta = theta*180/np.pi
             # old speed 
+            # TODO : make it 3D.
             old_speed = part1.get_2D_speed()
             intermediary_speed = old_speed.rotate(-theta)
             intermediary_speed_2 = MyVector(intermediary_speed.x, -intermediary_speed.y)
-            new_speed = intermediary_speed_2.rotate(theta)
+            new_speed_2D = intermediary_speed_2.rotate(theta)
             
             # setting new speed
-            part1.set_2D_speed(new_speed)
+            new_speed_3D = MyVector(new_speed_2D.x, new_speed_2D.y, -part1.get_speed().z)
+            part1.set_speed(new_speed_3D)
 
-            part1.set_2D_speed(part1.get_2D_speed()*(1-self.eta))
+            #part1.set_2D_speed(part1.get_2D_speed()*(1-self.eta))
 
             if(np.random.random_sample()<self.lose_charge_proba):
                 part1.lose_charge()
@@ -368,7 +370,8 @@ class CollisionHandler(object):
             self.update_events(p1) # same here as for the wall...
             
         # Event was collision with another disk
-        else:
+        else: 
+            # TODO : make it 3D.
             
             p2 = ind[1]-self.nb_walls
             part2 = self.particules[p2]

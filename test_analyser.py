@@ -1,22 +1,15 @@
 from modules.data_analysis import DataAnalyser
 
-id_test = 1
-tests_summary_file_name='tests_summary'
+
+id_test = 4
+tests_summary_file_name='tests_summary_2'
 data_analyser = DataAnalyser(tests_summary_file_name)
 data_analyser.load_test(id_test)
-#data_analyser.draw_speed_norm_distribution()
-#data_analyser.draw_speed_spatial_distribution()
-data_analyser.draw_particles_density_distribution()
+
 #data_analyser.draw_particles()
+# speed_norm , speed_norm_squared , vz
+data_analyser.draw_hist_distribution('vx')
+data_analyser.draw_hist_distribution('vy')
+data_analyser.draw_hist_distribution('speed_norm_squared')
 
-
-
-id_test = 2
-tests_summary_file_name='tests_summary'
-data_analyser = DataAnalyser(tests_summary_file_name)
-data_analyser.load_test(id_test)
-#data_analyser.draw_speed_norm_distribution()
-#data_analyser.draw_speed_spatial_distribution()
-data_analyser.draw_particles_density_distribution()
-#data_analyser.draw_particles()
-
+#data_analyser.draw_spatial_distribution()

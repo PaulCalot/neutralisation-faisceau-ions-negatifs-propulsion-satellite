@@ -119,8 +119,11 @@ class DataAnalyser :
         df_data['vz'] = df_data['vz'].astype(float) 
 
         # computing speed norm : 
+
+        # TODO : we should first compute speed_norm_squared and then speed_norm
         df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
 
+        df_data['speed_norm_squared'] = df_data.apply(self.compute_speed_norm_square, axis=1)
         # splitting in time step
         row_count = len(df_data.index)
         lst = [df_data.iloc[i:i+self.nb_parts] for i in range(0,row_count-self.nb_parts+1,self.nb_parts)]
@@ -128,7 +131,8 @@ class DataAnalyser :
         self.number_of_frames = len(lst)
         self.current = lst
 
-    def draw_speed_norm_distribution(self, save_animation = True):
+
+    def draw_hist_distribution(self, value_name = "", save_animation = True, plot_maxwellian = False, plot_gaussian = False):
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
             return
@@ -138,46 +142,78 @@ class DataAnalyser :
         def update_hist(num, lst):
             plt.clf() # to clear the current figure # should not do that (that's what bugged after)
 
-            col = lst[num]['speed_norm']
+            col = lst[num][value_name]
 
             plt.hist(col, bins = 'auto', density=True)
 
+            μ =np.mean(col)
+
+            if(plot_maxwellian):
+                min_ = np.min(col)
+                max_ = np.max(col)
+                X = np.linspace(min_, max_, 1000)
+                loc, a = get_maxwellian_params(μ, np.std(col))
+                Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
+                plt.plot(X,Y)
+
+            fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id+1, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
+
+        fig = plt.figure(figsize=(10,10))
+        
+        col = lst[0][value_name]
+        plt.hist(col, bins = 'auto', density=True)
+
+        μ = np.mean(col)
+        if(plot_maxwellian):
             min_ = np.min(col)
             max_ = np.max(col)
             X = np.linspace(min_, max_, 1000)
             
-            μ =np.mean(col)
             loc, a = get_maxwellian_params(μ, np.std(col))
             Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
             plt.plot(X,Y)
 
-            fig.suptitle('{} : Speed distribution - iteration {}/{} - mean value {}'.format(self.test_id+1, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
-
-        fig = plt.figure(figsize=(10,10))
-        
-        col = lst[0]['speed_norm']
-        plt.hist(col, bins = 'auto', density=True)
-        
-        min_ = np.min(col)
-        max_ = np.max(col)
-        X = np.linspace(min_, max_, 1000)
-        
-        μ = np.mean(col)
-        loc, a = get_maxwellian_params(μ, np.std(col))
-        Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
-        plt.plot(X,Y)
-
-        fig.suptitle('{} : Speed distribution - iteration {}/{} - mean value {}'.format(1, 1, self.number_of_frames,round(μ,1)), fontsize=12)
+        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(1, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
 
         interval = 200 # default value
 
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
         if(save_animation):
-            anim.save('{}_speed_norm_distribution_evolution.mp4'.format(self.test_id))
+            anim.save('{}_{}_hist_distribution.mp4'.format(self.test_id, value_name))
         else:
             plt.show()
 
+    def draw_spatial_distribution(self, name = '' , save_animation = True, grid_size = 20, vmin = 0, vmax = 5e3):
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
 
+        lst = self.current
+        def update_hist(num, lst, cb):
+            plt.cla() # to clear the current figure
+            df = lst[num]
+            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+            fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id+1, name, num+1, self.number_of_frames), fontsize=12)
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        df = lst[0]
+
+        hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+
+        cb = fig.colorbar(hexbin, ax=ax)
+        cb.set_label(name)
+
+        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(1,name, 1, self.number_of_frames), fontsize=12)
+
+        interval = 200 # default value
+
+        anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, cb), save_count=self.number_of_frames)
+
+        if(save_animation):
+            anim.save('{}_{}_spatial_distribution_evolution.mp4'.format(self.test_id, name))
+        else:
+            plt.show()
+      
     def draw_particles(self, save_animation=True):
         # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
         # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.scatter.html 
@@ -210,70 +246,10 @@ class DataAnalyser :
             anim.save('{}_system_evolution.mp4'.format(self.test_id))
         else:
             plt.show()
-
-    def draw_speed_spatial_distribution(self, save_animation = True, grid_size = 20, vmin = 0, vmax = 5e3):
-        if(self.current == None):
-            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
-            return
-
-        lst = self.current
-        def update_hist(num, lst, cb):
-            plt.cla() # to clear the current figure
-            df = lst[num]
-            hexbin = ax.hexbin(df['x'], df['y'], df['speed_norm'], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
-            fig.suptitle('{} : Speed norm spatial distribution - iteration {}/{}'.format(self.test_id+1, num+1, self.number_of_frames), fontsize=12)
-
-        fig, ax = plt.subplots(figsize=(10,10))
-        df = lst[0]
-
-        hexbin = ax.hexbin(df['x'], df['y'], df['speed_norm'], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
-        cb = fig.colorbar(hexbin, ax=ax)
-        cb.set_label('norm speed')
-
-        fig.suptitle('{} : Speed norm spatial distribution - iteration {}/{}'.format(1, 1, self.number_of_frames), fontsize=12)
-
-        interval = 200 # default value
-
-        anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, cb), save_count=self.number_of_frames)
-
-        if(save_animation):
-            anim.save('{}_speed_norm_spatial_distribution_evolution.mp4'.format(self.test_id))
-        else:
-            plt.show()
-        
-    def draw_particles_density_distribution(self, save_animation = True, grid_size = 20, vmin = 0, vmax = 100):
-        if(self.current == None):
-            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
-            return
-
-        lst = self.current
-        def update_hist(num, lst):
-            plt.cla() # to clear the current figure
-            df = lst[num]
-            hexbin = ax.hexbin(df['x'], df['y'], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
-            fig.suptitle('{} : Particles spatial distribution - iteration {}/{}'.format(self.test_id+1, num+1, self.number_of_frames), fontsize=12)
-
-        fig, ax = plt.subplots(figsize=(10,10))
-        df = lst[0]
-
-        hexbin = ax.hexbin(df['x'], df['y'], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
-        cb = fig.colorbar(hexbin, ax=ax)
-        cb.set_label('number of particles')
-        fig.suptitle('{} : Particles spatial distribution - iteration {}/{}'.format(1, 1, self.number_of_frames), fontsize=12)
-
-        interval = 200 # default value
-
-        anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
-
-        if(save_animation):
-            anim.save('{}_particles_spatial_distribution_evolution.mp4'.format(self.test_id))
-        else:
-            plt.show()
-    
     # --------------- utils ---------------- #
     def compute_speed_norm(self, row):
         return np.sqrt(row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
 
-
-
+    def compute_speed_norm_square(self, row):
+        return row['speed_norm']*row['speed_norm']
 
