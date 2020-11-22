@@ -196,9 +196,10 @@ DSMC_params = {
     'Ne' : Ne, # this is the number of real particles one simulated particle represents.
     'cell_volume' : l1*l2*l3/(res1*res2) # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
 }
-
-collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, use_particles_collisions = False, \
-        use_DSMC = True, grid = my_grid, DSMC_params = DSMC_params)
+use_particles_collisions = False
+use_DSMC = False
+collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, use_particles_collisions = use_particles_collisions, \
+        use_DSMC = use_DSMC, grid = my_grid, DSMC_params = DSMC_params)
 
 #------------------- Simulation -------------------#
 if(save_test):
@@ -219,7 +220,9 @@ if(save_test):
         'nb_I_real' : N_particles_real,
         'Ne' : Ne,
         'eta': eta,
-        'loss_charge_proba' : p
+        'loss_charge_proba' : p,
+        'use_particles_collisions' : use_particles_collisions,
+        'use_DSMC' : use_DSMC
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
     data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)

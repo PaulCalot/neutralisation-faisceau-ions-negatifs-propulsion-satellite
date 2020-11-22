@@ -5,6 +5,9 @@
 # https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur
 # there is nothing to do about it.
 
+
+# csv usage : https://realpython.com/python-csv/#reading-csv-files-with-csv
+
 import csv
 from os.path import isfile
 
@@ -132,7 +135,7 @@ class DataAnalyser :
         self.current = lst
 
 
-    def draw_hist_distribution(self, value_name = "", save_animation = True, plot_maxwellian = False, plot_gaussian = False):
+    def draw_hist_distribution(self, value_name = "", save_animation = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None):
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
             return
@@ -144,7 +147,7 @@ class DataAnalyser :
 
             col = lst[num][value_name]
 
-            plt.hist(col, bins = 'auto', density=True)
+            plt.hist(col, bins = 'auto', density=density, range = range)
 
             μ =np.mean(col)
 
@@ -159,12 +162,12 @@ class DataAnalyser :
                     Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
                 plt.plot(X,Y)
 
-            fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id+1, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
+            fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
 
         fig = plt.figure(figsize=(10,10))
         
         col = lst[0][value_name]
-        plt.hist(col, bins = 'auto', density=True)
+        plt.hist(col, bins = 'auto', density=density, range = range)
 
         μ = np.mean(col)
         if(plot_maxwellian):
@@ -176,7 +179,7 @@ class DataAnalyser :
             Y = ss.maxwell.pdf(X, loc = loc, scale = a) 
             plt.plot(X,Y)
 
-        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(1, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
+        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
 
         interval = 200 # default value
 
@@ -203,17 +206,19 @@ class DataAnalyser :
             else :
                 hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
-            fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id+1, name, num+1, self.number_of_frames), fontsize=12)
+            fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
-
-        hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+        if(name != 'particles' and name != None):
+            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+        else :
+            hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(1,name, 1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
 
         interval = 200 # default value
 
@@ -240,13 +245,13 @@ class DataAnalyser :
             scat.set_offsets(np.c_[df['x'],df['y']])
             scat.set_array(df['speed_norm'])
 
-            fig.suptitle('{} : System evolution - iteration {}/{}'.format(self.test_id+1, num+1, self.number_of_frames), fontsize=12)
+            fig.suptitle('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=12)
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
         scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
 
-        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(1, 1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
 
         interval = 40 # default value
 
@@ -262,4 +267,19 @@ class DataAnalyser :
 
     def compute_speed_norm_square(self, row):
         return row['speed_norm']*row['speed_norm']
+
+def merge_tests_summary(names, output_name):
+    mode = "r"
+    L = []
+    for k, name in enumerate(names) : 
+        with open(name + '.csv', mode = mode) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')            
+            for i, row in enumerate(csv_reader):
+                if(i>0 or k==0): # we do not take the first one which is the raw with the header
+                    L.append(row)
+    
+    with open(output_name + '.csv', mode = 'w') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',')            
+        for row in L:
+            csv_writer.writerow(row)
 
