@@ -23,15 +23,15 @@ from tqdm import tqdm
 from time import time
 # ----------------- saving test to file ? --------------- #
 saving_directory = 'tests/' # be careful, it won't check if this the directory is already created ...
-tests_summary_file_name = "tests_summary"
+tests_summary_file_name = "tests_summary_v3"
 save_test = True
 # ----------------- id test -------------------- #
-id_test = 10
+id_test = 12
 # --------------- Default analysis ? ---------------- #
 perform_default_analysis = False
 #----------------- debug parameters --------------------#
-debug = True
-test_config = True
+debug = False
+test_config = False 
 #----------------- physics properties --------------------#
 
 real_particle_density = 1e20 # for I
@@ -45,7 +45,7 @@ dt = 0.25 * mean_free_time
 
 mean_particles_number_per_cell = 100
 
-MAX_INTEGRATION_STEP = 200  
+MAX_INTEGRATION_STEP = 500
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
@@ -94,7 +94,7 @@ Ne = int(N_particles_real/N_particles_simu)
 if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
 
-init_type ="maxwellian" # "maxwellian" # uniform
+init_type ="uniform" # "maxwellian" # uniform
 speed_init_type ="2" # 2 
 
 # type 1 : with theta and norm
@@ -110,8 +110,8 @@ m = 2.0*a*np.sqrt(2.0/np.pi)
 loc = μ - m
 
     # uniform distribution parameters
-min_speed_uniform_distribution = 2500
-max_speed_uniform_distribution = 3500
+min_speed_uniform_distribution = 1800
+max_speed_uniform_distribution = 2500
 
 list_particles=[]
 if(debug) : mean = 0
@@ -162,12 +162,20 @@ for k in range(N_particles_simu):
             vz = 0
             my_speed = target*MyVector(vx,vy,0).normalize()
         else:
+            """
             norm_speed = min_speed_uniform_distribution+random()*\
                 (max_speed_uniform_distribution-min_speed_uniform_distribution)
             vx = (1-2*random())
             vy = (1-2*random())
             my_speed = norm_speed*MyVector(vx,vy,0).normalize()
-
+            """
+            norm_speed = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+            vx =  np.sign(1-2*random())*norm_speed
+            norm_speed = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+            vy = np.sign(1-2*random())*norm_speed
+            my_speed = MyVector(vx,vy,0)
         x, y = random(), random()
         while(x==0.0 or x==1.0): # avoiding walls
             x=random()
@@ -178,7 +186,9 @@ for k in range(N_particles_simu):
                 speed=my_speed, \
                     pos=MyVector(l1*x,l2*y,0), \
                         verbose = verbose))    
-    if(debug): mean += my_speed.norm()
+    if(debug): 
+        print(my_speed)
+        mean += my_speed.norm()
 
 if(debug): print("Mean speed init : {} m/s".format(round(mean/N_particles_simu,2)))
 #--------------- Rectangle creation -------------------#
@@ -244,7 +254,9 @@ if(save_test):
         'loss_charge_proba' : p,
         'use_particles_collisions' : use_particles_collisions,
         'use_DSMC' : use_DSMC,
-        'integration_scheme' : integration_scheme.__name__
+        'integration_scheme' : integration_scheme.__name__,
+        'init_type' : init_type,
+        'speed_init_type' : speed_init_type
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
     data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)

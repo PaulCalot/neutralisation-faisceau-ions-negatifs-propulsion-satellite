@@ -28,7 +28,7 @@ class CollisionHandler(object):
         # probability of losing a charge for the particule when colliding
         self.lose_charge_proba = p 
 
-        # if we use particles collisions 
+        # if we use particles collisions
         self.use_particles_collisions = use_particles_collisions
 
         # integration scheme
