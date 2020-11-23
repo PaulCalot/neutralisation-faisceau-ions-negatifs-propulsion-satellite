@@ -9,10 +9,12 @@ from .utils import segment
 from .vector import MyVector
 from .grid import Grid
 
+from .integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
+
 class CollisionHandler(object):
     debug = False
     def __init__(self, particules, walls, f, eta = 0, p = 0, use_particles_collisions = False, \
-        use_DSMC = False, grid = None, DSMC_params = None):
+        use_DSMC = False, grid = None, DSMC_params = None, integration_scheme = rk4):
         # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
         self.walls = walls
@@ -28,6 +30,9 @@ class CollisionHandler(object):
 
         # if we use particles collisions 
         self.use_particles_collisions = use_particles_collisions
+
+        # integration scheme
+        self.integration_scheme = integration_scheme
 
         # Use DSMC
         self.use_DSMC = use_DSMC
@@ -310,16 +315,15 @@ class CollisionHandler(object):
         speed = particule.get_speed()
 
         f = self.f
+        
+        args = [m,q]
+        f_args = args + f_args
 
-        # TODO : see if changing the computation here impact the result
         # new speed and new position
+        
         Y=np.array([pos.x, pos.y, pos.z, speed.x, speed.y, speed.z])
-        k1=np.array(f(Y,t,m,q,*f_args))
-        k2=np.array(f(Y+.5*dt*k1, t+.5*dt,m,q,*f_args))
-        k3=np.array(f(Y+.5*dt*k2, t+.5*dt,m,q,*f_args))
-        k4=np.array(f(Y+dt*k3, t+dt,m,q,*f_args))
-        Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-
+        Y_pot = self.integration_scheme(Y, t, dt, f, f_args)
+        
         # updating speed and position
         particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
         particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))

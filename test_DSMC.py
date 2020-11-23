@@ -5,6 +5,7 @@ from modules.utils import segment
 from modules.vector import MyVector
 from modules.grid import Grid
 from modules.utils import get_mass_part
+from modules.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
 
 # import for analysis
 from modules.data_analysis import DataSaver, DataAnalyser
@@ -15,7 +16,7 @@ from random import random
 import numpy as np
 from scipy.stats import maxwell, norm
 
-# plotting 
+# plotting
 from tqdm import tqdm
 
 # comparaison
@@ -25,11 +26,12 @@ saving_directory = 'tests/' # be careful, it won't check if this the directory i
 tests_summary_file_name = "tests_summary"
 save_test = True
 # ----------------- id test -------------------- #
-id_test = 4
+id_test = 10
 # --------------- Default analysis ? ---------------- #
-perform_default_analysis = True
+perform_default_analysis = False
 #----------------- debug parameters --------------------#
 debug = True
+test_config = True
 #----------------- physics properties --------------------#
 
 real_particle_density = 1e20 # for I
@@ -92,7 +94,7 @@ Ne = int(N_particles_real/N_particles_simu)
 if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
 
-init_type ="uniform" # "maxwellian" # uniform
+init_type ="maxwellian" # "maxwellian" # uniform
 speed_init_type ="2" # 2 
 
 # type 1 : with theta and norm
@@ -112,10 +114,12 @@ min_speed_uniform_distribution = 2500
 max_speed_uniform_distribution = 3500
 
 list_particles=[]
-
+if(debug) : mean = 0
 for k in range(N_particles_simu):
     # TODO : Distribution à faire sur vx / vy
     # norm of the speed
+    my_speed = 0
+
     if(init_type=='1'):
         if(init_type=='maxwellian'):
             norm_speed = float(maxwell.rvs(loc, a))
@@ -132,24 +136,38 @@ for k in range(N_particles_simu):
         while(x==0.0 or x==1.0): # avoiding walls
             x=random()
         while(y==0.0 or y==1.0):
-            y=random()  
+            y=random() 
+            
+        my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
+
         list_particles.append(Particule(charge = charge, radius = radius, 
             mass = mass, part_type = part_type, \
-                speed=MyVector(norm_speed*cTheta,norm_speed*sTheta,0), \
-                    pos=MyVector(l1*random(),l2*random(),0), \
+                speed=my_speed, \
+                    pos=MyVector(l1*x,l2*y,0), \
                         verbose = verbose))
 
     else :
-        
-        if(init_type=='maxwellian'):
-            vx = maxwell.rvs(0, a_) # ...
+        if(init_type=='maxwellian'): # TODO
+            # we seek a temperature average of 3000 (for example)
+            # we know that this everage is given by sqrt(8kT/(Pi m)) 
+            # we only need T as we know the mass of other parts
+            # a = sqrt(KT/m)
+            const_k = 8.314
+            get_T = lambda target : target*target*np.pi*mass/(8*const_k)
+            get_a = lambda target : np.sqrt(get_T(target)*const_k/mass)
+            target = μ
+            a_ = get_a(target)
+            vx = maxwell.rvs(0, a_)
             vy = maxwell.rvs(0, a_)
             vz = 0
+            my_speed = target*MyVector(vx,vy,0).normalize()
         else:
             norm_speed = min_speed_uniform_distribution+random()*\
                 (max_speed_uniform_distribution-min_speed_uniform_distribution)
-            vx = 1-2*random()
-            vy = 1-2*random()
+            vx = (1-2*random())
+            vy = (1-2*random())
+            my_speed = norm_speed*MyVector(vx,vy,0).normalize()
+
         x, y = random(), random()
         while(x==0.0 or x==1.0): # avoiding walls
             x=random()
@@ -157,10 +175,12 @@ for k in range(N_particles_simu):
             y=random()  
         list_particles.append(Particule(charge = charge, radius = radius, 
             mass = mass, part_type = part_type, \
-                speed=norm_speed*MyVector(vx,vy,0).normalize(), \
-                    pos=MyVector(l1*random(),l2*random(),0), \
+                speed=my_speed, \
+                    pos=MyVector(l1*x,l2*y,0), \
                         verbose = verbose))    
+    if(debug): mean += my_speed.norm()
 
+if(debug): print("Mean speed init : {} m/s".format(round(mean/N_particles_simu,2)))
 #--------------- Rectangle creation -------------------#
 
 rectangle_walls = [segment(Point(0,0),Point(0,l2)), segment(Point(0,0),Point(l1,0)), \
@@ -181,7 +201,7 @@ def f(Y,t,m,q):
     ax = 0 
     ay = 0
     az = 0
-    return [vx, vy, vz, ax, ay, az]
+    return np.array([vx, vy, vz, ax, ay, az])
 
     # parameters
 eta = 0
@@ -198,8 +218,9 @@ DSMC_params = {
 }
 use_particles_collisions = False
 use_DSMC = False
+integration_scheme = euler_explicit # scipy_integrate_solve_ivp , rk4 , euler_explicit
 collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, use_particles_collisions = use_particles_collisions, \
-        use_DSMC = use_DSMC, grid = my_grid, DSMC_params = DSMC_params)
+        use_DSMC = use_DSMC, grid = my_grid, DSMC_params = DSMC_params, integration_scheme=integration_scheme)
 
 #------------------- Simulation -------------------#
 if(save_test):
@@ -222,7 +243,8 @@ if(save_test):
         'eta': eta,
         'loss_charge_proba' : p,
         'use_particles_collisions' : use_particles_collisions,
-        'use_DSMC' : use_DSMC
+        'use_DSMC' : use_DSMC,
+        'integration_scheme' : integration_scheme.__name__
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
     data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
@@ -238,33 +260,37 @@ elapsed_time = time()
 if(save_test):
         data_analyser.save_everything_to_one_csv()
 
-for k in tqdm(range(MAX_INTEGRATION_STEP)):
-    #if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
+if(not test_config):
+    for k in tqdm(range(MAX_INTEGRATION_STEP)):
+        #if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
+        collisionHandler.step(dt, t, [])
+        t+=dt
+        if(save_test):
+            # TODO : add params with "callback functions"
+            # that we would do each time (or initialize them before in some way)
+            # if it requires some initializing (parameters to set etc.)
+            data_analyser.save_everything_to_one_csv()
+
+    if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
+
+
+    if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHandler.get_collisions_count())))
+
+
+    if(perform_default_analysis):
+        data_analyser = DataAnalyser(tests_summary_file_name)
+        data_analyser.load_test(id_test)
+        data_analyser.draw_particles()
+        data_analyser.draw_hist_distribution('vx')
+        data_analyser.draw_hist_distribution('vy')
+        data_analyser.draw_hist_distribution('speed_norm_squared')
+        data_analyser.draw_hist_distribution('speed_norm')
+        data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 1.5*mean_particles_number_per_cell)
+        data_analyser.draw_spatial_distribution('vx', vmin = -5e3, vmax = 5e3)
+        data_analyser.draw_spatial_distribution('vy', vmin = -5e3, vmax = 5e3)
+        data_analyser.draw_spatial_distribution('speed_norm_squared', vmin = 1e6, vmax = 25e6)
+        data_analyser.draw_spatial_distribution('speed_norm', vmin = 1e3, vmax = 5e3)
+else: 
+    if(debug): print("Testing one step computation ...", end = " ")
     collisionHandler.step(dt, t, [])
-    t+=dt
-    if(save_test):
-        # TODO : add params with "callback functions"
-        # that we would do each time (or initialize them before in some way)
-        # if it requires some initializing (parameters to set etc.)
-        data_analyser.save_everything_to_one_csv()
-
-if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
-
-
-if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHandler.get_collisions_count())))
-
-
-if(perform_default_analysis):
-    data_analyser = DataAnalyser(tests_summary_file_name)
-    data_analyser.load_test(id_test)
-    data_analyser.draw_particles()
-    data_analyser.draw_hist_distribution('vx')
-    data_analyser.draw_hist_distribution('vy')
-    data_analyser.draw_hist_distribution('speed_norm_squared')
-    data_analyser.draw_hist_distribution('speed_norm')
-    data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 1.5*mean_particles_number_per_cell)
-    data_analyser.draw_spatial_distribution('vx', vmin = -5e3, vmax = 5e3)
-    data_analyser.draw_spatial_distribution('vy', vmin = -5e3, vmax = 5e3)
-    data_analyser.draw_spatial_distribution('speed_norm_squared', vmin = 1e6, vmax = 25e6)
-    data_analyser.draw_spatial_distribution('speed_norm', vmin = 1e3, vmax = 5e3)
-
+    if(debug) : print("\t[OK]")
