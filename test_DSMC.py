@@ -25,6 +25,7 @@ from time import time
 saving_directory = 'tests/' # be careful, it won't check if this the directory is already created ...
 tests_summary_file_name = "tests_summary_v3"
 save_test = True
+saving_period = 10
 # ----------------- id test -------------------- #
 id_test = 12
 # --------------- Default analysis ? ---------------- #
@@ -277,7 +278,7 @@ if(not test_config):
         #if(debug): print("\nStep {} over {}...\n".format(k+1, MAX_INTEGRATION_STEP))
         collisionHandler.step(dt, t, [])
         t+=dt
-        if(save_test):
+        if(save_test and (k%saving_period==0 or k == MAX_INTEGRATION_STEP-1)): # we are saving last frame
             # TODO : add params with "callback functions"
             # that we would do each time (or initialize them before in some way)
             # if it requires some initializing (parameters to set etc.)

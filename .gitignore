@@ -10,6 +10,8 @@ tests/
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+# no hup
+nohup.out
 
 # python gitignore https://github.com/github/gitignore/blob/master/Python.gitignore
 
