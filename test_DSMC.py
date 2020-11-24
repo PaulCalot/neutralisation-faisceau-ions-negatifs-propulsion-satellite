@@ -23,11 +23,11 @@ from tqdm import tqdm
 from time import time
 # ----------------- saving test to file ? --------------- #
 saving_directory = 'tests/' # be careful, it won't check if this the directory is already created ...
-tests_summary_file_name = "tests_summary_v3"
+tests_summary_file_name = "tests_summary_v4"
 save_test = True
 saving_period = 10
 # ----------------- id test -------------------- #
-id_test = 12
+id_test = 14
 # --------------- Default analysis ? ---------------- #
 perform_default_analysis = False
 #----------------- debug parameters --------------------#
@@ -44,9 +44,9 @@ mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_
 mean_free_time = mean_free_path/max_speed
 dt = 0.25 * mean_free_time
 
-mean_particles_number_per_cell = 100
+mean_particles_number_per_cell = 50
 
-MAX_INTEGRATION_STEP = 500
+MAX_INTEGRATION_STEP = 300
 #----------------- Space properties --------------------#
 # resolution along each previous dimension
 res1, res2 = 10, 10
@@ -147,7 +147,7 @@ for k in range(N_particles_simu):
                     pos=MyVector(l1*x,l2*y,0), \
                         verbose = verbose))
 
-    else :
+    elif(init_type=='2'):
         if(init_type=='maxwellian'): # TODO
             # we seek a temperature average of 3000 (for example)
             # we know that this everage is given by sqrt(8kT/(Pi m)) 
@@ -187,6 +187,42 @@ for k in range(N_particles_simu):
                 speed=my_speed, \
                     pos=MyVector(l1*x,l2*y,0), \
                         verbose = verbose))    
+    elif(init_type=='3'):
+        if(init_type=='maxwellian'): # TODO
+            # we seek a temperature average of 3000 (for example)
+            # we know that this everage is given by sqrt(8kT/(Pi m)) 
+            # we only need T as we know the mass of other parts
+            # a = sqrt(KT/m)
+            if(debug): print("Type {} for maxwellian distribution is not defined. Type 2 is used.".format(init_type))
+            const_k = 8.314
+            get_T = lambda target : target*target*np.pi*mass/(8*const_k)
+            get_a = lambda target : np.sqrt(get_T(target)*const_k/mass)
+            target = μ
+            a_ = get_a(target)
+            vx = maxwell.rvs(0, a_)
+            vy = maxwell.rvs(0, a_)
+            vz = 0
+            my_speed = target*MyVector(vx,vy,0).normalize()
+        else:
+            min_speed_uniform_distribution = -4000
+            max_speed_uniform_distribution = 4000
+            vx = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+            vy = min_speed_uniform_distribution+random()*\
+                (max_speed_uniform_distribution-min_speed_uniform_distribution)
+            my_speed = MyVector(vx,vy,0)
+
+        x, y = random(), random()
+        while(x==0.0 or x==1.0): # avoiding walls
+            x=random()
+        while(y==0.0 or y==1.0):
+            y=random()  
+        list_particles.append(Particule(charge = charge, radius = radius, 
+            mass = mass, part_type = part_type, \
+                speed=my_speed, \
+                    pos=MyVector(l1*x,l2*y,0), \
+                        verbose = verbose))    
+
     if(debug): 
         print(my_speed)
         mean += my_speed.norm()
@@ -228,7 +264,7 @@ DSMC_params = {
     'cell_volume' : l1*l2*l3/(res1*res2) # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
 }
 use_particles_collisions = False
-use_DSMC = False
+use_DSMC = True
 integration_scheme = euler_explicit # scipy_integrate_solve_ivp , rk4 , euler_explicit
 collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, use_particles_collisions = use_particles_collisions, \
         use_DSMC = use_DSMC, grid = my_grid, DSMC_params = DSMC_params, integration_scheme=integration_scheme)
