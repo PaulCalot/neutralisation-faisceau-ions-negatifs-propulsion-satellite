@@ -96,7 +96,7 @@ if(debug): print("There is {} particles in the simulation. One particle accounts
 
 
 init_type ="uniform" # "maxwellian" # uniform
-speed_init_type ="2" # 2 
+speed_init_type ="3" # 2 
 
 # type 1 : with theta and norm
 # type 2 : with each vx, vy initialized and then normalized
@@ -132,20 +132,8 @@ for k in range(N_particles_simu):
         theta = random()*2*np.pi
         cTheta = float(np.cos(theta))
         sTheta = float(np.sin(theta))
-        # position
-        x, y = random(), random()
-        while(x==0.0 or x==1.0): # avoiding walls
-            x=random()
-        while(y==0.0 or y==1.0):
-            y=random() 
-            
-        my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
 
-        list_particles.append(Particule(charge = charge, radius = radius, 
-            mass = mass, part_type = part_type, \
-                speed=my_speed, \
-                    pos=MyVector(l1*x,l2*y,0), \
-                        verbose = verbose))
+        my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
 
     elif(init_type=='2'):
         if(init_type=='maxwellian'): # TODO
@@ -177,17 +165,10 @@ for k in range(N_particles_simu):
                 (max_speed_uniform_distribution-min_speed_uniform_distribution)
             vy = np.sign(1-2*random())*norm_speed
             my_speed = MyVector(vx,vy,0)
-        x, y = random(), random()
-        while(x==0.0 or x==1.0): # avoiding walls
-            x=random()
-        while(y==0.0 or y==1.0):
-            y=random()  
-        list_particles.append(Particule(charge = charge, radius = radius, 
-            mass = mass, part_type = part_type, \
-                speed=my_speed, \
-                    pos=MyVector(l1*x,l2*y,0), \
-                        verbose = verbose))    
-    elif(init_type=='3'):
+      
+        
+    #elif(init_type=='3'):
+    else:
         if(init_type=='maxwellian'): # TODO
             # we seek a temperature average of 3000 (for example)
             # we know that this everage is given by sqrt(8kT/(Pi m)) 
@@ -212,16 +193,16 @@ for k in range(N_particles_simu):
                 (max_speed_uniform_distribution-min_speed_uniform_distribution)
             my_speed = MyVector(vx,vy,0)
 
-        x, y = random(), random()
-        while(x==0.0 or x==1.0): # avoiding walls
-            x=random()
-        while(y==0.0 or y==1.0):
-            y=random()  
-        list_particles.append(Particule(charge = charge, radius = radius, 
+    x, y = random(), random()
+    while(x==0.0 or x==1.0): # avoiding walls
+        x=random()
+    while(y==0.0 or y==1.0):
+        y=random()  
+    list_particles.append(Particule(charge = charge, radius = radius, 
             mass = mass, part_type = part_type, \
                 speed=my_speed, \
                     pos=MyVector(l1*x,l2*y,0), \
-                        verbose = verbose))    
+                        verbose = verbose))
 
     if(debug): 
         print(my_speed)
@@ -293,7 +274,8 @@ if(save_test):
         'use_DSMC' : use_DSMC,
         'integration_scheme' : integration_scheme.__name__,
         'init_type' : init_type,
-        'speed_init_type' : speed_init_type
+        'speed_init_type' : speed_init_type;
+        'saving_period' : saving_period
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
     data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)

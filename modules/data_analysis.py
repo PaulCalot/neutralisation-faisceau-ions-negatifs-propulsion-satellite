@@ -286,7 +286,7 @@ class DataAnalyser :
          
         fig = plt.figure(figsize=(10,10))
         
-        col = lst[0][value_name]
+        col = df[value_name]
         plt.hist(col, bins = 'auto', density=density, range = range)
 
         μ = np.mean(col)

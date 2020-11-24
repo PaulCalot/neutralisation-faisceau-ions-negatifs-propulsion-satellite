@@ -6,8 +6,8 @@ compute_hist_distribution_evolution = False
 compute_spatial_distribution = False
 frames_to_compute = ["first","last"]
 
-id_test = 12
-tests_summary_file_name='tests_summary_v3'
+id_test = 14
+tests_summary_file_name='tests_summary_v4'
 
 if(merge_csv):
     names = ['tests_summary_7', 'tests_summary_8','tests_summary_9',\
@@ -41,3 +41,4 @@ for which in frames_to_compute:
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = True, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
+    data_analyser.draw_spatial_distribution_frame(which, None, vmin = 0, vmax = 100)
