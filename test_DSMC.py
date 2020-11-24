@@ -274,7 +274,7 @@ if(save_test):
         'use_DSMC' : use_DSMC,
         'integration_scheme' : integration_scheme.__name__,
         'init_type' : init_type,
-        'speed_init_type' : speed_init_type;
+        'speed_init_type' : speed_init_type,
         'saving_period' : saving_period
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
