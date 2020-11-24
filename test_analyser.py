@@ -41,4 +41,4 @@ for which in frames_to_compute:
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = True, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
-    data_analyser.draw_spatial_distribution_frame(which, None, vmin = 0, vmax = 100)
+    data_analyser.draw_spatial_distribution_frame(which, None, grid_size = 10, vmin = 0, vmax = 60  )

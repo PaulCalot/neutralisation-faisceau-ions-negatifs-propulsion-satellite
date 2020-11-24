@@ -477,10 +477,11 @@ class CollisionHandler(object):
                             self.DSMC_params['vr_max'] = Vr_norm
                         r = random() # uniform deviate in (0,1)
                         if(r<v_r_norm/vr_max):
-                            self.update_speed_DSMC(part1, part2, r, v_r_norm)
+                            self.update_speed_DSMC(part1, part2, v_r_norm)
                             self.collisions_count+=1
 
-    def update_speed_DSMC(self, part1, part2, r, v_r_norm):
+    def update_speed_DSMC(self, part1, part2, v_r_norm):
+        r = random() # uniform deviate in (0,1)
         # for now, no loss of energy
         # page 5/7 of the Direct Simulation MC method paper
         q = 2*r-1
