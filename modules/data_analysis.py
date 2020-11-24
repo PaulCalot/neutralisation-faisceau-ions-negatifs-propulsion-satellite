@@ -261,6 +261,128 @@ class DataAnalyser :
             anim.save('{}_system_evolution.mp4'.format(self.test_id))
         else:
             plt.show()
+
+    # --------------------- Draw a frame ------------------------------ #
+
+    def draw_hist_distribution_frame(self, which = 'last', value_name = "", save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None):
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
+
+        lst = self.current
+
+        frame = -1
+        if(which == "first"):
+            frame = 0
+        elif(which == "last"):
+            frame = len(lst)-1
+        elif(type(which) == int):
+            frame = which
+        else:
+            print("Please choose 'which' amongst : 'first', 'last' or any positive {}. Default is 'last'.".format(int))
+            return
+
+        df = lst[frame]
+         
+        fig = plt.figure(figsize=(10,10))
+        
+        col = lst[0][value_name]
+        plt.hist(col, bins = 'auto', density=density, range = range)
+
+        μ = np.mean(col)
+        if(plot_maxwellian or plot_gaussian):
+            min_ = np.min(col)
+            max_ = np.max(col)
+            X = np.linspace(min_, max_, 1000)
+            if(plot_maxwellian):
+                loc, a = get_maxwellian_params(μ, np.std(col))
+                Y = ss.maxwell.pdf(X, loc = loc, scale = a)
+            else :
+                Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
+            plt.plot(X,Y)
+        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1)), fontsize=12)
+
+
+        if(save_frame):
+            plt.savefig('{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1))
+        else:
+            plt.show()
+
+    def draw_spatial_distribution_frame(self, which = "last", name = '' , save_frame = True, grid_size = 20, vmin = 0, vmax = 5e3):
+        # which : "first", "last" or any number between the 2.
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
+    
+        if(name == None):
+            name = 'particles'
+
+        lst = self.current
+        
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        frame = -1
+        if(which == "first"):
+            frame = 0
+        elif(which == "last"):
+            frame = len(lst)-1
+        elif(type(which) == int):
+            frame = which
+        else:
+            print("Please choose 'which' amongst : 'first', 'last' or any positive {}. Default is 'last'.".format(int))
+            return
+        df = lst[frame]
+
+        if(name != 'particles' and name != None):
+            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+        else :
+            hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+
+        cb = fig.colorbar(hexbin, ax=ax)
+        cb.set_label(name)
+
+        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=12)
+
+        if(save_frame):
+            plt.savefig('{}_{}_spatial_distribution_it_{}.png'.format(self.test_id, name, frame + 1), dpi = 300)
+        else:
+            plt.show()
+    
+
+    def draw_particles_frame(self, which = "last", save_frame=True):
+        # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
+        # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.scatter.html 
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
+
+        lst = self.current
+
+        frame = -1
+        if(which == "first"):
+            frame = 0
+        elif(which == "last"):
+            frame = len(lst)-1
+        elif(type(which) == int):
+            frame = which
+        else:
+            print("Please choose 'which' amongst : 'first', 'last' or any positive {}. Default is 'last'.".format(int))
+            return
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        df = lst[frame]
+        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
+
+        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=12)
+
+        interval = 40 # default value
+
+
+        if(save_frame):
+            plt.savefig('{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300)
+        else:
+            plt.show()
+
     # --------------- utils ---------------- #
     def compute_speed_norm(self, row):
         return np.sqrt(row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
