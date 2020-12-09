@@ -383,6 +383,55 @@ class DataAnalyser :
         else:
             plt.show()
 
+
+    def draw_Temperature_evolution(self, time_between_frames, Teq_init, tau_init, save_frame = True):
+        from scipy.optimize import least_squares
+
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
+
+        lst = self.current
+         
+        fig = plt.figure(figsize=(10,10))
+        Temp = []
+        for k in range(len(lst)):
+            df = lst[k]
+            col = df['speed_norm']
+            mean = np.mean(col)
+            Temp.append(mean*mean)# TODO:  update to have the right factor
+
+        T0 = Temp[0]
+        listTime = np.linspace(0,time_between_frames*len(lst),len(lst))
+        # minimization problem
+        def f(X_, Temp,listTime,T0): # X = [Teq, tau]
+            Teq = X_[0]
+            tau = X_[1]
+            f_ = lambda T, t: np.abs(T - (T0-Teq)*np.exp(-t/tau)+Teq)
+            total = 0
+            for k in range(len(Temp)):
+                T = Temp[k]
+                t = listTime[k]
+                f_value = f_(T,t)
+                total+=f_value*f_value
+            return total
+        
+        results = least_squares(f, np.array([Teq_init,tau_init]), bounds = ([Teq_init-500,0.01*tau_init],[Teq_init+500,100*tau_init]), args = (Temp,listTime,T0)).x
+        Teq, tau = results[0], results[1]
+
+        def get_Temp(Time):
+            return  (T0-Teq)*np.exp(-Time/tau)+Teq
+
+        fig, ax = plt.subplots(figsize=(15,10))
+        fig.suptitle("Temperature evolution - $T_e$ = {} ; $\\tau$ = {}".format(Teq,tau))
+        plt.plot(listTime, get_Temp(listTime))
+        plt.plot(listTime,Temp)
+
+        if(save_frame):
+            plt.savefig('{}_temperature_evolution.png'.format(self.test_id))
+        else:
+            plt.show()
+
     # --------------- utils ---------------- #
     def compute_speed_norm(self, row):
         return np.sqrt(row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])

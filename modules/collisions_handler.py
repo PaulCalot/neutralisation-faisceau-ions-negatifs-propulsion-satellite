@@ -14,7 +14,7 @@ from .integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
 class CollisionHandler(object):
     debug = False
     def __init__(self, particules, walls, f, eta = 0, p = 0, use_particles_collisions = False, \
-        use_DSMC = False, grid = None, DSMC_params = None, integration_scheme = rk4):
+        use_DSMC = False, grid = None, DSMC_params = None, sparsed_space = None, integration_scheme = rk4):
         # TODO : eta and p are for lose of speed or lose of charge when contact with wall or particules
         self.particules = particules
         self.walls = walls
@@ -40,6 +40,17 @@ class CollisionHandler(object):
         self.DSMC_params = DSMC_params
         # and sorting segments point by incrementing x
         self.collisions_count = 0
+        self.acceptance_rate = 0
+        self.total_considered_couples = 0
+        self.mean_v_relative = 0 # norm
+
+        # Sparsed space added to accomodate for the complete system.
+        self.sparsed_space = sparsed_space
+        if(sparsed_space is not None):
+            self.use_sparsed_space = True
+        else :
+            self.use_sparsed_space = False
+
         # /!\ useful ? Pretty sure it's not
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall
@@ -328,7 +339,6 @@ class CollisionHandler(object):
         particule.set_pos(MyVector(Y_pot[0],Y_pot[1],Y_pot[2]))
         particule.set_speed(MyVector(Y_pot[3],Y_pot[4],Y_pot[5]))
 
-
     def _new_velocities_collision(self, ind):
         """ Update velocity in case of a collision. Does not update speed however.
 
@@ -434,6 +444,12 @@ class CollisionHandler(object):
     
     def get_collisions_count(self):
         return self.collisions_count
+    
+    def get_acceptance_rate(self):
+        return self.acceptance_rate/self.total_considered_couples
+
+    def get_mean_vr_norm(self):
+        return self.mean_v_relative/self.total_considered_couples
     # ------------------------------ DSMC --------------------------- #
 
     def DSMC_collisions(self, dt):
@@ -444,27 +460,30 @@ class CollisionHandler(object):
         # but this allows us to have this current algorithm to be : O(Number of cells * Number of pairs to compute collision from per cell) !! We coulg gain a 50 factor or so
         # (that is the number of particles in the cell)
         vr_max = self.DSMC_params['vr_max']
-        M_ =  (math_pi * self.DSMC_params['effective_diameter']*self.DSMC_params['effective_diameter']*\
-            vr_max*self.DSMC_params['Ne']*dt)/(2*self.DSMC_params['cell_volume'])
+        M_ =  (np.pi*self.DSMC_params['effective_diameter']*self.DSMC_params['effective_diameter']*\
+            vr_max*self.DSMC_params['Ne']*self.DSMC_params['mean_particles_number_per_cell']*dt)/(2*self.DSMC_params['cell_volume'])
               # when multiplied by the number of particules in the cell,
               # gives the number of pairs to select for collision
               # in average we expect it to give the right results.
         grid = self.grid.get_grid()
-        for line in grid:
-            for cell in line : # cell is a linkedlist or a dynamic array (cf. grid.py)
+        for i, line in enumerate(grid):
+            for j, cell in enumerate(line): # cell is a linkedlist or a dynamic array (cf. grid.py)
                                # this should change because this is not at all adapted to a get method...
                                # how do we do ? Linkedlist are good because they computationnaly good for pop / insert tasks : O(1)
-                               # however, the search methods (or get method) is O(N) is N is the size of the list 
+                               # however, the search 
+                               # methods (or get method) is O(N) is N is the size of the list 
                                # another possibility (in the book) was to choose a fixed number of couples and say that it will 
                                # average to the correct value. This is what we are going to be using here.
-                if(cell!=None):
+                if(cell!=None and (self.sparsed_space[i][j] == 1 if self.use_sparsed_space else True)): # may i should do differently
                     Nc = cell.get_size()
-                    Mcand = Nc*Nc*M_ # number of pairs to select to compute
+                    Mcand = int(Nc*M_) # number of pairs to select to compute
+                    self.total_considered_couples += Mcand
+                   #print(Mcand)
                     if(self.debug): print("Number of pairs candidate : {}".format(Mcand))
                     # TODO:
                     # the book advises to us a mean value of Nc : Mcand = mean_Nc * Nc * M_ 
                     # (because there is a lot of variations etc.)
-                    for k in range(int(Mcand)):
+                    for k in range(Mcand):
                         i,j = randint(0,Nc-1), randint(0,Nc-1)
                         while(i==j):
                             j = randint(0,Nc-1)
@@ -474,9 +493,12 @@ class CollisionHandler(object):
                         v_r_norm = (part2.get_speed()-part1.get_speed()).norm()
                         #If this relative speed norm is higher than the one we set so far, we update.
                         if(v_r_norm>self.DSMC_params['vr_max']): # remember for next time
-                            self.DSMC_params['vr_max'] = Vr_norm
+                            self.DSMC_params['vr_max'] = v_r_norm
                         r = random() # uniform deviate in (0,1)
-                        if(r<v_r_norm/vr_max):
+                        acceptance = v_r_norm/vr_max
+                        self.acceptance_rate += acceptance
+                        self.mean_v_relative += v_r_norm 
+                        if(r<acceptance):
                             self.update_speed_DSMC(part1, part2, v_r_norm)
                             self.collisions_count+=1
 

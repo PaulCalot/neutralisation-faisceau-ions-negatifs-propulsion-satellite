@@ -4,10 +4,12 @@ merge_csv = False
 compute_system_evolution = False
 compute_hist_distribution_evolution = False
 compute_spatial_distribution = False
+compute_temperature = True
+
 frames_to_compute = ["first","last"]
 
-id_test = 14
-tests_summary_file_name='tests_summary_v4'
+id_test = 20
+tests_summary_file_name='tests_summary_v'
 
 if(merge_csv):
     names = ['tests_summary_7', 'tests_summary_8','tests_summary_9',\
@@ -17,7 +19,6 @@ if(merge_csv):
 
 data_analyser = DataAnalyser(tests_summary_file_name)
 data_analyser.load_test(id_test)
-
 
 if(compute_system_evolution):
     data_analyser.draw_particles()
@@ -39,6 +40,9 @@ for which in frames_to_compute:
     data_analyser.draw_particles_frame(which = which, save_frame=True)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vx', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
-    data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = True, plot_gaussian = True, density = True, range = None)
+    data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None)
     data_analyser.draw_spatial_distribution_frame(which, None, grid_size = 10, vmin = 0, vmax = 60  )
+
+if compute_temperature:
+    data_analyser.draw_Temperature_evolution(1.75843030499435E-06,Teq_init=3000, tau_init = 1e-3)

@@ -1,6 +1,10 @@
 import numpy as np
 import scipy.stats as ss
+import warnings
+from math import pi as math_pi
+from dolfin import Point
 
+# TODO : make it better (a class ?? -> to get in an easier manner all the things we may need)
 def segment(Point1,Point2):
     """
     Renvoie une liste des 4 coordonnées des extrémités à partir des deux points donnés
@@ -21,3 +25,28 @@ def get_maxwellian_params(μ=0, σ=1):
     m = 2.0*a*np.sqrt(2.0/np.pi)
     loc = μ - m
     return loc, a
+
+# not sorting correctly yet
+def sort_segments(walls):
+    segments = []
+    for i, wall in enumerate(walls):
+            x1,y1,x2,y2 = wall
+            min_x, max_x, min_y, max_y = x1, x2, y1, y2
+        
+            if(x1 > x2):
+                min_x, max_x = x2, x1
+                min_y, max_y = y2, y1
+            elif(x1 < x2):
+                min_x, max_x = x1, x2
+                min_y, max_y = y1, y2
+            else :
+                if(y1 > y2):
+                    min_x, max_x = x2, x1
+                    min_y, max_y = y2, y1
+                elif(y2 > y1):
+                    min_x, max_x = x1, x2
+                    min_y, max_y = y1, y2
+                else :
+                    warnings.warn("The {}th segment-wall has the same two extremities : (x1,y1) = ({},{}) and (x2,y2) = ({},{}).".format(i,x1,y1,x2,y2))
+    segments.append(segment(Point(min_x, min_y),Point(max_x, max_y)))
+    return segments

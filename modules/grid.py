@@ -5,22 +5,29 @@ import numpy as np
 from .particules import Particule
 from .dynamic_arrays import DynamicArray
 from .linkedList import LinkedList 
+from .vector import MyVector
 
 # 2 grid to start with
 class Grid(object):
     # TODO : make it 3D (or rather nD)
     debug = False
 
-    def __init__(self, lx, ly, resolutions, dtype = "LinkedList"):
+    def __init__(self, lx, ly, resolutions, offsets = None, dtype = "LinkedList"):
         self.lx = lx
         self.ly = ly
         self.res = [resolutions, resolutions] if len(resolutions) == 1 else resolutions # can be res if it's the same for all directions, or [l_res, h_res]
         self.data_structure_class = DynamicArray if (dtype == "DynamicArray") else LinkedList
+        self.use_offsets = False if offsets == None else True
+        if(self.use_offsets):
+            self.offsets = offsets if len(offsets)==2 else [offsets,offsets]
+            self.offsets = MyVector(self.offsets[0], self.offsets[1], 0)
+        else:
+            self.offsets = MyVector(0,0,0)
         self.dtype = dtype
-        self.grid = np.empty((self.res[0], self.res[1]), dtype = self.data_structure_class)
-
+        self.grid = np.empty((self.res[0], self.res[1]), dtype = self.data_structure_class)          
+        
     def add(self, particule):
-        pos = particule.get_pos()
+        pos = particule.get_pos()+self.offsets
         self.add_(particule, self.get_pos_in_grid(pos))
 
     def add_(self, particule, pos_in_grid):
@@ -41,7 +48,7 @@ class Grid(object):
             print("     [OK]")
 
     def remove(self, particule):
-        pos = particule.get_pos()
+        pos = particule.get_pos()+self.offsets
         self.remove_(particule, self.get_pos_in_grid(pos))
 
     def remove_(self, particule, pos_in_grid):
@@ -52,7 +59,7 @@ class Grid(object):
         if(self.debug):
             print("Updating position ... " + particule.to_string(), end= " ")
 
-        pos = particule.get_pos()
+        pos = particule.get_pos()+self.offsets
         pos_in_grid = self.get_pos_in_grid(pos)
         old_pos_in_grid = self.get_pos_in_grid(old_position)
 
@@ -68,14 +75,11 @@ class Grid(object):
         #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
         pos_x = int(position.x*self.res[0]/self.lx)
         pos_y = int(position.y*self.res[1]/self.ly)
-        return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
-        #return [pos_x, pos_y]
-
-    # TODO : change theses functions to take into account both data structure
-    # for now we don't use it so I ignore it.
+        #return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
+        return [pos_x, pos_y]
     
     def get_closest_particules(self, particule, return_list = True):
-        pos = particule.get_pos()
+        pos = particule.get_pos()+self.offsets
         pos_in_grid = self.get_pos_in_grid(pos)
         data_structure = self.grid[pos_in_grid[0],pos_in_grid[1]]
         if(return_list):
@@ -107,3 +111,12 @@ class Grid(object):
     def get_grid(self):
         return self.grid
     
+    # ------------ Sparsed Space ---------------- #
+    def fill_sparsed_space_from_initial_particles_position(self, list_particles):
+        output_array = np.zeros((self.res[0],self.res[1]),dtype=int)
+        for part in list_particles:
+            pos = part.get_pos()+self.offsets
+            pos_x = int(pos.x*self.res[0]/self.lx)
+            pos_y = int(pos.y*self.res[1]/self.ly)
+            output_array[pos_x,pos_y] = 1
+        return output_array
