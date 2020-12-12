@@ -33,7 +33,7 @@ id_test = 1
 perform_default_analysis = False
 #----------------- debug parameters --------------------#
 debug = True
-test_config = False 
+test_config = True 
 
 #----------------- physics properties --------------------#
 
@@ -174,7 +174,7 @@ if(save_test):
         'mean_vr_norm' : 0
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
-    #data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
     # integration params
 t = 0
 
@@ -198,7 +198,7 @@ if(not test_config):
             data_analyser.save_everything_to_one_csv()
 
     if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
-   
+    
     number_of_collisions = collisionHandler.get_collisions_count()
     mean_acceptance_rate = collisionHandler.get_acceptance_rate()
     mean_vr_norm = collisionHandler.get_mean_vr_norm()

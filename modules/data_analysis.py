@@ -383,8 +383,39 @@ class DataAnalyser :
         else:
             plt.show()
 
+    # https://sciencing.com/maxwell-boltzmann-distribution-function-derivation-examples-13722756.html
+    
+    def savitzky_golay(self, y, window_size, order, deriv=0, rate=1):
+        # https://fr.wikipedia.org/wiki/Algorithme_de_Savitzky-Golay
+        
+        import numpy as np
+        from math import factorial
 
-    def draw_Temperature_evolution(self, time_between_frames, Teq_init, tau_init, save_frame = True):
+        try:
+            window_size = np.abs(np.int(window_size))
+            order = np.abs(np.int(order))
+        except ValueError:
+            raise ValueError("window_size and order have to be of type int")
+        if window_size % 2 != 1 or window_size < 1:
+            raise TypeError("window_size size must be a positive odd number")
+        if window_size < order + 2:
+            raise TypeError("window_size is too small for the polynomials order")
+        
+        order_range = range(order+1)
+        half_window = (window_size -1) // 2
+        
+        # precompute coefficients
+        b = np.mat([[k**i for i in order_range] for k in range(-half_window, half_window+1)])
+        m = np.linalg.pinv(b).A[deriv] * rate**deriv * factorial(deriv)
+        
+        # pad the signal at the extremes with
+        # values taken from the signal itself
+        firstvals = y[0] - np.abs( y[1:half_window+1][::-1] - y[0] )
+        lastvals = y[-1] + np.abs(y[-half_window-1:-1][::-1] - y[-1])
+        y = np.concatenate((firstvals, y, lastvals))
+        return np.convolve( m[::-1], y, mode='valid')
+
+    def draw_Temperature_evolution(self, time_between_frames, Teq_init, tau_init, molecular_weight, begin = 0, end = 1, save_frame = True):
         from scipy.optimize import least_squares
 
         if(self.current == None):
@@ -395,14 +426,20 @@ class DataAnalyser :
          
         fig = plt.figure(figsize=(10,10))
         Temp = []
-        for k in range(len(lst)):
+        R = 8.314
+        factor = molecular_weight/(3*R)
+        begin_indx = int(begin*len(lst))
+        end_indx = int(end*len(lst))
+        number_of_frames_used = end_indx-begin_indx
+        for k in range(begin_indx,end_indx):
             df = lst[k]
             col = df['speed_norm']
             mean = np.mean(col)
-            Temp.append(mean*mean)# TODO:  update to have the right factor
+            Temp.append(factor*mean*mean)# TODO:  update to have the right factor
+        
 
         T0 = Temp[0]
-        listTime = np.linspace(0,time_between_frames*len(lst),len(lst))
+        listTime = np.linspace(0,time_between_frames*number_of_frames_used,number_of_frames_used)
         # minimization problem
         def f(X_, Temp,listTime,T0): # X = [Teq, tau]
             Teq = X_[0]
@@ -415,8 +452,8 @@ class DataAnalyser :
                 f_value = f_(T,t)
                 total+=f_value*f_value
             return total
-        
-        results = least_squares(f, np.array([Teq_init,tau_init]), bounds = ([Teq_init-500,0.01*tau_init],[Teq_init+500,100*tau_init]), args = (Temp,listTime,T0)).x
+        Temp_smooth = self.savitzky_golay(np.array(Temp), window_size = 13, order=3)
+        results = least_squares(f, np.array([Teq_init,tau_init]), bounds = ([Teq_init*0.99,0.1*tau_init],[Teq_init*1.01,1.2*tau_init]), args = (Temp,listTime,T0)).x
         Teq, tau = results[0], results[1]
 
         def get_Temp(Time):
@@ -426,6 +463,7 @@ class DataAnalyser :
         fig.suptitle("Temperature evolution - $T_e$ = {} ; $\\tau$ = {}".format(Teq,tau))
         plt.plot(listTime, get_Temp(listTime))
         plt.plot(listTime,Temp)
+        plt.plot(listTime,Temp_smooth)
 
         if(save_frame):
             plt.savefig('{}_temperature_evolution.png'.format(self.test_id))

@@ -55,7 +55,6 @@ class CollisionHandler(object):
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall
             min_x, max_x, min_y, max_y = x1, x2, y1, y2
-        
             if(x1 > x2):
                 min_x, max_x = x2, x1
                 min_y, max_y = y2, y1
@@ -474,7 +473,8 @@ class CollisionHandler(object):
                                # methods (or get method) is O(N) is N is the size of the list 
                                # another possibility (in the book) was to choose a fixed number of couples and say that it will 
                                # average to the correct value. This is what we are going to be using here.
-                if(cell!=None and (self.sparsed_space[i][j] == 1 if self.use_sparsed_space else True)): # may i should do differently
+                if(cell!=None): # may i should do differently
+                    #  and (self.sparsed_space[i][j] == 1 if self.use_sparsed_space else True)
                     Nc = cell.get_size()
                     Mcand = int(Nc*M_) # number of pairs to select to compute
                     self.total_considered_couples += Mcand
