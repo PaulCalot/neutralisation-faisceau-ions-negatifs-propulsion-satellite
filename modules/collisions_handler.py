@@ -43,7 +43,7 @@ class CollisionHandler(object):
         self.acceptance_rate = 0
         self.total_considered_couples = 0
         self.mean_v_relative = 0 # norm
-
+        self.mean_proba = 0
         # Sparsed space added to accomodate for the complete system.
         self.sparsed_space = sparsed_space
         if(sparsed_space is not None):
@@ -55,6 +55,7 @@ class CollisionHandler(object):
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall
             min_x, max_x, min_y, max_y = x1, x2, y1, y2
+        
             if(x1 > x2):
                 min_x, max_x = x2, x1
                 min_y, max_y = y2, y1
@@ -449,6 +450,13 @@ class CollisionHandler(object):
 
     def get_mean_vr_norm(self):
         return self.mean_v_relative/self.total_considered_couples
+
+    def get_vr_norm(self):
+        return self.DSMC_params['vr_max']
+    
+    def get_mean_proba(self):
+        return self.mean_proba/self.total_considered_couples
+
     # ------------------------------ DSMC --------------------------- #
 
     def DSMC_collisions(self, dt):
@@ -495,10 +503,11 @@ class CollisionHandler(object):
                         if(v_r_norm>self.DSMC_params['vr_max']): # remember for next time
                             self.DSMC_params['vr_max'] = v_r_norm
                         r = random() # uniform deviate in (0,1)
-                        acceptance = v_r_norm/vr_max
-                        self.acceptance_rate += acceptance
-                        self.mean_v_relative += v_r_norm 
-                        if(r<acceptance):
+                        acceptance_proba = v_r_norm/vr_max
+                        self.mean_proba += acceptance_proba
+                        self.mean_v_relative += v_r_norm
+                        if(r<acceptance_proba):
+                            self.acceptance_rate += 1
                             self.update_speed_DSMC(part1, part2, v_r_norm)
                             self.collisions_count+=1
 

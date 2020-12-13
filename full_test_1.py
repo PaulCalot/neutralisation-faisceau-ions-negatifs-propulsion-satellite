@@ -256,7 +256,7 @@ if(save_test):
         'saving_period' : saving_period
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
-    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    #data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
     # integration params
 t = 0
 
@@ -279,8 +279,9 @@ if(not test_config):
 
 
     if(debug): print("\nNumber of collisions : {}".format("{:e}".format(collisionHandler.get_collisions_count())))
-
-
+    
+    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    
     if(perform_default_analysis):
         data_analyser = DataAnalyser(tests_summary_file_name)
         data_analyser.load_test(id_test)

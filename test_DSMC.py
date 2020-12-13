@@ -33,14 +33,14 @@ id_test = 1
 perform_default_analysis = False
 #----------------- debug parameters --------------------#
 debug = True
-test_config = True 
+test_config = False 
 
 #----------------- physics properties --------------------#
 
 real_particle_density = 1e20 # for I
 effective_diameter = 4e-10 # roughly the diameter of I
-max_speed = 6000 # 20000 m/s we say ~> Maxwellian distribution
-mean_speed = 3000
+max_speed = 600 # 20000 m/s we say ~> Maxwellian distribution
+mean_speed = 300
 # TODO investigate max_speed importance
 
 mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_particle_density)
@@ -49,11 +49,11 @@ dt = 0.25 * mean_free_time
 
 mean_particles_number_per_cell = 100
 
-MAX_INTEGRATION_STEP = 1000
+MAX_INTEGRATION_STEP = 10
 #----------------- Space properties --------------------#
 factor_size_cell = 1 # means : cell size = mean free path
 # rectangle of size l1*l2
-size_space = 10 # to be multiply by the mean free path
+size_space = 3 # to be multiply by the mean free path
 l1,l2 = size_space*mean_free_path,size_space*mean_free_path
 # resolution along each previous dimension
 res1, res2 = int(size_space/factor_size_cell), int(size_space/factor_size_cell)
@@ -102,7 +102,7 @@ if(debug): print("There is {} particles in the simulation. One particle accounts
 types = ['I']
 numbers = [N_particles_simu]
 speed_init_type = ['uniform']
-speed_init_params = [[2500,3500]]
+speed_init_params = [[250,350]]
 list_particles = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = False)
 
 #--------------- Rectangle creation -------------------#
@@ -132,7 +132,7 @@ eta = 0
 p = 0
     # DSMC param
 DSMC_params = {
-    'vr_max' : 2*max_speed,
+    'vr_max' : 2*mean_speed,
     'effective_diameter':  effective_diameter,
     'Ne' : Ne, # this is the number of real particles one simulated particle represents.
     'cell_volume' : l1*l2*l3/(res1*res2), # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
@@ -171,10 +171,13 @@ if(save_test):
         'saving_period' : saving_period,
         'number_of_collisions' : 0,
         'mean_acceptance_rate' : 0,
-        'mean_vr_norm' : 0
+        'mean_proba' : 0,
+        'mean_vr_norm' : 0,
+        'vr_max_init' : DSMC_params['vr_max'],
+        'vr_max' : 0,
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
-    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    #data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
     # integration params
 t = 0
 
@@ -202,10 +205,14 @@ if(not test_config):
     number_of_collisions = collisionHandler.get_collisions_count()
     mean_acceptance_rate = collisionHandler.get_acceptance_rate()
     mean_vr_norm = collisionHandler.get_mean_vr_norm()
+    vr_max_final = collisionHandler.get_vr_norm()
+    mean_proba = collisionHandler.get_mean_proba()
     # saving again to the csv.
+    params_dict['mean_proba']=mean_proba
     params_dict['number_of_collisions']=number_of_collisions
     params_dict['mean_acceptance_rate']=mean_acceptance_rate
     params_dict['mean_vr_norm']=mean_vr_norm
+    params_dict['vr_max']=vr_max_final
 
     data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
 
