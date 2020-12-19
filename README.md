@@ -10,7 +10,6 @@ We strongly recommend you create a specific *conda* environment to run this proj
 
 For clarity purpose, we use the environment name : **NIRN** (for *Negative Ions Ray Neutralization*). However, you are completely free to use your own.
 
-
 *Linux* and *Mac* users (without *Docker*):
 <br>
 TODO : test for *Windows* user
