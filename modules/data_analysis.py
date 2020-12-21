@@ -163,7 +163,7 @@ class DataAnalyser :
 
             #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
             plt.xlabel(value_name,fontsize=16)
-            plt.ylabel("quantity",fontsize=16)
+            plt.ylabel("density",fontsize=16)
 
         fig = plt.figure(figsize=(10,10))
         
@@ -185,7 +185,7 @@ class DataAnalyser :
 
         #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
         plt.xlabel(value_name,fontsize=16)
-        plt.ylabel("quantity",fontsize=16)
+        plt.ylabel("density",fontsize=16)
         interval = 200 # default value
 
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
@@ -308,7 +308,7 @@ class DataAnalyser :
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
         #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1)), fontsize=12)
         plt.xlabel(value_name,fontsize=16)
-        plt.ylabel("quantity",fontsize=16)
+        plt.ylabel("density",fontsize=16)
         plt.legend(loc='best')
 
         if(save_frame):
