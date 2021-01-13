@@ -124,9 +124,10 @@ class DataAnalyser :
         # computing speed norm : 
 
         # TODO : we should first compute speed_norm_squared and then speed_norm
+        df_data['speed_norm_squared'] = df_data.apply(self.compute_speed_norm_square, axis=1)
+
         df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
 
-        df_data['speed_norm_squared'] = df_data.apply(self.compute_speed_norm_square, axis=1)
         # splitting in time step
         row_count = len(df_data.index)
         lst = [df_data.iloc[i:i+self.nb_parts] for i in range(0,row_count-self.nb_parts+1,self.nb_parts)]
@@ -134,6 +135,14 @@ class DataAnalyser :
         self.number_of_frames = len(lst)
         self.current = lst
 
+        # --------------- utils ---------------- #
+    def compute_speed_norm(self, row):
+        return np.sqrt(row['speed_norm_squared'])
+
+    def compute_speed_norm_square(self, row):
+        return (row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
+
+        # -------------- drawing --------------- #
     def draw_hist_distribution(self, value_name = "", save_animation = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = None):
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
@@ -425,7 +434,7 @@ class DataAnalyser :
         y = np.concatenate((firstvals, y, lastvals))
         return np.convolve( m[::-1], y, mode='valid')
 
-    def draw_Temperature_evolution(self, time_between_frames, Teq_init, tau_init, molecular_weight, begin = 0, end = 1, save_frame = True):
+    def draw_Temperature_evolution(self, time_between_frames, tau_init, particles_mass, begin = 0, end = 1, save_frame = True):
         from scipy.optimize import least_squares
 
         if(self.current == None):
@@ -436,25 +445,36 @@ class DataAnalyser :
          
         fig = plt.figure(figsize=(10,10))
         Temp = []
-        R = 8.314
-        factor = molecular_weight/(3*R)
+        k = 1.380649e-23
+        factor = particles_mass/(3*k) # m/(3k)
         begin_indx = int(begin*len(lst))
         end_indx = int(end*len(lst))
         number_of_frames_used = end_indx-begin_indx
+
+        a = np.sqrt(np.mean(lst[0]['speed_norm_squared'])/3)
+        eq_std = a*a*(3*np.pi-8)/(np.pi)
+        print('Equilibrium variance = {} m2/s2'.format(eq_std))
+
+        # time list 
+        listTime = np.linspace(0,time_between_frames*number_of_frames_used,number_of_frames_used)
+        
+        # creating the list of temperatures
         for k in range(begin_indx,end_indx):
             df = lst[k]
-            col = df['speed_norm']
-            mean = np.mean(col)
-            Temp.append(factor*mean*mean)
-        
-
+            v = df['speed_norm']
+            v_mean = np.mean(v)
+            w = v - v_mean
+            variance_t = np.mean(w*w)
+            # 
+            Temp.append(variance_t)
+        Temp = np.array(Temp)
         T0 = Temp[0]
-        listTime = np.linspace(0,time_between_frames*number_of_frames_used,number_of_frames_used)
+        print('T_0 = {} K'.format(T0))
         # minimization problem
-        def f(X_, Temp,listTime,T0): # X = [Teq, tau]
-            Teq = X_[0]
-            tau = X_[1]
-            f_ = lambda T, t: np.abs(T - (T0-Teq)*np.exp(-t/tau)+Teq)
+
+        def f(X_, Temp,listTime, T0): # X = [tau]
+            tau = X_[0]
+            f_ = lambda T, t: np.abs(T - (T0-eq_std)*np.exp(-t/tau)-eq_std)
             total = 0
             for k in range(len(Temp)):
                 T = Temp[k]
@@ -463,18 +483,18 @@ class DataAnalyser :
                 total+=f_value*f_value
             return total
         #Temp_smooth = self.savitzky_golay(np.array(Temp), window_size = 13, order=3)
-        results = least_squares(f, np.array([Teq_init,tau_init]), bounds = ([Teq_init*0.01,0.01*tau_init],[Teq_init*2,100*tau_init]), args = (Temp,listTime,T0)).x
-        Teq, tau = results[0], results[1]
+        results = least_squares(f, np.array([tau_init]), bounds = ([1e-3*tau_init],[1e3*tau_init]), args = (Temp,listTime,T0)).x
+        tau = results[0]
 
         def get_Temp(Time):
-            return  (T0-Teq)*np.exp(-Time/tau)+Teq
+            return (T0-eq_std)*np.exp(-Time/tau)+eq_std
 
         fig, ax = plt.subplots(figsize=(15,10))
-        #fig.suptitle("Temperature evolution - $T_e$ = {} K ; $\\tau$ = {} s".format("{:e}".format(Teq),"{:e}".format(tau)))
-        plt.xlabel("time (s)",fontsize=16)
-        plt.ylabel("temperature (K)",fontsize=16)
-        plt.plot(listTime, get_Temp(listTime), label = '$T = (T_0-T_e)exp(-t/\tau)+T_e$')
-        plt.plot(listTime,Temp, label = 'simulation values')
+        fig.suptitle("évolution de la variance de la norme de la vitesse - $\sigma_e$ = {} m/s ; $\\tau$ = {} s".format("{:e}".format(np.sqrt(eq_std)),"{:e}".format(tau)))
+        plt.xlabel("temps (s)",fontsize=16)
+        plt.ylabel("variance de la vitesse ($m^2/s^2$)",fontsize=16)
+        plt.plot(listTime, get_Temp(listTime), label = '$\sigma^2(t) = (\sigma^2(0)-\sigma^2_e)exp(-t/\\tau)+\sigma^2_e$')
+        plt.plot(listTime,Temp, label = 'Simulation')
         #plt.plot(listTime,Temp_smooth)
         plt.legend(loc='best',fontsize=14)
         if(save_frame):
@@ -482,12 +502,6 @@ class DataAnalyser :
         else:
             plt.show()
 
-    # --------------- utils ---------------- #
-    def compute_speed_norm(self, row):
-        return np.sqrt(row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
-
-    def compute_speed_norm_square(self, row):
-        return row['speed_norm']*row['speed_norm']
 
 def merge_tests_summary(names, output_name):
     mode = "r"
@@ -503,4 +517,4 @@ def merge_tests_summary(names, output_name):
         csv_writer = csv.writer(csv_file, delimiter=',')            
         for row in L:
             csv_writer.writerow(row)
-
+                

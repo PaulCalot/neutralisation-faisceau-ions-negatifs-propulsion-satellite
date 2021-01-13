@@ -17,14 +17,24 @@ from random import random
 import numpy as np
 from scipy.stats import maxwell, norm
 import csv
+from os import path, mkdir
+
 # plotting
 from tqdm import tqdm
 
 # comparaison
 from time import time
 # ----------------- saving test to file ? --------------- #
-saving_directory = 'test_rapport_inter/' # be careful, it won't check if this the directory is already created ...
-tests_summary_file_name = "test_rapport_inter"
+saving_directory = 'maxwellpdf_collisionsnb_test/' # be careful, it won't check if this the directory is already created ...
+# checking if the file exists
+if(not path(saving_directory)):
+    try:
+        mkdir(saving_directory)
+        print('Successfully created the saving directory {}'.format(saving_directory))
+    except:
+        print('Could not create the saving directory {}'.format(saving_directory))
+
+tests_summary_file_name = "maxwellpdf_collisionsnb_test"
 save_test = True
 saving_period = 10
 # ----------------- id test -------------------- #
@@ -47,9 +57,8 @@ mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_
 mean_free_time = mean_free_path/mean_speed
 dt = 0.25 * mean_free_time
 
-mean_particles_number_per_cell = 100
-
-MAX_INTEGRATION_STEP = 10
+mean_particles_number_per_cell = 200
+MAX_INTEGRATION_STEP = 100
 #----------------- Space properties --------------------#
 factor_size_cell = 1 # means : cell size = mean free path
 # rectangle of size l1*l2
@@ -101,7 +110,7 @@ if(debug): print("There is {} particles in the simulation. One particle accounts
 
 types = ['I']
 numbers = [N_particles_simu]
-speed_init_type = ['uniform']
+speed_init_type = ['maxwellian'] # maxwellian, uniform
 speed_init_params = [[250,350]]
 list_particles = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = False)
 
@@ -199,7 +208,8 @@ if(not test_config):
             # that we would do each time (or initialize them before in some way)
             # if it requires some initializing (parameters to set etc.)
             data_analyser.save_everything_to_one_csv()
-
+            print(collisionHandler.save_collisions_matrix(name = "test_"+str(id_test)+"_collision_matrix"), iteration = k)
+    
     if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
     
     number_of_collisions = collisionHandler.get_collisions_count()

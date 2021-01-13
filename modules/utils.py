@@ -50,3 +50,4 @@ def sort_segments(walls):
                     warnings.warn("The {}th segment-wall has the same two extremities : (x1,y1) = ({},{}) and (x2,y2) = ({},{}).".format(i,x1,y1,x2,y2))
     segments.append(segment(Point(min_x, min_y),Point(max_x, max_y)))
     return segments
+

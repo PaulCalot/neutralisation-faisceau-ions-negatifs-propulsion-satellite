@@ -1,13 +1,16 @@
 from modules.data_analysis import DataAnalyser, merge_tests_summary
 
+# mass particles
+from modules.utils import get_mass_part
+
 merge_csv = False
 compute_system_evolution = False
 compute_hist_distribution_evolution = False
 compute_spatial_distribution = False
 compute_temperature = True
-frames_to_compute = ["first","last"]
+frames_to_compute = [] # ["first","last"]
 
-ids_test = [1,2,3,4]
+ids_test = [2] #[1,2,3,4]
 periods = [1.17228686999623e-05, 1.17228686999623e-05, 5.86143434998116e-06, 1.17228686999623e-05]
 tests_summary_file_name='test_rapport_inter_serie3'
 
@@ -45,4 +48,5 @@ for indx, id_test in enumerate(ids_test):
         data_analyser.draw_spatial_distribution_frame(which, None, grid_size = 9, vmin = 0, vmax = 60 )
 
     if compute_temperature:
-        data_analyser.draw_Temperature_evolution(periods[indx],Teq_init=4.6e5, tau_init = 1, molecular_weight = 126.90447,begin = 0, end = 0.35) # g/mol
+        IODINE_MASS = get_mass_part(53, 53, 88) 
+        data_analyser.draw_Temperature_evolution(periods[indx], tau_init = 5e-5, particles_mass= IODINE_MASS, begin = 0.00, end = 1.0) # g/mol

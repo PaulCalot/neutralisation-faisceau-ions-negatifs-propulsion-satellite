@@ -40,6 +40,7 @@ class CollisionHandler(object):
         self.DSMC_params = DSMC_params
         # and sorting segments point by incrementing x
         self.collisions_count = 0
+        self.collisions_matrix = np.zeros(self.grid.get_grid().shape, dtype = int) if grid != None else 0
         self.acceptance_rate = 0
         self.total_considered_couples = 0
         self.mean_v_relative = 0 # norm
@@ -473,8 +474,8 @@ class CollisionHandler(object):
               # gives the number of pairs to select for collision
               # in average we expect it to give the right results.
         grid = self.grid.get_grid()
-        for i, line in enumerate(grid):
-            for j, cell in enumerate(line): # cell is a linkedlist or a dynamic array (cf. grid.py)
+        for idx_line, line in enumerate(grid):
+            for idx_cell, cell in enumerate(line): # cell is a linkedlist or a dynamic array (cf. grid.py)
                                # this should change because this is not at all adapted to a get method...
                                # how do we do ? Linkedlist are good because they computationnaly good for pop / insert tasks : O(1)
                                # however, the search 
@@ -507,6 +508,7 @@ class CollisionHandler(object):
                         self.mean_proba += acceptance_proba
                         self.mean_v_relative += v_r_norm
                         if(r<acceptance_proba):
+                            self.collisions_matrix[idx_line,idx_cell] += 1
                             self.acceptance_rate += 1
                             self.update_speed_DSMC(part1, part2, v_r_norm)
                             self.collisions_count+=1
@@ -534,3 +536,25 @@ class CollisionHandler(object):
         # we update the collision table now
         self.update_events(part1.get_id())
         self.update_events(part2.get_id())
+
+    # ------------------ Saving function ------------------ # 
+    # Not sure I should put it there ...
+
+    def save_collisions_matrix(self, name, iteration = 0):
+        from os.path import isfile
+        if(isfile(name+'.txt')):
+            mode = 'a'
+        else:
+            mode = 'w'
+        with open(name+'.txt', mode = mode) as txt_file:
+            head = "Iteration {} :\n".format(str(iteration))
+            txt_file.write(head)
+            L=[]
+            print(self.collisions_matrix)
+            for k in range(self.collisions_matrix.shape[0]):
+                line = self. collisions_matrix[k]
+                list_ = [str(line[nb]) for nb in range(len(line))] + ['\n']
+                L.insert(0, '  '.join(list_))
+            for string in L:
+                txt_file.write(string)
+            txt_file.write('\n')

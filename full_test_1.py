@@ -261,6 +261,7 @@ if(save_test):
 t = 0
 
 if(debug): print("\nSTARTING SIMULATION...\n")
+
 # simulation
 
 elapsed_time = time()
