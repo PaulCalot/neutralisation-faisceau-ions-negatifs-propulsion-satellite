@@ -170,7 +170,7 @@ class DataAnalyser :
                     Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
                 plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
 
-            #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
+            fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
             plt.xlabel(value_name,fontsize=16)
             plt.ylabel("density",fontsize=16)
 
@@ -192,7 +192,7 @@ class DataAnalyser :
                 Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
 
-        #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
+        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
         plt.xlabel(value_name,fontsize=16)
         plt.ylabel("density",fontsize=16)
         interval = 200 # default value
@@ -220,7 +220,7 @@ class DataAnalyser :
             else :
                 hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
-            #fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
+            fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
             
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
@@ -232,7 +232,7 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        #fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
         
 
         interval = 200 # default value
@@ -260,13 +260,13 @@ class DataAnalyser :
             scat.set_offsets(np.c_[df['x'],df['y']])
             scat.set_array(df['speed_norm'])
 
-            #fig.suptitle('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=12)
+            fig.suptitle('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=12)
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
         scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
 
-        #fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
 
         interval = 40 # default value
 
@@ -305,17 +305,18 @@ class DataAnalyser :
         plt.hist(col, bins = 'auto', density=density, range = range, color = color)
 
         μ = np.mean(col)
+        std =  np.std(col)
         if(plot_maxwellian or plot_gaussian):
             min_ = np.min(col)
             max_ = np.max(col)
             X = np.linspace(min_, max_, 1000)
             if(plot_maxwellian):
-                loc, a = get_maxwellian_params(μ, np.std(col))
+                loc, a = get_maxwellian_params(μ, std)
                 Y = ss.maxwell.pdf(X, loc = loc, scale = a)
             else :
-                Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
+                Y = ss.norm.pdf(X, loc=μ, scale = std)
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
-        #fig.suptitle('{} : {} distribution - iteration {}/{} - mean value : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1)), fontsize=12)
+        fig.suptitle('{} : {} - it {}/{} - $\\mu$ : {} - $\\sigma$ : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1),round(std,2)), fontsize=12)
         plt.xlabel(value_name,fontsize=16)
         plt.ylabel("density",fontsize=16)
         plt.legend(loc='best')
@@ -324,6 +325,7 @@ class DataAnalyser :
             plt.savefig('{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
+        plt.close()
 
     def draw_spatial_distribution_frame(self, which = "last", name = '' , save_frame = True, grid_size = 20, vmin = 0, vmax = 5e3):
         # which : "first", "last" or any number between the 2.
@@ -358,14 +360,15 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        #fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=12)
         plt.legend(loc='best',fontsize=14)
 
         if(save_frame):
             plt.savefig('{}_{}_spatial_distribution_it_{}.png'.format(self.test_id, name, frame + 1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
-    
+        plt.close()
+
 
     def draw_particles_frame(self, which = "last", save_frame=True, vmin = None, vmax=None):
         # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
@@ -389,18 +392,19 @@ class DataAnalyser :
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[frame]
-        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic', vmin=vmin,vmax=vmax)
+        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic', vmin=vmin, vmax=vmax)
+        ax.set_xlim(vmin, vmax)
+        ax.set_ylim(vmin, vmax)
 
-        #fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=12)
+        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=12)
 
-        interval = 40 # default value
         plt.legend(loc='best',fontsize=14)
-
 
         if(save_frame):
             plt.savefig('{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
+        plt.close()
 
     # https://sciencing.com/maxwell-boltzmann-distribution-function-derivation-examples-13722756.html
     
@@ -501,6 +505,7 @@ class DataAnalyser :
             plt.savefig('{}_temperature_evolution.png'.format(self.test_id), bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
+        plt.close()
 
 
 def merge_tests_summary(names, output_name):

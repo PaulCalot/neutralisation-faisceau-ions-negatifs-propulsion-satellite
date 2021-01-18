@@ -54,8 +54,7 @@ def get_particles(types, numbers, speed_init_types, speed_init_params, effective
         else :
             print("/!\\ Unknown speed init type /!\\")
             return
-
-        if(debug) : mean = 0
+        mean = 0
         for k in range(number_):
             my_speed = 0
 
@@ -106,13 +105,14 @@ def get_particles(types, numbers, speed_init_types, speed_init_params, effective
                         speed=my_speed, \
                             pos=MyVector(x,y,0), \
                                 verbose = verbose))
+            mean += my_speed.norm()
             if(debug): 
                 print(my_speed)
-                mean += my_speed.norm()
 
         if(debug): print("Mean speed init : {} m/s".format(round(mean/number_,2)))
 
-    return np.array(list_particles) # we don't shuffle right now
+    return np.array(list_particles), mean # we don't shuffle right now
+# TODO : make it work for several particles types ...
 
 def get_correct_initial_positions(zone, offsets, space_size):
     # same trouble as creating a grid for the space

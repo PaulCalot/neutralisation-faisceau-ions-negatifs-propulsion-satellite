@@ -1,5 +1,4 @@
 from modules.data_analysis import DataAnalyser, merge_tests_summary
-
 # mass particles
 from modules.utils import get_mass_part
 
@@ -10,9 +9,9 @@ compute_spatial_distribution = False
 compute_temperature = True
 frames_to_compute = ["first","last"] # ["first","last"]
 
-ids_test = [1] #[1,2,3] #[1,2,3,4]
+ids_test = [4] #[1,2,3] #[1,2,3,4]
 periods = [1.17228686999623e-05, 1.17228686999623e-05, 1.17228686999623e-05] # 5.86143434998116e-06, 1.17228686999623e-05]
-tests_summary_file_name='gaussian'
+tests_summary_file_name='tests'
 
 if(merge_csv):
     names = ['test_rapport_inter_serie3_1', 'test_rapport_inter_serie3_2','test_rapport_inter_serie3_3','test_rapport_inter_serie3_4']
@@ -25,7 +24,6 @@ for indx, id_test in enumerate(ids_test):
 
     if(compute_system_evolution):
         data_analyser.draw_particles()
-
     if(compute_hist_distribution_evolution):
         # speed_norm , speed_norm_squared , vz
         data_analyser.draw_hist_distribution('vx',plot_gaussian=True)

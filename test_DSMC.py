@@ -25,7 +25,7 @@ from tqdm import tqdm
 # comparaison
 from time import time
 # ----------------- saving test to file ? --------------- #
-saving_directory = 'square_tests/' # be careful, it won't check if this the directory is already created ...
+saving_directory = 'A/' # be careful, it won't check if this the directory is already created ...
 # checking if the file exists
 if(not path.exists(saving_directory)):
     try:
@@ -34,7 +34,7 @@ if(not path.exists(saving_directory)):
     except:
         print('Could not create the saving directory {}'.format(saving_directory))
 
-tests_summary_file_name = "tests"
+tests_summary_file_name = "A"
 save_test = True
 saving_period = 10
 # ----------------- id test -------------------- #
@@ -55,9 +55,9 @@ mean_speed = 300
 
 mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_particle_density)
 mean_free_time = mean_free_path/mean_speed
-dt = 0.25 * mean_free_time
+dt = 0.25 * mean_free_time # may be take a smaller one this one is kind of big still.
 
-mean_particles_number_per_cell = 100 
+mean_particles_number_per_cell = 200 
 MAX_INTEGRATION_STEP = 300
 #----------------- Space properties --------------------#
 factor_size_cell = 1 # means : cell size = mean free path
@@ -81,6 +81,7 @@ IODINE_MASS = get_mass_part(53, 53, 88)
 
 charge = 0
 mass = IODINE_MASS
+
 # pos = MyVector(0,0,0), speed = MyVector(0,0,0), 
 part_type = "I"
 radius = effective_diameter/2.0
@@ -117,8 +118,6 @@ def get_sigma(T, mass):
 def get_T(v_mean, mass):
     kb = 1.38064e-23 # J K−1
     return mass*v_mean*v_mean/(3*kb)
-
-
 sigma = get_sigma(T = get_T(300, mass), mass = mass) # T=454 K roughly for v_mean = 300 m/s
 mu = 2*sigma*np.sqrt(2/np.pi) # only for maxwellian distribution
 
@@ -127,8 +126,9 @@ numbers = [N_particles_simu]
 speed_init_type = ['gaussian'] # gaussian, uniform, uniform_norm, maxwellian : each axis speed will be initialized according to speed_init_type
 speed_init_params = [[0,sigma]]  # [[0,sigma]] # [[mu,sigma]], [[-300,300]], [[250,350]] # with if gaussian / maxwellian : mu = speed_init_params[0], sigma = speed_init_params[1], 
 # if uniform (or uniform_norm) : min_speed = speed_init_params[0], max_speed = speed_init_params[1]
-list_particles = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = True)
-
+list_particles, vmean_exp = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = True)
+print(get_T(300, mass))
+print(mass)
 #--------------- Rectangle creation -------------------#
 
 rectangle_walls = [segment(Point(0,0),Point(0,l2)), segment(Point(0,0),Point(l1,0)), \
@@ -199,6 +199,8 @@ if(save_test):
         'mean_vr_norm' : 0,
         'vr_max_init' : DSMC_params['vr_max'],
         'vr_max' : 0,
+        'volume' : l1*l2*l3,
+        'v_mean' : vmean_exp, 
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
     #data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)

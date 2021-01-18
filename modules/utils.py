@@ -15,9 +15,9 @@ def segment(Point1,Point2):
 
 NUCLEON_MASS = 1.672e-27 # kg
 ELECTRON_MASS = 9.11e-31
+BOLTZMAN_CONSTANT = 1.38064e-23 # J K−1
 def get_mass_part(electrons_nb, protons_number, neutrons_number):
     return (neutrons_number+protons_number)*NUCLEON_MASS+electrons_nb*ELECTRON_MASS
-
 
 # return the parameters use in scipy.stats.maxwell
 def get_maxwellian_params(μ=0, σ=1):
@@ -51,3 +51,11 @@ def sort_segments(walls):
     segments.append(segment(Point(min_x, min_y),Point(max_x, max_y)))
     return segments
 
+def collision_frequency_th_T(T, m, d, n):
+    return 0.5*n*4*np.sqrt(BOLTZMAN_CONSTANT*T/m)*d*d*n
+
+def collision_frequency_th_V(v_mean, mean_free_path, n):
+    return 0.5*n*v_mean/mean_free_path
+
+def collision_frequency_exp(dt, number_of_dt, number_of_collisions):
+    return number_of_collisions/(dt*number_of_dt)

@@ -4,6 +4,7 @@ biblio/
 *.png
 *.mp4
 *.csv
+*.txt
 nohup.out
 tests/
 # jupyter lab
