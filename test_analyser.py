@@ -10,9 +10,9 @@ compute_spatial_distribution = False
 compute_temperature = True
 frames_to_compute = ["first","last"] # ["first","last"]
 
-ids_test = [1,2,3] #[1,2,3,4]
+ids_test = [1] #[1,2,3] #[1,2,3,4]
 periods = [1.17228686999623e-05, 1.17228686999623e-05, 1.17228686999623e-05] # 5.86143434998116e-06, 1.17228686999623e-05]
-tests_summary_file_name='test_nb_colls/maxwellpdf_collisionsnb_test'
+tests_summary_file_name='gaussian'
 
 if(merge_csv):
     names = ['test_rapport_inter_serie3_1', 'test_rapport_inter_serie3_2','test_rapport_inter_serie3_3','test_rapport_inter_serie3_4']

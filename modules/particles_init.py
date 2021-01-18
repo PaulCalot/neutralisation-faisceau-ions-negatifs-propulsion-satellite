@@ -9,7 +9,7 @@ from modules.utils import get_mass_part
 
 # imports
 from dolfin import Point
-from random import random
+from random import gauss, random
 import numpy as np
 from scipy.stats import maxwell, norm
 
@@ -38,13 +38,16 @@ def get_particles(types, numbers, speed_init_types, speed_init_params, effective
 
         # parameters of the maxwellian distribution
         # https://stackoverflow.com/questions/63300833/maxwellian-distribution-in-python-scipy
-        if(speed_init_type == 'maxwellian'):
-            σ = m
-            μ = M
-            a = σ * np.sqrt(np.pi/(3.0*np.pi - 8.0))
-            m = 2.0*a*np.sqrt(2.0/np.pi)
-            loc = μ - m
-        elif(speed_init_type == 'uniform'):
+        if(speed_init_type == 'gaussian'): 
+            sigma = M
+            mu = m
+        elif(speed_init_type == 'maxwellian'):
+            sigma = M
+            mu = m
+            a = sigma * np.sqrt(np.pi/(3.0*np.pi - 8.0))
+            m_ = 2.0*a*np.sqrt(2.0/np.pi)
+            loc = mu - m_
+        elif(speed_init_type == 'uniform' or speed_init_type == 'uniform_norm'):
             # uniform distribution parameters
             min_speed_uniform_distribution = m
             max_speed_uniform_distribution = M
@@ -56,18 +59,46 @@ def get_particles(types, numbers, speed_init_types, speed_init_params, effective
         for k in range(number_):
             my_speed = 0
 
-            if(speed_init_type=='maxwellian'):
+            if(speed_init_type=='gaussian'):
+                vx = norm.rvs(mu, sigma)
+                vy = norm.rvs(mu, sigma)
+                vz = norm.rvs(mu, sigma)
+                
+            elif(speed_init_type == 'maxwellian'):
                 norm_speed = float(maxwell.rvs(loc, a))
+                
+                theta = random()*2*np.pi
+                cTheta = float(np.cos(theta))
+                sTheta = float(np.sin(theta))
+
+                phi = random()*2*np.pi
+                cPhi = float(np.cos(phi))
+                sPhi = float(np.sin(phi))
+
+                vx, vy, vz = norm_speed*sTheta*cPhi, norm_speed*sTheta*sPhi, norm_speed*cTheta
+
             elif(speed_init_type=='uniform'):
-                norm_speed = min_speed_uniform_distribution+random()*\
-                    (max_speed_uniform_distribution-min_speed_uniform_distribution)
+                # norm_speed = min_speed_uniform_distribution+random()*\
+                    # (max_speed_uniform_distribution-min_speed_uniform_distribution)
                 # direction of the speed
+                vx = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
+                vy = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
+                vz = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
+            elif(speed_init_type=='uniform_norm'):
+                norm_speed = min_speed_uniform_distribution+random()*\
+                                    (max_speed_uniform_distribution-min_speed_uniform_distribution)
+                theta = random()*2*np.pi
+                cTheta = float(np.cos(theta))
+                sTheta = float(np.sin(theta))
 
-            theta = random()*2*np.pi
-            cTheta = float(np.cos(theta))
-            sTheta = float(np.sin(theta))
+                phi = random()*2*np.pi
+                cPhi = float(np.cos(phi))
+                sPhi = float(np.sin(phi))
 
-            my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
+                vx, vy, vz = norm_speed*sTheta*cPhi, norm_speed*sTheta*sPhi, norm_speed*cTheta
+                
+            # my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
+            my_speed = MyVector(vx, vy, vz)
 
             x, y = get_correct_initial_positions(zone, offsets, space_size) # TODO
             list_particles.append(Particule(charge = charge, radius = radius, 

@@ -11,7 +11,6 @@ from .utils import segment
 # TODO : delete unused imporrt
 
 
-
 def get_mesh(mesh_dict):
     """Returns the mesh and the segment grid.
 

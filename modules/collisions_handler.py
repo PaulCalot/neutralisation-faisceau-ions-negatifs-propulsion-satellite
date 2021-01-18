@@ -431,7 +431,7 @@ class CollisionHandler(object):
 
     def get_next_collision(self):
         """[summary]
-
+    
         Returns:
             [type]: [description]
         """
@@ -468,8 +468,9 @@ class CollisionHandler(object):
         # but this allows us to have this current algorithm to be : O(Number of cells * Number of pairs to compute collision from per cell) !! We coulg gain a 50 factor or so
         # (that is the number of particles in the cell)
         vr_max = self.DSMC_params['vr_max']
-        M_ =  (np.pi*self.DSMC_params['effective_diameter']*self.DSMC_params['effective_diameter']*\
-            vr_max*self.DSMC_params['Ne']*self.DSMC_params['mean_particles_number_per_cell']*dt)/(2*self.DSMC_params['cell_volume'])
+        cross_section = np.pi * self.DSMC_params['effective_diameter']*self.DSMC_params['effective_diameter'] # pi d^2
+        M_ =  (cross_section* vr_max*self.DSMC_params['Ne']*\
+            self.DSMC_params['mean_particles_number_per_cell']*dt)/(2*self.DSMC_params['cell_volume'])
               # when multiplied by the number of particules in the cell,
               # gives the number of pairs to select for collision
               # in average we expect it to give the right results.

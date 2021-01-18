@@ -25,16 +25,16 @@ from tqdm import tqdm
 # comparaison
 from time import time
 # ----------------- saving test to file ? --------------- #
-saving_directory = 'maxwellpdf_collisionsnb_test/' # be careful, it won't check if this the directory is already created ...
+saving_directory = 'square_tests/' # be careful, it won't check if this the directory is already created ...
 # checking if the file exists
-if(not path(saving_directory)):
+if(not path.exists(saving_directory)):
     try:
         mkdir(saving_directory)
         print('Successfully created the saving directory {}'.format(saving_directory))
     except:
         print('Could not create the saving directory {}'.format(saving_directory))
 
-tests_summary_file_name = "maxwellpdf_collisionsnb_test"
+tests_summary_file_name = "tests"
 save_test = True
 saving_period = 10
 # ----------------- id test -------------------- #
@@ -57,8 +57,8 @@ mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_
 mean_free_time = mean_free_path/mean_speed
 dt = 0.25 * mean_free_time
 
-mean_particles_number_per_cell = 200
-MAX_INTEGRATION_STEP = 100
+mean_particles_number_per_cell = 100 
+MAX_INTEGRATION_STEP = 300
 #----------------- Space properties --------------------#
 factor_size_cell = 1 # means : cell size = mean free path
 # rectangle of size l1*l2
@@ -70,7 +70,7 @@ nb_cells = res1*res2
 
 if(debug): print("Dimension : {}x{} m".format(round(l1,2),round(l2,2)))
 
-l3 = 1 # 10 cm ?
+l3 = 0.1 # 10 cm => I use the deepness we shall use in practice.
 
 #----------------- Grid creation ----------------------#
 dtype = "LinkedList"
@@ -87,7 +87,6 @@ radius = effective_diameter/2.0
 verbose = False
 # status = -1 # irrelevant
 
-
 #--------------- Particles creation -------------------#
 
 # /!\ explanation of the calculus of Ne /!\
@@ -100,19 +99,35 @@ At max speed (no electromagnetic field, no acceleration) : 3400 m/s (Note : Maxw
 That yields here : 𝑀𝑒𝑎𝑛𝐹𝑟𝑒𝑒𝑇𝑖𝑚𝑒 ≈ 3×10−6 𝑠 which yields Δ ≤ 3×10−7 𝑠. Which is what we'll choose.
 In addition, we have a particles-per-cell-target of : Nc_mean = 50 particles
 Which yields : Number_of_cells = res1*res2*Nc_mean particles.
-
 """
+
 N_particles_real = int(real_particle_density*l1*l2*l3) # this is the REAL number of particles
 N_particles_simu = int(mean_particles_number_per_cell*res1*res2)
 Ne = int(N_particles_real/N_particles_simu)
 
 if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
+def get_sigma(T, mass):
+    # to be used for both sigma and maxwellian distribution
+    # https://scicomp.stackexchange.com/questions/19969/how-do-i-generate-maxwell-boltzmann-variates-using-a-uniform-distribution-random
+    # T in Kelvin
+    kb = 1.38064e-23 # J K−1
+    return np.sqrt(kb*T/mass) # constant mass for all particles
+
+def get_T(v_mean, mass):
+    kb = 1.38064e-23 # J K−1
+    return mass*v_mean*v_mean/(3*kb)
+
+
+sigma = get_sigma(T = get_T(300, mass), mass = mass) # T=454 K roughly for v_mean = 300 m/s
+mu = 2*sigma*np.sqrt(2/np.pi) # only for maxwellian distribution
+
 types = ['I']
 numbers = [N_particles_simu]
-speed_init_type = ['maxwellian'] # maxwellian, uniform
-speed_init_params = [[250,350]]
-list_particles = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = False)
+speed_init_type = ['gaussian'] # gaussian, uniform, uniform_norm, maxwellian : each axis speed will be initialized according to speed_init_type
+speed_init_params = [[0,sigma]]  # [[0,sigma]] # [[mu,sigma]], [[-300,300]], [[250,350]] # with if gaussian / maxwellian : mu = speed_init_params[0], sigma = speed_init_params[1], 
+# if uniform (or uniform_norm) : min_speed = speed_init_params[0], max_speed = speed_init_params[1]
+list_particles = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = True)
 
 #--------------- Rectangle creation -------------------#
 
@@ -208,7 +223,7 @@ if(not test_config):
             # that we would do each time (or initialize them before in some way)
             # if it requires some initializing (parameters to set etc.)
             data_analyser.save_everything_to_one_csv()
-            print(collisionHandler.save_collisions_matrix(name = "test_"+str(id_test)+"_collision_matrix"), iteration = k)
+            print(collisionHandler.save_collisions_matrix(name = "test_"+str(id_test)+"_collision_matrix", iteration = k))
     
     if(debug): print("\nElapsed  time for {} iterations with {} particules and with {} data structure : {}".format(MAX_INTEGRATION_STEP, N_particles_simu, dtype, round(time()-elapsed_time,3)))
     
@@ -229,7 +244,6 @@ if(not test_config):
     if(debug): 
         print("\nNumber of collisions : {}".format("{:e}".format(number_of_collisions)))
         print("\nMean acceptance rate : {}".format(mean_acceptance_rate))
-
 
     if(perform_default_analysis):
         data_analyser = DataAnalyser(tests_summary_file_name)
