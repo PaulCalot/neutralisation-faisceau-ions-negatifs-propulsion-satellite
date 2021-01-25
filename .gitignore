@@ -1,12 +1,11 @@
-# variable
-biblio/
-.vscode/
+# variabl
+.vscode
 *.png
 *.mp4
 *.csv
 *.txt
 nohup.out
-tests/
+results/
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*

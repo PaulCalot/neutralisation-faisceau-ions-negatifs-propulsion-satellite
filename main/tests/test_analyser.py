@@ -7,11 +7,11 @@ compute_system_evolution = False
 compute_hist_distribution_evolution = False
 compute_spatial_distribution = False
 compute_temperature = True
-frames_to_compute = ["first","last"] # ["first","last"]
+frames_to_compute =["first","last"] # ["first","last"]
 
-ids_test = [4] #[1,2,3] #[1,2,3,4]
-periods = [1.17228686999623e-05, 1.17228686999623e-05, 1.17228686999623e-05] # 5.86143434998116e-06, 1.17228686999623e-05]
-tests_summary_file_name='tests'
+ids_test = [1] # [1,2,3,4] # [2] # [1,2,3,4] #[1,2,3,4]
+periods = [1.17228686999623e-05, 1.17228686999623e-05, 1.17228686999623e-05, 1.17228686999623e-05] # 5.86143434998116e-06, 1.17228686999623e-05]
+tests_summary_file_name='B'
 
 if(merge_csv):
     names = ['test_rapport_inter_serie3_1', 'test_rapport_inter_serie3_2','test_rapport_inter_serie3_3','test_rapport_inter_serie3_4']
@@ -41,10 +41,12 @@ for indx, id_test in enumerate(ids_test):
         data_analyser.draw_particles_frame(which = which, save_frame=True, vmin = 0, vmax = 0.042)
         data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vx', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'r')
         data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'g')
-        data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'k')
+        data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm', save_frame = True, plot_maxwellian = True, plot_gaussian = False, density = True, range = None, color = 'k')
+        data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = 'k')
         data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'b')
         data_analyser.draw_spatial_distribution_frame(which, None, grid_size = 9, vmin = 0, vmax = 60 )
 
     if compute_temperature:
         IODINE_MASS = get_mass_part(53, 53, 88) 
         data_analyser.draw_Temperature_evolution(periods[indx], tau_init = 5e-5, particles_mass= IODINE_MASS, begin = 0.00, end = 1.0) # g/mol
+        #data_analyser.draw_Temperature_evolution_per_axis(periods[indx], tau_init = 5e-5, particles_mass= IODINE_MASS, begin = 0.00, end = 1.0) # g/mol

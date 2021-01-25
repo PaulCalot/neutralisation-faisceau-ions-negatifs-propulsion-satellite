@@ -1,4 +1,5 @@
 # my modules imports
+from numpy.lib.function_base import delete
 from modules.collisions_handler import CollisionHandler
 from modules.particules import Particule
 from modules.utils import segment
@@ -25,7 +26,7 @@ from tqdm import tqdm
 # comparaison
 from time import time
 # ----------------- saving test to file ? --------------- #
-saving_directory = 'A/' # be careful, it won't check if this the directory is already created ...
+saving_directory = 'C/' # be careful, it won't check if this the directory is already created ...
 # checking if the file exists
 if(not path.exists(saving_directory)):
     try:
@@ -34,9 +35,9 @@ if(not path.exists(saving_directory)):
     except:
         print('Could not create the saving directory {}'.format(saving_directory))
 
-tests_summary_file_name = "A"
+tests_summary_file_name = "C"
 save_test = True
-saving_period = 10
+saving_period = 1
 # ----------------- id test -------------------- #
 id_test = 1
 # --------------- Default analysis ? ---------------- #
@@ -57,8 +58,8 @@ mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*real_
 mean_free_time = mean_free_path/mean_speed
 dt = 0.25 * mean_free_time # may be take a smaller one this one is kind of big still.
 
-mean_particles_number_per_cell = 200 
-MAX_INTEGRATION_STEP = 300
+mean_particles_number_per_cell = 100
+MAX_INTEGRATION_STEP = 3
 #----------------- Space properties --------------------#
 factor_size_cell = 1 # means : cell size = mean free path
 # rectangle of size l1*l2
@@ -123,10 +124,10 @@ mu = 2*sigma*np.sqrt(2/np.pi) # only for maxwellian distribution
 
 types = ['I']
 numbers = [N_particles_simu]
-speed_init_type = ['gaussian'] # gaussian, uniform, uniform_norm, maxwellian : each axis speed will be initialized according to speed_init_type
-speed_init_params = [[0,sigma]]  # [[0,sigma]] # [[mu,sigma]], [[-300,300]], [[250,350]] # with if gaussian / maxwellian : mu = speed_init_params[0], sigma = speed_init_params[1], 
+speed_init_type = ['uniform'] # gaussian, uniform, uniform_norm, maxwellian : each axis speed will be initialized according to speed_init_type
+speed_init_params = [[-300,300]]  # [[0,sigma]] # [[mu,sigma]], [[-300,300]], [[250,350]] # with if gaussian / maxwellian : mu = speed_init_params[0], sigma = speed_init_params[1], 
 # if uniform (or uniform_norm) : min_speed = speed_init_params[0], max_speed = speed_init_params[1]
-list_particles, vmean_exp = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = True)
+list_particles, vmean_exp = get_particles(types, numbers, speed_init_type, speed_init_params, effective_diameter, None, [0, 0], [l1,l2], verbose = False, debug = False)
 print(get_T(300, mass))
 print(mass)
 #--------------- Rectangle creation -------------------#
@@ -154,13 +155,14 @@ def f(Y,t,m,q):
     # parameters
 eta = 0
 p = 0
+
     # DSMC param
 DSMC_params = {
     'vr_max' : 2*mean_speed,
     'effective_diameter':  effective_diameter,
     'Ne' : Ne, # this is the number of real particles one simulated particle represents.
     'cell_volume' : l1*l2*l3/(res1*res2), # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
-    'mean_particles_number_per_cell':mean_particles_number_per_cell,
+    'mean_particles_number_per_cell': mean_particles_number_per_cell,
 }
 use_particles_collisions = False
 use_DSMC = True
@@ -171,7 +173,7 @@ collisionHandler = CollisionHandler(list_particles, rectangle_walls, f, eta, p, 
 #------------------- Simulation -------------------#
 if(save_test):
     params_dict = {
-        'id_test' : id_test,
+        'id_test' : str(id_test),
         'total_number_of_particles' : N_particles_simu,
         'path_to_data' : saving_directory+str(id_test),
         'real_particle_density' : real_particle_density,
@@ -203,7 +205,7 @@ if(save_test):
         'v_mean' : vmean_exp, 
     }
     data_analyser = DataSaver(list_particles, name_test = str(id_test), saving_directory = saving_directory)
-    #data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
     # integration params
 t = 0
 
@@ -213,7 +215,7 @@ if(debug): print("\nSTARTING SIMULATION...\n")
 elapsed_time = time()
 
 if(save_test):
-        data_analyser.save_everything_to_one_csv()
+        data_analyser.save_everything_to_one_csv(erase = True)
 
 if(not test_config):
     for k in tqdm(range(MAX_INTEGRATION_STEP)):
@@ -241,7 +243,7 @@ if(not test_config):
     params_dict['mean_vr_norm']=mean_vr_norm
     params_dict['vr_max']=vr_max_final
 
-    data_analyser.save_test_params(tests_summary_file_name, params_dict, use_saving_directory = False)
+    data_analyser.update_saved_params(tests_summary_file_name, params_dict, use_saving_directory = False)
 
     if(debug): 
         print("\nNumber of collisions : {}".format("{:e}".format(number_of_collisions)))

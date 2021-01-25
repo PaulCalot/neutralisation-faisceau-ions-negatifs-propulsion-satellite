@@ -111,7 +111,7 @@ def get_particles(types, numbers, speed_init_types, speed_init_params, effective
 
         if(debug): print("Mean speed init : {} m/s".format(round(mean/number_,2)))
 
-    return np.array(list_particles), mean # we don't shuffle right now
+    return np.array(list_particles), mean/number_ # we don't shuffle right now
 # TODO : make it work for several particles types ...
 
 def get_correct_initial_positions(zone, offsets, space_size):

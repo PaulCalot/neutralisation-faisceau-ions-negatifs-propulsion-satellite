@@ -5,17 +5,14 @@
 # https://stackoverflow.com/questions/40659212/futurewarning-elementwise-comparison-failed-returning-scalar-but-in-the-futur
 # there is nothing to do about it.
 
-
 # csv usage : https://realpython.com/python-csv/#reading-csv-files-with-csv
 
 import csv
 from os.path import isfile
+import pandas as pd
 
 # local import
 from .particules import Particule
-
-# TODO : add the possibility to do some preprocessing before saving 
-# (as it risks to be too much data to save)
 
 class DataSaver :
     def __init__(self, particles, name_test, saving_directory):
@@ -43,37 +40,53 @@ class DataSaver :
             list_data.append(self.particles[k].to_list())
         self.save_to_csv_(self.name_test + "_iter{}".format(iter), list_data)
 
-    def save_everything_to_one_csv(self):
+    def save_everything_to_one_csv(self, erase = False):
         list_data=[]
         path = self.saving_directory + self.name_test
-        if(not isfile(path + '.csv')):
+        if(erase or not isfile(path + '.csv')):
             # does not already exist
-            list_data = [self.particles[0].get_headers()] 
-   
+            list_data = [self.particles[0].get_headers()]
+            
         for k in range(len(self.particles)):
             list_data.append(self.particles[k].to_list())
         
-        self.save_to_csv_(self.name_test, list_data, erase = False)
+        self.save_to_csv_(self.name_test, list_data, erase = erase)
 
     # saving test params
-    # TODO : could make a function that save a dictionnary (could be reusable)
-    # TODO : make sure to erase the row (if it exists) that has the same test id (or automatically rename it) (is it possible?)
-    def save_test_params(self, tests_summary_file_name, params_dict, use_saving_directory = True):
+    def save_test_params(self, tests_summary_file_name, params_dict, use_saving_directory = True, erase = False):
         path = self.saving_directory + tests_summary_file_name if use_saving_directory else tests_summary_file_name
+        if(isfile(path + '.csv') and not erase): # file already created
+            df = pd.read_csv(path + '.csv', sep = ',', header=0, index_col=0) # take first line as headers
+            new_id = params_dict['id_test']
+            count = 0
+            L = [str(k) for k in list(df.index)]
+            print(L)
+            while(new_id in L):
+                count+=1
+                new_id = str(params_dict['id_test'])+'({})'.format(count)
+            params_dict['id_test']=new_id
+            df2 = pd.DataFrame.from_dict(params_dict, dtype = str)
+            df2.set_index('id_test', inplace=True)
+            df = df.append(df2)
+        else:
+            df = pd.DataFrame.from_dict(params_dict, dtype = str)
+            df.set_index('id_test', inplace=True)
+            # df.astype({'id_test': str})
+            # with open(path + '.csv', mode = 'w') as csv_file:
+            #     fieldnames = params_dict.keys()
+            #     csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            #     # first time, we add the keys
+            #     csv_writer.writeheader()
+            #     csv_writer.writerow(params_dict)
+        df.to_csv(path+'.csv') # should be updated
 
-        if(isfile(path + '.csv')):
-            mode = 'a'
-        else :
-            mode = 'w'
-        
-        with open(path + '.csv', mode = mode) as csv_file:
-                fieldnames = params_dict.keys()
-                csv_writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-                if(mode == "w"):
-                    # first time, we add the keys
-                    csv_writer.writeheader()
-                csv_writer.writerow(params_dict)
-
+    def update_saved_params(self, tests_summary_file_name, params_dict, use_saving_directory = True):
+        path = self.saving_directory + tests_summary_file_name if use_saving_directory else tests_summary_file_name
+        if(isfile(path + '.csv')): # file already created
+            df = pd.read_csv(path + '.csv', sep = ',', header=0, index_col=0) # take first line as headers
+            #df.set_index('id_test')
+            df.update(params_dict) # automatically update the row.
+            df.to_csv(path+'.csv') # should be updated
 # ---------------------- Data Analyser --------------------- #
 
 # To use only matplotlib: 
@@ -110,23 +123,24 @@ class DataAnalyser :
         self.nb_parts = self.test_params.at['total_number_of_particles']
         df_data = pd.read_csv(path_to_data+'.csv', sep = ',', header=0, index_col=0) # take first line as headers
 
-        # converting data to int : 
-            # position
-        df_data['x'] = df_data['x'].astype(float)
-        df_data['y'] = df_data['y'].astype(float) 
-        df_data['z'] = df_data['z'].astype(float)
+        if(not 'speed_norm_squared' in df_data): # first time this test is loaded.
+            print('First time test {} is loaded. Computing speed norm and saving it back.'.format(test_id))
+            # converting data to int :
+                # position
+            df_data['x'] = df_data['x'].astype(float)
+            df_data['y'] = df_data['y'].astype(float) 
+            df_data['z'] = df_data['z'].astype(float)
+                # speed
+            df_data['vx'] = df_data['vx'].astype(float)
+            df_data['vy'] = df_data['vy'].astype(float) 
+            df_data['vz'] = df_data['vz'].astype(float) 
 
-            # speed
-        df_data['vx'] = df_data['vx'].astype(float)
-        df_data['vy'] = df_data['vy'].astype(float) 
-        df_data['vz'] = df_data['vz'].astype(float) 
+            # computing speed norm :
+            df_data['speed_norm_squared'] = df_data.apply(self.compute_speed_norm_square, axis=1)
+            df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
 
-        # computing speed norm : 
-
-        # TODO : we should first compute speed_norm_squared and then speed_norm
-        df_data['speed_norm_squared'] = df_data.apply(self.compute_speed_norm_square, axis=1)
-
-        df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
+            # updating the csv with the new columns
+            df_data.to_csv(path_to_data+'.csv') # should be updated
 
         # splitting in time step
         row_count = len(df_data.index)
@@ -170,7 +184,7 @@ class DataAnalyser :
                     Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
                 plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
 
-            fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
+            ax.set_title('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, num+1, self.number_of_frames,round(μ,1)), fontsize=12)
             plt.xlabel(value_name,fontsize=16)
             plt.ylabel("density",fontsize=16)
 
@@ -192,7 +206,7 @@ class DataAnalyser :
                 Y = ss.norm.pdf(X, loc=μ, scale = np.std(col))
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
 
-        fig.suptitle('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
+        ax.set_title('{} : {} distribution - iteration {}/{} - mean value {}'.format(self.test_id, value_name, 1, self.number_of_frames,round(μ,1)), fontsize=12)
         plt.xlabel(value_name,fontsize=16)
         plt.ylabel("density",fontsize=16)
         interval = 200 # default value
@@ -220,7 +234,7 @@ class DataAnalyser :
             else :
                 hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
-            fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
+            ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
             
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
@@ -232,7 +246,7 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
+        ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
         
 
         interval = 200 # default value
@@ -260,13 +274,13 @@ class DataAnalyser :
             scat.set_offsets(np.c_[df['x'],df['y']])
             scat.set_array(df['speed_norm'])
 
-            fig.suptitle('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=12)
+            ax.set_title('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=15)
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[0]
         scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
 
-        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
+        ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
 
         interval = 40 # default value
 
@@ -299,7 +313,7 @@ class DataAnalyser :
 
         df = lst[frame]
          
-        fig = plt.figure(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(10,10))
         
         col = df[value_name]
         plt.hist(col, bins = 'auto', density=density, range = range, color = color)
@@ -316,7 +330,7 @@ class DataAnalyser :
             else :
                 Y = ss.norm.pdf(X, loc=μ, scale = std)
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
-        fig.suptitle('{} : {} - it {}/{} - $\\mu$ : {} - $\\sigma$ : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1),round(std,2)), fontsize=12)
+        ax.set_title('{} : {} - it {}/{} - $\\mu$ : {} - $\\sigma$ : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1),round(std,2)), fontsize=15)
         plt.xlabel(value_name,fontsize=16)
         plt.ylabel("density",fontsize=16)
         plt.legend(loc='best')
@@ -360,7 +374,7 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        fig.suptitle('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=12)
+        ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
         plt.legend(loc='best',fontsize=14)
 
         if(save_frame):
@@ -396,7 +410,7 @@ class DataAnalyser :
         ax.set_xlim(vmin, vmax)
         ax.set_ylim(vmin, vmax)
 
-        fig.suptitle('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=12)
+        ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=15)
 
         plt.legend(loc='best',fontsize=14)
 
@@ -494,7 +508,7 @@ class DataAnalyser :
             return (T0-eq_std)*np.exp(-Time/tau)+eq_std
 
         fig, ax = plt.subplots(figsize=(15,10))
-        fig.suptitle("évolution de la variance de la norme de la vitesse - $\sigma_e$ = {} m/s ; $\\tau$ = {} s".format("{:e}".format(np.sqrt(eq_std)),"{:e}".format(tau)))
+        ax.set_title("évolution de la variance de la norme de la vitesse - $\sigma_e$ = {} m/s ; $\\tau$ = {} s".format("{:e}".format(np.sqrt(eq_std)),"{:e}".format(tau)))
         plt.xlabel("temps (s)",fontsize=16)
         plt.ylabel("variance de la vitesse ($m^2/s^2$)",fontsize=16)
         plt.plot(listTime, get_Temp(listTime), label = '$\sigma^2(t) = (\sigma^2(0)-\sigma^2_e)exp(-t/\\tau)+\sigma^2_e$')
@@ -507,6 +521,79 @@ class DataAnalyser :
             plt.show()
         plt.close()
 
+    def draw_Temperature_evolution_per_axis(self, time_between_frames, tau_init, particles_mass, begin = 0, end = 1, save_frame = True):
+        from scipy.optimize import least_squares
+
+        if(self.current == None):
+            print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
+            return
+
+        lst = self.current
+         
+        k = 1.380649e-23
+        factor = particles_mass/(3*k) # m/(3k)
+        begin_indx = int(begin*len(lst))
+        end_indx = int(end*len(lst))
+        number_of_frames_used = end_indx-begin_indx
+
+        # teq 
+        a = np.sqrt(np.mean(lst[0]['speed_norm_squared'])/3)
+        T_eq = a*a*particles_mass/k
+        print('Teq = {} K'.format(T_eq))
+
+        # time list 
+        listTime = np.linspace(0,time_between_frames*number_of_frames_used,number_of_frames_used)
+        TX, TY, TZ = [], [], []
+        # creating the list of temperatures
+        for k in range(begin_indx,end_indx):
+            df = lst[k]
+            vx = np.std(df['vx'])
+            vy = np.std(df['vy'])
+            vz = np.std(df['vz'])
+            TX.append(factor*vx*vx)
+            TY.append(factor*vy*vy)
+            TZ.append(factor*vz*vz)
+        T0X,T0Y,T0Z = TX[0],TY[0],TZ[0]
+        T0 = [T0X,T0Y,T0Z]
+        Temp = [TX,TY,TZ]
+        # minimization problem
+        def f(X_, Temp,listTime, T0): # X = [tau]
+            tau = X_[0]
+            f_ = lambda T, t: np.abs(T - (T0-T_eq)*np.exp(-t/tau)-T_eq)
+            total = 0
+            for k in range(len(Temp)):
+                T = Temp[k]
+                t = listTime[k]
+                f_value = f_(T,t)
+                total+=f_value*f_value
+            return total
+        #Temp_smooth = self.savitzky_golay(np.array(Temp), window_size = 13, order=3)
+        results_X = least_squares(f, np.array([tau_init]), bounds = ([1e-3*tau_init],[1e3*tau_init]), args = (Temp,listTime,TX)).x        
+        results_Y = least_squares(f, np.array([tau_init]), bounds = ([1e-3*tau_init],[1e3*tau_init]), args = (Temp,listTime,TY)).x
+        results_Z = least_squares(f, np.array([tau_init]), bounds = ([1e-3*tau_init],[1e3*tau_init]), args = (Temp,listTime,TZ)).x
+        results = [results_X, results_Y, results_Z]
+        tau_X = results_X[0]
+        tau_Y = results_Y[0]
+        tau_Z = results_Z[0]
+        tau = [tau_X,tau_Y, tau_Z]
+
+        def get_Temp(Time, T0, tau):
+            return (T0-T_eq)*np.exp(-Time/tau)+T_eq
+        axis = ['x','y','z']
+        for k in range(3):
+            fig, ax = plt.subplots(figsize=(15,10))
+            ax.set_title("Thermal evolution along axis {} - $\\tau$ = {} s".format(axis[k], "{:e}".format(tau[k])))
+            plt.xlabel("time (s)",fontsize=16)
+            plt.ylabel("Temperature (K)",fontsize=16)
+            plt.plot(listTime, get_Temp(listTime ,T0[k], tau[k]), label = '$T^2(t) = (T^2(0)-T^2_e)exp(-t/\\tau)+T^2_e$')
+            plt.plot(listTime, Temp[k], label = 'Simulation')
+            #plt.plot(listTime,Temp_smooth)
+            plt.legend(loc='best',fontsize=14)
+            if(save_frame):
+                plt.savefig('{}_temperature_evolution_{}.png'.format(self.test_id, axis[k]), bbox_inches = 'tight', pad_inches = 0)
+            else:
+                plt.show()
+            plt.close()
 
 def merge_tests_summary(names, output_name):
     mode = "r"
@@ -522,4 +609,3 @@ def merge_tests_summary(names, output_name):
         csv_writer = csv.writer(csv_file, delimiter=',')            
         for row in L:
             csv_writer.writerow(row)
-                
