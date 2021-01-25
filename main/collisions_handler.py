@@ -4,12 +4,13 @@ import numpy as np
 from math import pi as math_pi
 from dolfin import Point
 from random import random, randint
-# local imports
-from .utils import segment
-from .vector import MyVector
-from .grid import Grid
 
-from .integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
+# local imports
+from .utils.utils import segment
+from .data_structures.vector import MyVector
+from .data_structures.grid import Grid
+
+from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
 
 class CollisionHandler(object):
     debug = False

@@ -1,13 +1,5 @@
-
-# my modules imports
-from modules.collisions_handler import CollisionHandler
-from modules.particules import Particule
-from modules.utils import segment
-from modules.vector import MyVector
-from modules.grid import Grid
-from modules.utils import get_mass_part
-
-# imports
+from main import get_mass_part, Particule, MyVector
+# imports,
 from dolfin import Point
 from random import gauss, random
 import numpy as np

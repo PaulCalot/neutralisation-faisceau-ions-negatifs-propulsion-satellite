@@ -1,10 +1,5 @@
 from __future__ import print_function
 
-# local import
-
-from .particules import Particule
-from .vector import MyVector
-from .collisions_handler import CollisionHandler
 
 # animation
 import matplotlib.pyplot as plt
@@ -18,6 +13,8 @@ from fenics import *
 import sys # to get the max float value
 from time import time # to time out if need
 from tqdm import tqdm
+
+# TODO : use scipy physics constants instead
 u=1.7e-27
 e=1.6e-19
 

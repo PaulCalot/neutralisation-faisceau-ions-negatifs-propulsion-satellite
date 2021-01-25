@@ -1,10 +1,7 @@
 # import
 import warnings
 
-# "my classes" import
-from  .vector import MyVector
-from .utils import get_mass_part
-
+from main import MyVector, get_mass_part
 # constant
 IODINE_RADIUS = 1.98e-10 # 198 pm
 IODINE_MASS = get_mass_part(53, 53, 88) # Iodine : 53 protons, 53 electrons, 131 nucleons => 88 neutrons

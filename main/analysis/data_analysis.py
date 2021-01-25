@@ -10,9 +10,14 @@
 import csv
 from os.path import isfile
 import pandas as pd
+import numpy as np
+import scipy.stats as ss
 
-# local import
-from .particules import Particule
+
+# animation
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 class DataSaver :
     def __init__(self, particles, name_test, saving_directory):
@@ -95,18 +100,7 @@ class DataSaver :
 
 # For pandas, several issues were met ... Name of the parameters, etc.
 
-# local import
-from .utils import get_maxwellian_params
 
-# imports
-import pandas as pd
-import numpy as np
-import scipy.stats as ss
-
-# animation
-import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 class DataAnalyser :
     def __init__(self, path_to_test_summary):
         self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0,index_col=0) # take first line as headers

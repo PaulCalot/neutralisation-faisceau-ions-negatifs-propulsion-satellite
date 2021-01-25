@@ -9,12 +9,6 @@ import scipy.integrate as integrate
 from fenics import plot # to plot the mesh
 from fenics import sqrt, dot
 
-# local imports
-from modules.mesh_utils import get_mesh
-from modules.physics_utils import get_VandE, compute_trajectory
-from modules.particles_init import get_particles
-#from modules.plotting_utils import ?
-
 mesh_dict = {
     'L_mot' : .01,
     'l_mot' : .003,

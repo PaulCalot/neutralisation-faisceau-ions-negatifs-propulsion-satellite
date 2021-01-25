@@ -7,7 +7,11 @@ import mshr
 import numpy as np
 import scipy.integrate as integrate
 from fenics import *
-from .utils import segment
+
+# local import
+from ..utils.utils import segment
+
+
 # TODO : delete unused imporrt
 
 

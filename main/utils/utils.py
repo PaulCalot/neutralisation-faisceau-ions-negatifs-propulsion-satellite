@@ -12,7 +12,6 @@ def segment(Point1,Point2):
     """
     return [Point1[0],Point1[1],Point2[0],Point2[1]]
 
-
 NUCLEON_MASS = 1.672e-27 # kg
 ELECTRON_MASS = 9.11e-31
 BOLTZMAN_CONSTANT = 1.38064e-23 # J K−1

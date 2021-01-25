@@ -1,17 +1,6 @@
-# my modules imports
+from main import Grid, get_mass_part, DataAnalyser, \
+     DataSaver, get_particles, segment, CollisionHandler, euler_explicit
 from numpy.lib.function_base import delete
-from modules.collisions_handler import CollisionHandler
-from modules.particules import Particule
-from modules.utils import segment
-from modules.vector import MyVector
-from modules.grid import Grid
-from modules.utils import get_mass_part
-from modules.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
-from modules.particles_init import get_particles
-
-# import for analysis
-from modules.data_analysis import DataSaver, DataAnalyser
-
 # imports
 from dolfin import Point
 from random import random

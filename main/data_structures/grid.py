@@ -1,11 +1,6 @@
+from main import DynamicArray, LinkedList, MyVector
 
 import numpy as np
-
-# local import
-from .particules import Particule
-from .dynamic_arrays import DynamicArray
-from .linkedList import LinkedList 
-from .vector import MyVector
 
 # 2 grid to start with
 class Grid(object):
