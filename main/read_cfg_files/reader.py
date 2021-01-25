@@ -4,7 +4,7 @@ import configparser as ConfigParser
 import argparse
 from main import cfg_tools
 # 
-from pathlib import Path
+from pathlib import Path, PurePath
 
 # ----------- get_options ----------------- #
 
@@ -22,8 +22,8 @@ def get_options(cfg_file_paths, verbose = True):
     speed_param2 = list(map(float,main_options.speed_param2.split(',')))
     particles_types = list(map(str,main_options.particles_types.split(',')))
     particles_mean_number_per_cell = list(map(int,main_options.particles_mean_number_per_cell.split(',')))
-    particles_densities = list(map(int,main_options.particles_densities.split(',')))
-    particles_radius = list(map(int,main_options.particles_radius.split(',')))
+    particles_densities = list(map(float,main_options.particles_densities.split(',')))
+    particles_radius = list(map(float,main_options.particles_radius.split(',')))
 
     main = {
         'system_type': system_type,
@@ -39,15 +39,15 @@ def get_options(cfg_file_paths, verbose = True):
 
     # saving options
     period = int(saving_options.period)
-    path = Path(__file__).parent.parent.parent.absolute() + \
-        Path(str(saving_options.path)) # absolute path to the saving directory
+    path = Path(__file__).parent.parent.parent.absolute() / 'results' / str(saving_options.path)
+    # absolute path to the saving directory
     saving = {
         'period':period,
         'path':path
     }
 
     # simulation options
-    scheme = str(simulation_options.sheme)
+    scheme = str(simulation_options.scheme)
     dt = float(simulation_options.dt)
     number_of_steps = int(simulation_options.number_of_steps)
 
@@ -76,7 +76,7 @@ def get_options_square(cfg_file_path):
 
     factor = float(system_options.factor)
     size = list(map(int,system_options.size.split(',')))
-    lz = int(system_options.lz) 
+    lz = float(system_options.lz) 
 
     return {
         'factor':factor,
@@ -104,13 +104,13 @@ def read_conf_main(cfg_file_path):
     #[speed]
     options.speed_type = Config.get('speed','speed_type')
     options.speed_param1 = Config.get('speed','speed_param1')
-    options.speed_param1 = Config.get('speed','speed_param2')
+    options.speed_param2 = Config.get('speed','speed_param2')
 
     #[particles]
-    options.particles_types = Config.get('particles','types')
-    options.particles_mean_number_per_cell = Config.get('particles','mean_number_per_cell')
-    options.particles_densities = Config.get('particles','density')
-    options.particles_radius = Config.get('particles','radius')
+    options.particles_types = Config.get('particles','particles_types')
+    options.particles_mean_number_per_cell = Config.get('particles','particles_mean_number_per_cell')
+    options.particles_densities = Config.get('particles','particles_densities')
+    options.particles_radius = Config.get('particles','particles_radius')
 
     #[collisions]
     #options.eta = Config.get('collisions','eta')
@@ -126,8 +126,8 @@ def read_conf_saving(cfg_file_path):
     Config = ConfigParser.ConfigParser()
     Config.read(options.cfg)
 
-    options.period = Config.get('period')
-    options.path = Config.get('path')
+    options.period = Config.get('params','period')
+    options.path = Config.get('params','path')
 
     return options
 
@@ -139,9 +139,9 @@ def read_conf_simulation(cfg_file_path):
     Config = ConfigParser.ConfigParser()
     Config.read(options.cfg)
 
-    options.scheme = Config.get('scheme')
-    options.dt = Config.get('dt')
-    options.number_of_steps = Config.get('number_of_steps')
+    options.scheme = Config.get('params','scheme')
+    options.dt = Config.get('params','dt')
+    options.number_of_steps = Config.get('params','number_of_steps')
 
     return options
 
@@ -153,9 +153,9 @@ def read_conf_square(cfg_file_path):
     Config = ConfigParser.ConfigParser()
     Config.read(options.cfg)
 
-    options.factor = Config.get('factor')
-    options.size = Config.get('size')
-    options.lz = Config.get('lz')
+    options.factor = Config.get('system','factor')
+    options.size = Config.get('system','size')
+    options.lz = Config.get('system','lz')
 
     return options
 

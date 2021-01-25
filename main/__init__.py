@@ -20,3 +20,5 @@ from .collisions_handler import CollisionHandler
 from .particules import Particule
 from .particles_init import get_particles
 
+# read cfg files
+from .read_cfg_files.reader import get_options
