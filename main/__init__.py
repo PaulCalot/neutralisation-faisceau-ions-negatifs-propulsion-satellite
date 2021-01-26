@@ -18,6 +18,7 @@ from .data_structures.grid import Grid
 
 # my modules imports
 from .collisions_handler import CollisionHandler
+from .DSMC import DSMC
 from .particules import Particule
 from .particles_init import init_particles_in_system
 

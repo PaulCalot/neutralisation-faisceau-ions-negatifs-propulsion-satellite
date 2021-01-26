@@ -8,8 +8,7 @@ class square(system):
         super().__init__(options, min_mean_free_path)
     
     def make_grid(self):
-        return Grid(self.resolution[0]*self.factor,self.resolution[1]*\
-            self.factor,[self.resolution[0],self.resolution[1]], dtype = 'LinkedList')
+        return Grid(self.size[0],self.size[1],[self.resolution[0],self.resolution[1]], dtype = 'LinkedList')
 
     def make_system(self):
         self.factor = self.options['factor']

@@ -20,7 +20,8 @@ class Grid(object):
             self.offsets = MyVector(0,0,0)
         self.dtype = dtype
         self.grid = np.empty((self.res[0], self.res[1]), dtype = self.data_structure_class)          
-        
+        self.sparsed_space_idx = None
+
     def add(self, particule):
         pos = particule.get_pos()+self.offsets
         self.add_(particule, self.get_pos_in_grid(pos))
@@ -51,27 +52,38 @@ class Grid(object):
         self.grid[pos_in_grid[0],pos_in_grid[1]].delete(particule)
 
     def update(self, particule, old_position):
-        if(self.debug):
-            print("Updating position ... " + particule.to_string(), end= " ")
+        #if(self.debug):
+        #    print("Updating position ... " + particule.to_string(), end= " ")
 
         pos = particule.get_pos()+self.offsets
         pos_in_grid = self.get_pos_in_grid(pos)
-        old_pos_in_grid = self.get_pos_in_grid(old_position)
-    
+        #if(self.sparsed_space_idx != None and pos_in_grid not in self.sparsed_space_idx):
+        #    return False
+        old_pos_in_grid = self.get_pos_in_grid(old_position+self.offsets)
+
         if(pos_in_grid != old_pos_in_grid):
             if(self.debug):
                 print("Positions in grid were different ...", end = "   [OK]")
-            self.add_(particule, pos_in_grid)
+            try :
+                # may be there is some weird stuff going on and i should differentiate add_ and remove_
+                self.add_(particule, pos_in_grid)
+            except IndexError: # (ValueError,): 
+                return False
             self.remove_(particule, old_pos_in_grid)
+        else :
+            if(self.debug):
+                print("Same positions.", end = "   [OK]")
+
         if(self.debug):
             print("     [OK]")
+        return True
 
     def get_pos_in_grid(self, position):
         #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
         pos_x = int(position.x*self.res[0]/self.lx)
         pos_y = int(position.y*self.res[1]/self.ly)
-        return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
-        #return [pos_x, pos_y]
+        #return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
+        return [pos_x, pos_y]
     
     def get_closest_particules(self, particule, return_list = True):
         pos = particule.get_pos()+self.offsets
@@ -131,11 +143,10 @@ class Grid(object):
     
     # ------------ Sparsed Space ---------------- #
     def fill_sparsed_space_from_initial_particles_position(self):
+        self.sparsed_space_idx = []
         list_particles = self.get_all_particles()
-        output_array = np.zeros((self.res[0],self.res[1]),dtype=int)
         for part in list_particles:
             pos = part.get_pos()+self.offsets
             pos_x = int(pos.x*self.res[0]/self.lx)
             pos_y = int(pos.y*self.res[1]/self.ly)
-            output_array[pos_x,pos_y] = 1
-        return output_array
+            self.sparsed_space_idx.append([pos_x,pos_y])
