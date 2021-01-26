@@ -37,23 +37,23 @@ def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
     class Boundary_bord_mot(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] < l_mot/2  and x[1] > - l_mot/2
+            return on_boundary and x[1] < l_mot/2  and x[1] > - l_mot/2 + tol
         
     class Boundary_electrode1(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] <= - l_mot/2 and x[1] >= - l_mot/2 - l_1
+            return on_boundary and x[1] <= - l_mot/2 + tol and x[1] >= - l_mot/2 - l_1 - tol
         
     class Boundary_inter_electrode(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] < - l_mot/2 - l_1 and x[1] > - l_mot/2 - l_1 - delta_vert_12
+            return on_boundary and x[1] < - l_mot/2 - l_1 - tol and x[1] > - l_mot/2 - l_1 - delta_vert_12 + tol
         
     class Boundary_electrode2(SubDomain):
         def inside(self, x, on_boundary):
             tol = 1E-14
-            return on_boundary and x[1] <= - l_mot/2 - l_1 - delta_vert_12 and x[1] >= - l_mot/2 - \
-                l_1 - delta_vert_12 - l_2 and abs(x[0])<=L_mot/2
+            return on_boundary and x[1] <= - l_mot/2 - l_1 - delta_vert_12 + tol and x[1] >= - l_mot/2 - \
+                l_1 - delta_vert_12 - l_2 - tol and abs(x[0])<=L_mot/2
         
     class Boundary_sup_vacuum(SubDomain):
         def inside(self, x, on_boundary):
@@ -86,7 +86,34 @@ def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
 
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Constant(physics_consts_dict['rhoelec']/physics_consts_dict['PERMITTIVITY']) 
+    
+    rhoelec=physics_consts_dict['rhoelec']
+    l_rho=physics_consts_dict['l_rho']
+    
+    class Second_membre(UserExpression):
+        def eval(self, value, x):
+            ylim = -(0.5*l_mot + l_1 + delta_vert_12 + l_2)
+            
+            if l_rho!=0:
+                
+                if x[1] >= ylim + l_rho:
+                    value[0] = rhoelec/physics_consts_dict['PERMITTIVITY']
+                    
+                elif x[1] >= ylim:
+                    a = rhoelec*((-ylim - l_rho)**(-.5) - (-ylim)**(-.5))**(-1)
+                    b = - a*(-ylim)**(-.5)
+                    value[0] =  a * (-x[1])**(-.5) + b 
+                    value[0] /= physics_consts_dict['PERMITTIVITY']
+                    
+                else:
+                    value[0]=0
+                    
+            else:
+                value[0]=rhoelec/physics_consts_dict['PERMITTIVITY']
+    
+    f = Second_membre(degree=2)
+
+    #f = Constant(physics_consts_dict['rhoelec']/physics_consts_dict['PERMITTIVITY']) 
     a = dot(grad(u), grad(v))*dx
     L = f*v*dx
     Phi = Function(V)
@@ -95,7 +122,7 @@ def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
 
     E = project(-grad(Phi), W)
 
-    return Phi,E
+    return Phi,E,f
 
 
 # ------------------------------ Trajectory computation auxiliary functions -------------------- #
@@ -122,15 +149,15 @@ class Particule:
         
 def moyenne_amelioree(liste):
     if len(liste)==0:
-        return None
+        return 0
     return np.mean(liste)
 
 def ecart_type_ameliore(liste):
     if len(liste)==0:
-        return None
+        return 0
     return np.std(liste)
 
-def distrib_init(espece, mesh_dict):
+def distrib_init(espece, mesh_dict, injection_dict, mode_dict):
     """
     Renvoie x,y,z aléatoirement en suivant une distribution propre à l'espèce
     """
@@ -138,28 +165,53 @@ def distrib_init(espece, mesh_dict):
     l_mot = mesh_dict['l_mot']
     L_1 = mesh_dict['L_1']
     l_1 = mesh_dict['l_1']
+    gamma=injection_dict['gamma']
+    Vion=injection_dict['Vion']
+    Vneutre=injection_dict['Vneutre']
+    Sigma_Vion=injection_dict['Sigma_Vion']
+    Sigma_Vneutre=injection_dict['Sigma_Vneutre']
+    cond=mode_dict['X0 fixe ?']
+    tol=1e-5
     
     if espece=='I':
-        alpha=np.random.uniform(0,2*np.pi)
-        v=np.random.normal(200,100)
-        x=np.random.uniform(-(L_mot-L_1)/2,(L_mot-L_1)/2)
-        y=np.random.uniform(-l_mot/4,l_mot/4)
+        if cond==False:
+            alpha=np.random.uniform(0,2*np.pi)
+            v=np.random.normal(Vneutre,Sigma_Vneutre)
+            x=np.random.uniform(-(L_mot-L_1)/2,(L_mot-L_1)/2)
+            y=np.random.uniform(-l_mot/4,l_mot/4)
+        else:
+            alpha=np.pi/6
+            v=Vneutre
+            x=-(L_mot-L_1)/4
+            y=l_mot/5
         return x, y, 0, v*np.cos(alpha), v*np.sin(alpha), 0
     
     elif espece=='I+':
-        alpha=np.random.uniform(0,np.pi)
-        v=np.random.normal(5e3,5e2)
-        x=(L_mot-L_1)/2*np.cos(alpha)
-        y=(L_mot-L_1)/2*np.sin(alpha)-l_mot/2
-        vx=v*np.cos(alpha)
-        vy=v*np.sin(alpha)
+        alpha_lim=np.arctan((L_mot-L_1)/(2*gamma*l_1))
+        if cond==False:
+            alpha=np.random.uniform(np.pi/2-alpha_lim+tol,np.pi/2+alpha_lim-tol)
+            v=np.random.normal(Vion,Sigma_Vion) 
+        else:
+            alpha=np.pi/2-alpha_lim/3
+            v=Vion
+        R=np.sqrt((gamma*l_1)**2+((L_mot-L_1)/2)**2)
+        x=R*np.cos(alpha)
+        y=-l_mot/2-gamma*l_1+R*np.sin(alpha)
+        vx=-v*np.cos(alpha)
+        vy=-v*np.sin(alpha)
         return x, y, 0, vx, vy, 0
     
     elif espece=='I-':
-        alpha=np.random.uniform(0,np.pi)
-        v=np.random.normal(5e3,5e2)
-        x=(L_mot-L_1)/2*np.cos(alpha)
-        y=(L_mot-L_1)/2*np.sin(alpha)-l_mot/2
+        alpha_lim=np.arctan((L_mot-L_1)/(2*gamma*l_1))
+        if cond==False:
+            alpha=np.random.uniform(np.pi/2-alpha_lim+tol,np.pi/2+alpha_lim-tol)
+            v=np.random.normal(Vion,Sigma_Vion) 
+        else:
+            alpha=np.pi/2-alpha_lim/3
+            v=Vion
+        R=np.sqrt((gamma*l_1)**2+((L_mot-L_1)/2)**2)
+        x=R*np.cos(alpha)
+        y=-l_mot/2-gamma*l_1+R*np.sin(alpha)
         vx=-v*np.cos(alpha)
         vy=-v*np.sin(alpha)
         return x, y, 0, vx, vy, 0
@@ -238,14 +290,14 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
     liste_Y est la liste des couples [particule,i] de la simulation, n est la particule à faire avancer.
     renvoie la particule dans son nouvel état.
     """
-    Cond1=mode_dict['Elastique?']
-    Cond2=mode_dict['Transfert de charge?']
-    Cond3=mode_dict['Contact inter particules?']
-    eta=mode_dict['perte u par contact'] #a priori idem pr I, I+ et I-
-    p=mode_dict['proba perte q par contact'] #a priori idem pr I+ et I-
+    Cond1=mode_dict['Choc symétrique?']
+    Cond2=mode_dict['Contact inter particules?']
+    eta=mode_dict['coef inelasticite'] #a priori idem pr I, I+ et I-
+    p=mode_dict['proba perte q par choc'] #a priori idem pr I+ et I-
+    scat=mode_dict['coef scattering']
 
-    if Cond3==True:
-        print('error, Cond3 pas créée')
+    if Cond2==True:
+        print('erreur, contact inter_particule non codé, sera négligé')
     
     particule=liste_Y[n][0]
     m=particule.m
@@ -263,35 +315,98 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
         xinter,yinter,n,last_impact=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1],segments_list,last_impact)
         z=Y_pot[2]
         vz=Y_pot[5]
-        
-        if n=='x'or n=='xm': #normale selon x 
-            incidence = np.arctan((Y_pot[1]-Y[1])/(Y_pot[0]-Y[0]))
-            if Cond1==True:
-                Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
-                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -Y_pot[3], Y_pot[4], vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence): 
-                    q,espece=0,'I'
-            else:
-                Y,Y_pot=np.array([xinter, yinter, z, 0, 0, vz]),\
-                        np.array([xinter+(xinter-Y_pot[0]), Y_pot[1], z, -(1-eta*np.cos(incidence))*Y_pot[3], (1-eta*np.cos(incidence))*Y_pot[4], (1-eta*np.cos(incidence))*vz])
-                if n=='x' and Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
-                    q,espece=0,'I'
-                    
-        else: #normale selon y 
-            incidence = np.arctan((Y_pot[0]-Y[0])/(Y_pot[1]-Y[1]))
-            if Cond1==True:    
-                Y,Y_pot=np.array([xinter,yinter,z, 0,0,vz] ),\
-                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]), z, Y_pot[3], -Y_pot[4],vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
-                    q,espece=0,'I'
-            else:
-                Y,Y_pot=np.array([xinter,yinter,z,0,0,vz] ),\
-                        np.array([Y_pot[0], yinter+(yinter-Y_pot[1]),z, (1-eta*np.cos(incidence))*Y_pot[3], -(1-eta*np.cos(incidence))*Y_pot[4],(1-eta*np.cos(incidence))*vz])
-                if Cond2==True and q!=0 and np.random.random_sample()<=p*np.cos(incidence):
-                    q,espece=0,'I'
-            
-    return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
 
+        if n=='xm': #normale selon x sans choc
+            Y,Y_pot=np.array([xinter, 
+                              yinter, 
+                              z, 
+                              0, 
+                              0, 
+                              vz]),\
+                    np.array([xinter+(xinter-Y_pot[0]), 
+                              Y_pot[1], 
+                              z, 
+                              -Y_pot[3], 
+                              Y_pot[4], 
+                              vz])
+
+        elif n=='x': #normale selon x avec choc
+            sigmax=np.sign(Y_pot[0]-Y[0])
+            sigmay=np.sign(Y_pot[1]-Y[1])
+            incidence = sigmax*sigmay*np.arctan((Y_pot[1]-Y[1])/(Y_pot[0]-Y[0]))
+            if Cond1==True : #choc symetrique
+                Y,Y_pot=np.array([xinter, 
+                                  yinter, 
+                                  z, 
+                                  0, 
+                                  0, 
+                                  vz]),\
+                        np.array([xinter+(xinter-Y_pot[0]), 
+                                  Y_pot[1], 
+                                  z, 
+                                  -(1-eta*np.cos(incidence))*Y_pot[3], 
+                                  (1-eta*np.cos(incidence))*Y_pot[4], 
+                                  (1-eta*np.cos(incidence))*vz])
+            else: #choc asymetrique
+                Vit_xy=(1-eta*np.cos(incidence))*np.sqrt(Y_pot[3]**2+Y_pot[4]**2)
+                Pos_xy=np.sqrt((xinter-Y_pot[0])**2+(Y_pot[1]-yinter)**2)
+                alpha=np.pi/2-incidence
+                alpha_prime=np.random.uniform(alpha-scat*alpha, alpha+scat*alpha)
+                i_prime=np.pi/2-alpha_prime
+                Y,Y_pot=np.array([xinter, 
+                                  yinter, 
+                                  z, 
+                                  0, 
+                                  0, 
+                                  vz]),\
+                        np.array([xinter-sigmax*np.cos(i_prime)*Pos_xy, 
+                                  yinter+sigmay*np.sin(i_prime)*Pos_xy, 
+                                  z, 
+                                  -sigmax*np.cos(i_prime)*Vit_xy, 
+                                  sigmay*np.sin(i_prime)*Vit_xy, 
+                                  (1-eta*np.cos(incidence))*vz])
+            if q!=0 and np.random.random_sample()<=p*np.cos(incidence):
+                q,espece=0,'I'
+
+        else: #normale selon y 
+            sigmax=np.sign(Y_pot[0]-Y[0])
+            sigmay=np.sign(Y_pot[1]-Y[1])
+            incidence = sigmax*sigmay*np.arctan((Y_pot[0]-Y[0])/(Y_pot[1]-Y[1]))
+            if Cond1==True: #choc symetrique
+                Y,Y_pot=np.array([xinter,
+                                  yinter,
+                                  z,
+                                  0,
+                                  0,
+                                  vz] ),\
+                        np.array([Y_pot[0], 
+                                  yinter+(yinter-Y_pot[1]),
+                                  z, 
+                                  (1-eta*np.cos(incidence))*Y_pot[3], 
+                                  -(1-eta*np.cos(incidence))*Y_pot[4],
+                                  (1-eta*np.cos(incidence))*vz])
+            else: #choc asymetrique
+                Vit_xy=(1-eta*np.cos(incidence))*np.sqrt(Y_pot[3]**2+Y_pot[4]**2)
+                Pos_xy=np.sqrt((Y_pot[0]-xinter)**2+(yinter-Y_pot[1])**2)
+                alpha=np.pi/2-incidence
+                alpha_prime=np.random.uniform(alpha-scat*alpha, alpha+scat*alpha)
+                i_prime=np.pi/2-alpha_prime
+                Y,Y_pot=np.array([xinter,
+                                  yinter,
+                                  z,
+                                  0,
+                                  0,
+                                  vz] ),\
+                        np.array([xinter+sigmax*np.sin(i_prime)*Pos_xy, 
+                                  yinter-sigmay*np.cos(i_prime)*Pos_xy, 
+                                  z, 
+                                  sigmax*np.sin(i_prime)*Vit_xy, 
+                                  -sigmay*np.cos(i_prime)*Vit_xy, 
+                                  (1-eta*np.cos(incidence))*vz])
+            if q!=0 and np.random.random_sample()<=p*np.cos(incidence):
+                q,espece=0,'I'
+         
+    return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])
 
 # ------------------------------ Trajectory computation main functions -------------------- #
 
@@ -306,6 +421,7 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     
     tmax=integration_parameters_dict['tmax']
     dt=integration_parameters_dict['dt']
+    percent=integration_parameters_dict['%Nout']
     
     e=physics_consts_dict['CHARGE']
     u=physics_consts_dict['M_NUCLEON']
@@ -335,13 +451,13 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_Y=[]
     
     for n in range (N1):
-        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
     for n in range (N1,N1+N2):
-        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
     for n in range (N1+N2,N):
-        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
         
     np.random.shuffle(liste_Y)
@@ -378,10 +494,12 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         
     t=0
     Nb_out=0
+    last_percent=-1
 
     for i in range (nombre_tour_plein_debit):
-        if np.random.random_sample()<max(dt/tmax,0.1):
+        if round(100*(t/tmax))!=last_percent:
             print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
+            last_percent=round(100*(t/tmax))
         for n in range ((i+1)*nombre_max_injecte_par_tour):
             #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
@@ -407,9 +525,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     
     
                  
-    while t<tmax and Nb_out<N:
-        if np.random.random_sample()<max(dt/tmax,0.1):
+    while t<tmax and Nb_out<int(percent*N/100):
+        if round(100*(t/tmax))!=last_percent:
             print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
+            last_percent=round(100*(t/tmax))
         for n in range (N):
             #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
@@ -431,10 +550,10 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
         if details==True:
             liste_t.append(t)
         
-    if Nb_out==N:
-        print("fin du calcul, critère d'arret: Nb_out")
+    if Nb_out>=int(percent*N/100):
+        print("fin du calcul, critère d'arret: % Nb_out, t="+str(t))
     else:
-        print("fin du calcul, critère d'arret: tmax")
+        print("fin du calcul, critère d'arret: tmax, N_out="+str(Nb_out))
     
     ### Traitement des données de sortie
     print('début traitement de données')
@@ -497,103 +616,34 @@ def compute_trajectory(integration_parameters_dict, injection_dict, mesh_dict, m
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
     
     if details==True:
-        return [p1f,p2f,p3f], \
+        return Nb_out,[p1f,p2f,p3f], \
                 [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
                 [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
                 [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
                 [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)], \
-                listes_x, listes_y, listes_vx, listes_vy, listes_q, liste_t
-    return [p1f,p2f,p3f], \
+                listes_x, listes_y, listes_vx, listes_vy, listes_q, liste_t,\
+                liste_alpha1,liste_alpha2,liste_alpha3,liste_Vnorm1,liste_Vnorm1,liste_Vnorm1
+    return Nb_out,[p1f,p2f,p3f], \
                 [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
                 [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
                 [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
                 [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)]
 
-
-
-
-
-
-
-
-
-    
-
-
-# ------------------------- Bin ------------------- # 
-
-
-"""
-RK4 où Y est le vecteur au temps t de la boucle.
-Les positions et vitesses et le temps correspondants sont en parallèles stockés dans les listes: liste_x, liste_vy ...
-Notons une erreur notable, lors des calculs des Ki, on considère qu'il n'y a pas de rebonds possibles sur la trajectoire interpolée
-d'où les cas de champ E nul dans f
-
-Autre truc à étudier: si après le calcul du rebond ou du miroir, on retombe hors du mesh, potentiellement pas d'intersection à l'iteraion suivante
-"""
-
-'''while t<=tmax:
-    k1=np.array(f(Y,t))
-    k2=np.array(f(Y+.5*dt*k1, t+.5*dt))
-    k3=np.array(f(Y+.5*dt*k2, t+.5*dt))
-    k4=np.array(f(Y+dt*k3, t+dt))
-    Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-    if zone.inside(Point(Y_pot[0],Y_pot[1]))==True:
-        Y=Y_pot
-    else:
-        xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1])
-        N_impact+=1
-        if n=='xm': #normale selon x avec miroir
-            Y=np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
-        if n=='x': #normale selon x
-            Y=np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
-        else:
-            Y=np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
-    liste_x.append(Y[0])
-    liste_y.append(Y[1])
-    liste_vx.append(Y[2])
-    liste_vy.append(Y[3])
-    listet.append(t)
-    t+=dt
-    if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
-        break'''
-    
-'''while t<=tmax:
-    k1=np.array(f(Y,t))
-    k2=np.array(f(Y+.5*dt*k1, t+.5*dt))
-    k3=np.array(f(Y+.5*dt*k2, t+.5*dt))
-    k4=np.array(f(Y+dt*k3, t+dt))
-    Y_pot=Y+dt*(1/6*k1+1/3*k2+1/3*k3+1/6*k4)
-    while zone.inside(Point(Y_pot[0],Y_pot[1]))==False:
-        xinter,yinter,n=coord_impact(Y[0],Y[1],Y_pot[0],Y_pot[1], segments_list)
-        if n=='xm': #normale selon x avec miroir
-            Y,Y_pot=np.array([-xinter,-yinter,0,0]),np.array([-xinter-(xinter-Y_pot[0]),Y_pot[1],Y_pot[2],Y_pot[3]])
-        elif n=='x': #normale selon x
-            Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([xinter+(xinter-Y_pot[0]),Y_pot[1],-Y_pot[2],Y_pot[3]])
-            N_impact+=1
-        else:
-            Y,Y_pot=np.array([xinter,yinter,0,0]),np.array([Y_pot[0],yinter+(yinter-Y_pot[1]),Y_pot[2],-Y_pot[3]])
-            N_impact+=1
-    Y=Y_pot
-    liste_x.append(Y[0])
-    liste_y.append(Y[1])
-    liste_vx.append(Y[2])
-    liste_vy.append(Y[3])
-    listet.append(t)
-    t+=dt
-    if Y[1]<-l_mot/2-h_grid-l_vacuum/2:
-        break'''
-
-'''
-def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone,E):
+def compute_trajectory_1dt(integration_parameters_dict, injection_dict, mesh_dict, mode_dict, segments_list, zone, E, physics_consts_dict, details):
     """
     Renvoie la proportion d'espèce , 
     l'angle moyen, 
     et la norme de la vitesse moyenne en sortie.
+    
+    Ainsi que la liste des instants t et les listes de liste de x,y,vx,vy,q de chaque particule
     """
     
     tmax=integration_parameters_dict['tmax']
     dt=integration_parameters_dict['dt']
+    percent=integration_parameters_dict['%Nout']
+    
+    e=physics_consts_dict['CHARGE']
+    u=physics_consts_dict['M_NUCLEON']
     
     l_mot=mesh_dict['l_mot']
     l_1=mesh_dict['l_1']
@@ -612,7 +662,7 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
     ### l'entier vaut -1 si la particule n'est pas encore injectée, 0 si est dedans et 1 si est sortie
     
     print("début d'initialisation")
-    
+
     N2=int(p2*N)
     N3=int(p3*N)
     N1=N-N2-N3
@@ -620,63 +670,106 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
     liste_Y=[]
     
     for n in range (N1):
-        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I', 0, 127*u, x, y, z, vx, vy, vz),0])
     for n in range (N1,N1+N2):
-        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I+', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I+', e, 127*u, x, y, z, vx, vy, vz),0])
     for n in range (N1+N2,N):
-        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict)
+        x,y,z,vx,vy,vz=distrib_init('I-', mesh_dict,injection_dict, mode_dict)
         liste_Y.append([Particule('I-', -e, 127*u, x, y, z, vx, vy, vz),0])
         
     np.random.shuffle(liste_Y)
     
-    nombre_max_injecte_par_tour=int(DN*dt)+1 #au moins 1 si Dn trop petit
-    nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour) 
+    if details==True:
+        liste_t=[0]
+        listes_x=[]
+        listes_y=[]
+        listes_vx=[]
+        listes_vy=[]
+        listes_vz=[]
+        listes_q=[]
+        for n in range(N):
+            listes_x.append([liste_Y[n][0].x])
+            listes_y.append([liste_Y[n][0].y])
+            listes_vx.append([liste_Y[n][0].vx])
+            listes_vy.append([liste_Y[n][0].vy])
+            listes_vz.append([liste_Y[n][0].vz])
+            listes_q.append([liste_Y[n][0].q])
+    
+    
+    nombre_max_injecte_par_tour=int(DN*dt)+1
+    nombre_tour_plein_debit=int(N/nombre_max_injecte_par_tour)
     nombre_derniere_injection=N-nombre_tour_plein_debit*nombre_max_injecte_par_tour
     
+    print("début de l'injection")
+        
     for i in range(nombre_max_injecte_par_tour, N):
         liste_Y[i][1]=-1
         
     ### On calcule les trajectoires en 2 temps
     ### On fait d'abord les tours où il y a injection au débit max en ne traitant qu'une partie des particules
     ### Puis on fait tourner en continu jusqu'à tmax ou à ce qu'il n'y ait plus de particules à l'intérieur
-    
-    print("début de l'injection")
         
     t=0
     Nb_out=0
 
     for i in range (nombre_tour_plein_debit):
-        if np.random.random_sample()<max(dt/tmax,0.1):
-            print ('Avancement de '+str(100*(t/tmax))+'%, '+str(Nb_out)+' particules sorties')
+        if np.random.random_sample()<0.05:
+            print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
         for n in range ((i+1)*nombre_max_injecte_par_tour):
+            #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
-                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
+                particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
+                liste_Y[n][0]=particule
+                if details==True:
+                    listes_x[n].append(particule.x)
+                    listes_y[n].append(particule.y)
+                    listes_vx[n].append(particule.vx)
+                    listes_vy[n].append(particule.vy)
+                    listes_vz[n].append(particule.vz)
+                    listes_q[n].append(particule.q)
+                
+                if particule.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
-    
+        if details==True:
+            liste_t.append(t)
+        
     print('toutes les particules sont injectées')
     
-    while t<tmax and Nb_out<N:
-        if np.random.random_sample()<max(dt/tmax,0.1):
-            print ('Avancement de '+str(100*(t/tmax))+'%, '+str(Nb_out)+' particules sorties')
+    
+                 
+    while t<tmax and Nb_out<int(percent*N/100):
+        if np.random.random_sample()<0.05:
+            print ('Avancement de '+str(round(100*(t/tmax)))+'%, '+str(Nb_out)+' particules sorties')
         for n in range (N):
+            #print('calcul de la part num'+str(n))
             if liste_Y[n][1]!=1: 
                 liste_Y[n][1]=0
-                liste_Y[n][0]=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
-                if liste_Y[n][0].y<-l_mot/2-h_grid-l_vacuum/2:
+                particule=One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt)
+                liste_Y[n][0]=particule
+                if details==True:
+                    listes_x[n].append(particule.x)
+                    listes_y[n].append(particule.y)
+                    listes_vx[n].append(particule.vx)
+                    listes_vy[n].append(particule.vy)
+                    listes_vz[n].append(particule.vz)
+                    listes_q[n].append(particule.q)
+                
+                if particule.y<-l_mot/2-h_grid-l_vacuum/2:
                     liste_Y[n][1]=1
                     Nb_out+=1
         t+=dt
+        if details==True:
+            liste_t.append(t)
         
-    if Nb_out==N:
-        print("fin du calcul, critère d'arret: Nb_out")
+    if Nb_out>=int(percent*N/100):
+        print("fin du calcul, critère d'arret: % Nb_out, t="+str(t))
     else:
-        print("fin du calcul, critère d'arret: tmax")
+        print("fin du calcul, critère d'arret: tmax, N_out="+str(Nb_out))
     
     ### Traitement des données de sortie
     print('début traitement de données')
@@ -686,49 +779,61 @@ def compute_trajectory_bigN(integration_parameters_dict, injection_dict, mesh_di
     N3f=0
     liste_vxf1=[]
     liste_vyf1=[]
+    liste_vzf1=[]
     liste_vxf2=[]
     liste_vyf2=[]
+    liste_vzf2=[]
     liste_vxf3=[]
     liste_vyf3=[]
+    liste_vzf3=[]
    
     
     for n in range(N):
-        if liste_Y[n][1]==1 and liste_Y[n][0].vy!=0:
+        if liste_Y[n][0].vy!=0:
             particule=liste_Y[n][0]
             if particule.espece=='I':
-                N1f+=1
                 liste_vxf1.append(particule.vx)
                 liste_vyf1.append(particule.vy)
+                liste_vzf1.append(particule.vz)
             elif particule.espece=='I+':
-                N2f+=1
                 liste_vxf2.append(particule.vx)
                 liste_vyf2.append(particule.vy)
+                liste_vzf2.append(particule.vz)
             elif particule.espece=='I-':
-                N3f+=1
                 liste_vxf3.append(particule.vx)
                 liste_vyf3.append(particule.vy)
+                liste_vzf3.append(particule.vz)
     
-    if Nb_out!=0:
-        p1f=N1f/Nb_out
-        p2f=N2f/Nb_out
-        p3f=N3f/Nb_out
-    else:
-        p1f=0
-        p2f=0
-        p3f=0
+    p1f=0
+    p2f=0
+    p3f=0
     liste_vxf1=np.array(liste_vxf1)
     liste_vyf1=np.array(liste_vyf1)
+    liste_vzf1=np.array(liste_vzf1)
     liste_vxf2=np.array(liste_vxf2)
     liste_vyf2=np.array(liste_vyf2)
+    liste_vzf2=np.array(liste_vzf2)
     liste_vxf3=np.array(liste_vxf3)
     liste_vyf3=np.array(liste_vyf3)
-    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2), 1/2)
+    liste_vzf3=np.array(liste_vzf3)
+    liste_Vnorm1=np.power(np.power(liste_vxf1,2)+np.power(liste_vyf1,2)+np.power(liste_vzf1,2), 1/2)
     liste_alpha1=-np.arctan(liste_vxf1/liste_vyf1)
-    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2), 1/2)
+    liste_Vnorm2=np.power(np.power(liste_vxf2,2)+np.power(liste_vyf2,2)+np.power(liste_vzf2,2), 1/2)
     liste_alpha2=-np.arctan(liste_vxf2/liste_vyf2)
-    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2), 1/2)
+    liste_Vnorm3=np.power(np.power(liste_vxf3,2)+np.power(liste_vyf3,2)+np.power(liste_vzf3,2), 1/2)
     liste_alpha3=-np.arctan(liste_vxf3/liste_vyf3)
     
-    return [p1f,p2f,p3f], \
-           [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
-           [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)]'''
+    if details==True:
+        return Nb_out,[p1f,p2f,p3f], \
+                [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
+                [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
+                [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
+                [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)], \
+                listes_x, listes_y, listes_vx, listes_vy, listes_q, liste_t, liste_alpha1, liste_alpha2, liste_alpha3
+    return Nb_out,[p1f,p2f,p3f], \
+                [moyenne_amelioree(liste_alpha1),moyenne_amelioree(liste_alpha2),moyenne_amelioree(liste_alpha3)], \
+                [ecart_type_ameliore(liste_alpha1),ecart_type_ameliore(liste_alpha2),ecart_type_ameliore(liste_alpha3)], \
+                [moyenne_amelioree(liste_Vnorm1),moyenne_amelioree(liste_Vnorm2),moyenne_amelioree(liste_Vnorm3)], \
+                [ecart_type_ameliore(liste_Vnorm1),ecart_type_ameliore(liste_Vnorm2),ecart_type_ameliore(liste_Vnorm3)]
+
+
