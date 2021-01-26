@@ -111,7 +111,7 @@ class Grid(object):
                         particles.append(part)
         return particles
 
-    def plot(self, offset=None):
+    def plot(self):
         import matplotlib.pyplot as plt
 
         particles = self.get_all_particles()
@@ -121,16 +121,17 @@ class Grid(object):
         x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
 
         fig, ax = plt.subplots(figsize=(10,10))
-        offset = [0,0] if offset==None else offset
-        scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic', vmin = self.lx+offset[0], vmax = self.ly+offset[1]) # problem if offset
-
+        ax.set_aspect('equal', 'box')        
+        scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
+    
     # ------------ Getter and setter ------------- #
 
     def get_grid(self):
         return self.grid
     
     # ------------ Sparsed Space ---------------- #
-    def fill_sparsed_space_from_initial_particles_position(self, list_particles):
+    def fill_sparsed_space_from_initial_particles_position(self):
+        list_particles = self.get_all_particles()
         output_array = np.zeros((self.res[0],self.res[1]),dtype=int)
         for part in list_particles:
             pos = part.get_pos()+self.offsets

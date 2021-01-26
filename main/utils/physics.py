@@ -9,7 +9,7 @@ import matplotlib.animation as animation
 import mshr
 import numpy as np
 from fenics import *
-
+from scipy.constants import epsilon_0  # permittivity, 
 import sys # to get the max float value
 from time import time # to time out if need
 from tqdm import tqdm
@@ -19,7 +19,7 @@ u=1.7e-27
 e=1.6e-19
 
 # ------------------------- E and V computation ---------------------------- #
-def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
+def get_VandE(mesh, mesh_dict, phi_dict):
     
     V = FunctionSpace(mesh, 'P', 1)
     W = VectorFunctionSpace(mesh, 'P', 1)
@@ -83,28 +83,28 @@ def get_VandE(mesh, mesh_dict, phi_dict, physics_consts_dict):
     sup_vacuum = Boundary_sup_vacuum()
     inf_vacuum = Boundary_inf_vacuum()
 
-    list_Phi = [phi_dict['Phi_top_mot'],phi_dict['Phi_bord_mot'],phi_dict['Phi_electrode1'], \
-        phi_dict['Phi_inter_electrode'], phi_dict['Phi_electrode2'],phi_dict['Phi_sup_vacuum'],phi_dict['Phi_inf_vacuum']]
+    list_phi = [phi_dict['phi_top_mot'],phi_dict['phi_bord_mot'],phi_dict['phi_electrode1'], \
+        phi_dict['phi_inter_electrode'], phi_dict['phi_electrode2'],phi_dict['phi_sup_vacuum'],phi_dict['phi_inf_vacuum']]
     list_edges=[top_mot, bord_mot, electrode1, inter_electrode, electrode2, sup_vacuum, inf_vacuum]
     bc=[]
     
     for i in range(len(list_edges)):
-        if list_Phi[i]!='N':
-            bc.append(DirichletBC(V, Constant(list_Phi[i]), list_edges[i]))
+        if list_phi[i]!='N':
+            bc.append(DirichletBC(V, Constant(list_phi[i]), list_edges[i]))
 
 
     u = TrialFunction(V)
     v = TestFunction(V)
-    f = Constant(physics_consts_dict['rhoelec']/physics_consts_dict['PERMITTIVITY']) 
+    f = Constant(phi_dict['rho_elec']/epsilon_0) 
     a = dot(grad(u), grad(v))*dx
     L = f*v*dx
-    Phi = Function(V)
+    phi = Function(V)
 
-    solve(a == L, Phi, bc)
+    solve(a == L, phi, bc)
 
-    E = project(-grad(Phi), W)
+    E = project(-grad(phi), W)
 
-    return Phi,E
+    return phi,E
 
 
 # ------------------------------ Trajectory computation auxiliary functions -------------------- #

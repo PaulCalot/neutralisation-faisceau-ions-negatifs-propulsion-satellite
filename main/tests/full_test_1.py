@@ -182,7 +182,7 @@ def f(Y,t,m,q,zone,E):
         ax = (1/m) * q * Ex(Y[0], Y[1])
         ay = (1/m) * q * Ey(Y[0], Y[1])
     else :
-        ax = 0  #utile si les ki st hors du mesh,
+        ax = 0  #utile si les ki sont hors du mesh,
         ay = 0
     az=0
     return np.array([vx, vy, vz, ax, ay, az])

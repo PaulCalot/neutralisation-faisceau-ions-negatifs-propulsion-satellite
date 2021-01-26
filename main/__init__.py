@@ -25,3 +25,4 @@ from .read_cfg_files.reader import get_options
 
 # system builders
 from .builders.square import square
+from .builders.thruster import thruster
