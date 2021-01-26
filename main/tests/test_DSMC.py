@@ -99,7 +99,7 @@ Ne = int(N_particles_real/N_particles_simu)
 if(debug): print("There is {} particles in the simulation. One particle accounts for {} real particles.".format("{:e}".format(N_particles_simu),"{:e}".format(Ne)))
 
 def get_sigma(T, mass):
-    # to be used for both sigma and maxwellian distribution
+    # to be used for both gaussian and maxwellian distribution
     # https://scicomp.stackexchange.com/questions/19969/how-do-i-generate-maxwell-boltzmann-variates-using-a-uniform-distribution-random
     # T in Kelvin
     kb = 1.38064e-23 # J K−1
@@ -108,6 +108,7 @@ def get_sigma(T, mass):
 def get_T(v_mean, mass):
     kb = 1.38064e-23 # J K−1
     return mass*v_mean*v_mean/(3*kb)
+
 sigma = get_sigma(T = get_T(300, mass), mass = mass) # T=454 K roughly for v_mean = 300 m/s
 mu = 2*sigma*np.sqrt(2/np.pi) # only for maxwellian distribution
 

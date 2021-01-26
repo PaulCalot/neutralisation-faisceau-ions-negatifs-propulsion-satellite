@@ -58,3 +58,14 @@ def collision_frequency_th_V(v_mean, mean_free_path, n):
 
 def collision_frequency_exp(dt, number_of_dt, number_of_collisions):
     return number_of_collisions/(dt*number_of_dt)
+
+
+def mean_free_path(effective_diameter, particle_density):
+    mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*particle_density)
+    return mean_free_path
+
+def get_min_mean_free_path(radiuses, particles_densities):
+    min_mean_free_path = 100000
+    for radius, density in zip(radiuses, particles_densities):
+        min_mean_free_path = min(min_mean_free_path, mean_free_path(2*radius, density))
+    return min_mean_free_path

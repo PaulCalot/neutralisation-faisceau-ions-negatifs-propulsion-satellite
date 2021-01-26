@@ -101,6 +101,29 @@ class Grid(object):
                 pos_in_grid = [i,j]
                 self.list_to_string_(pos_in_grid)
     
+    def get_all_particles(self):
+        particles=[]
+        for i in range(self.res[0]):
+            for j in range(self.res[1]):
+                data_structure = self.grid[i,j]
+                if(data_structure!=None):
+                    for part in self.grid[i,j].to_list():
+                        particles.append(part)
+        return particles
+
+    def plot(self, offset=None):
+        import matplotlib.pyplot as plt
+
+        particles = self.get_all_particles()
+        positions = [part.get_pos() for part in particles]
+        speed = [part.get_speed() for part in particles]
+        norm = [v.norm() for v in speed]
+        x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
+
+        fig, ax = plt.subplots(figsize=(10,10))
+        offset = [0,0] if offset==None else offset
+        scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic', vmin = self.lx+offset[0], vmax = self.ly+offset[1]) # problem if offset
+
     # ------------ Getter and setter ------------- #
 
     def get_grid(self):
