@@ -6,6 +6,7 @@
 *.txt
 nohup.out
 results/
+biblio/
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
