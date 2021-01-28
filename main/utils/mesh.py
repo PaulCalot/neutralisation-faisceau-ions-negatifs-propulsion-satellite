@@ -16,7 +16,6 @@ from ..utils.utils import segment
 
 def get_mesh(mesh_dict):
     """Returns the mesh and the segment grid.
-
     Args:
         L_mot (int): 
         l_mot ([type]): [description]
@@ -30,7 +29,6 @@ def get_mesh(mesh_dict):
         delta_vert_12 ([type]): [description]
         mesh_resolution ([type]): [description]
         refine_mesh ([type]): [description]
-
     Returns:
         [type]: [description]
     """
@@ -75,8 +73,8 @@ def get_mesh(mesh_dict):
     zone -= (rect_1 + rect_2 + rect_3 + rect_4)
 
     segments_list=[
-        segment(P1,P2+Point(-L_mot,l_mot)), #0
-        segment(P2+Point(-L_mot,l_mot),P2), 
+        segment(P1,P2+Point(-L_mot,0)), #0
+        segment(P2+Point(-L_mot,0),P2), 
         segment(P2, P11+Point(L_1/2,0)), #2
         segment(P11+Point(L_1/2,0), P11),
         segment(P11, P11+Point(0,-l_1)),
@@ -99,6 +97,8 @@ def get_mesh(mesh_dict):
     
     mesh=mshr.generate_mesh(zone, mesh_resolution)
     
+
+    
     if(refine_mesh):
         d = mesh.topology().dim()
         
@@ -112,5 +112,4 @@ def get_mesh(mesh_dict):
         mesh = refine(mesh,marker)
 
     return mesh, segments_list, zone
-
 

@@ -8,8 +8,8 @@ from .utils.physics import get_VandE, compute_trajectory
 from .utils import cfg_tools
 
 # data analysis
-from .analysis.data_analysis import DataAnalyser, DataSaver
-
+from .analysis.data_analysis import DataAnalyser, DataSaver, merge_tests_summary
+from .analysis.post_processing import post_processing
 # data structures
 from .data_structures.dynamic_arrays import DynamicArray 
 from .data_structures.linkedList import LinkedList

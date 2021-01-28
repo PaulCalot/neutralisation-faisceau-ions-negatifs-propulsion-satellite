@@ -1,6 +1,9 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+# plotting 
+import matplotlib.pyplot as plt
+
 class system(ABC):
     def __init__(self, options, min_mean_free_path) -> None:
         self.options = options
@@ -25,7 +28,10 @@ class system(ABC):
 
     def plot(self):
         self.grid.plot()
-
+        # adding now the walls 
+        for wall in self.walls :
+            self.plot_wall(wall)
+        
     def add(self, particle):
         self.grid.add(particle)
 
@@ -36,7 +42,6 @@ class system(ABC):
         return self.resolution
     
     def get_walls(self):
-
         return self.walls
     
     def get_grid(self):
@@ -47,3 +52,8 @@ class system(ABC):
 
     def get_offset(self):
         return self.offset
+
+    def plot_wall(self,wall):
+        # wall = [x1,y1,x2,y2]
+        x1,y1,x2,y2 = wall
+        plt.plot([x1,x2], [y1,y2], color = 'k')

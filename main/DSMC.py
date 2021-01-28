@@ -115,6 +115,7 @@ class DSMC(object):
             self.reflect_particle(part, min_time, idx_min_time, min_pos_intersect)
             return True
         else:
+            print("No wall nearby.")
             return False
 
     def handler_wall_collision(self, position, speed, radius, wall_indx):
@@ -205,7 +206,7 @@ class DSMC(object):
 
     def reflect_particle(self, part, time, idx, pos_intersect):
         wall_directing_vector = self.walls_vector[idx]
-
+        if(self.debug) : print('Reflected particles')
         # SPEED reflection
         # angle
         theta = float(np.sign(wall_directing_vector.y)*np.arccos(wall_directing_vector.x)) # angle between the directing vector and (0,1)

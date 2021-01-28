@@ -19,7 +19,6 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
         if(debug): 
             print('Creating {} particles of type {}.'.format(number_, type_))
             print('Speed type init is {} with params {}, {}.'.format(speed_init_type, m, M))
-
         if(type_ == 'I'):
             charge = 0
             mass = get_mass_part(53, 53, 88)
@@ -74,6 +73,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
                 vx = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
                 vy = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
                 vz = min_speed_uniform_distribution+random()*(max_speed_uniform_distribution-min_speed_uniform_distribution)
+
             elif(speed_init_type=='uniform_norm'):
                 norm_speed = min_speed_uniform_distribution+random()*\
                                     (max_speed_uniform_distribution-min_speed_uniform_distribution)

@@ -92,8 +92,7 @@ class DataSaver :
             #df.set_index('id_test')
             df.update(params_dict) # automatically update the row.
             df.to_csv(path+'.csv') # should be updated
-# ---------------------- Data Analyser --------------------- #
-
+# ---------------------- Data Analyser ---------------------    
 # To use only matplotlib: 
 # https://brushingupscience.com/2016/06/21/matplotlib-animations-the-easy-way/
 # https://numpy.org/doc/stable/reference/generated/numpy.c_.html
@@ -103,7 +102,7 @@ class DataSaver :
 
 class DataAnalyser :
     def __init__(self, path_to_test_summary):
-        self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0,index_col=0) # take first line as headers
+        self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0, index_col=0) # take first line as headers
         self.test_params = None
         self.current = None
         self.nb_parts = None
@@ -146,7 +145,7 @@ class DataAnalyser :
         # --------------- utils ---------------- #
     def compute_speed_norm(self, row):
         return np.sqrt(row['speed_norm_squared'])
-
+                                                                      
     def compute_speed_norm_square(self, row):
         return (row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
 

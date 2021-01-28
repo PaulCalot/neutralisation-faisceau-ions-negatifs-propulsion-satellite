@@ -24,10 +24,11 @@ class Grid(object):
 
     def add(self, particule):
         pos = particule.get_pos()+self.offsets
+        if(self.debug) : print("Position with offsets correcting : {}".format(pos))
         self.add_(particule, self.get_pos_in_grid(pos))
 
     def add_(self, particule, pos_in_grid):
-    
+        if(self.debug) : print("Resulting position in grid {}".format(pos_in_grid))
         if(self.debug):
             print("Adding ... " + particule.to_string() + " in grid position {}.".format(pos_in_grid), end=" " )
         
@@ -57,9 +58,17 @@ class Grid(object):
 
         pos = particule.get_pos()+self.offsets
         pos_in_grid = self.get_pos_in_grid(pos)
-        #if(self.sparsed_space_idx != None and pos_in_grid not in self.sparsed_space_idx):
-        #    return False
+        
+        if pos_in_grid == None : return False
+
+        # useful for the system thruster amongst other...
+        if(self.sparsed_space_idx != None and pos_in_grid not in self.sparsed_space_idx):
+            return False
+
         old_pos_in_grid = self.get_pos_in_grid(old_position+self.offsets)
+        # in theory old_pos_in_grid can not be out of the grid.
+
+        if(self.debug): print("Current position in grid {} - Old position {}".format(pos_in_grid, old_pos_in_grid))
 
         if(pos_in_grid != old_pos_in_grid):
             if(self.debug):
@@ -67,7 +76,8 @@ class Grid(object):
             try :
                 # may be there is some weird stuff going on and i should differentiate add_ and remove_
                 self.add_(particule, pos_in_grid)
-            except IndexError: # (ValueError,): 
+            except IndexError: # (ValueError,):
+                print("New position {} not in grid.".format(pos_in_grid))
                 return False
             self.remove_(particule, old_pos_in_grid)
         else :
@@ -80,9 +90,27 @@ class Grid(object):
 
     def get_pos_in_grid(self, position):
         #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
-        pos_x = int(position.x*self.res[0]/self.lx)
-        pos_y = int(position.y*self.res[1]/self.ly)
+        pos_x = position.x*self.res[0]/self.lx
+        # First problem : we accepted -1 because list[-1] returns the last element which works. So I add to add the final if.
+        # Second problem : there were a bug because int(-0.5) = 0 ... which works despite being out of the grid. I had to add the double if/else.
+        if(pos_x < 0):
+            pos_x = -1
+        else :
+            pos_x = int(pos_x)
+        
+        pos_y = position.y*self.res[1]/self.ly
+
+        if(pos_y < 0):
+            pos_y = -1
+        else :
+            pos_y = int(pos_y)
+
+        
+        if(self.debug) : print("Real position : [{},{}], position in grid : [{},{}].".format(position.x, position.y, pos_x, pos_y))
         #return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]
+        if(pos_x >= self.res[0] or pos_x < 0 or pos_y >= self.res[1] or pos_y < 0):
+            # not in the grid
+            return None
         return [pos_x, pos_y]
     
     def get_closest_particules(self, particule, return_list = True):
@@ -150,3 +178,12 @@ class Grid(object):
             pos_x = int(pos.x*self.res[0]/self.lx)
             pos_y = int(pos.y*self.res[1]/self.ly)
             self.sparsed_space_idx.append([pos_x,pos_y])
+
+        # not optimized by not used  during the simulation so its okay
+        temp = []
+        for i in self.sparsed_space_idx:
+            if i not in temp:
+                temp.append(i)
+        self.sparsed_space_idx = temp # remove same elements
+
+    
