@@ -21,11 +21,13 @@ class Grid(object):
         self.dtype = dtype
         self.grid = np.empty((self.res[0], self.res[1]), dtype = self.data_structure_class)          
         self.sparsed_space_idx = None
+        self.number_of_particles = 0
 
     def add(self, particule):
         pos = particule.get_pos()+self.offsets
         if(self.debug) : print("Position with offsets correcting : {}".format(pos))
         self.add_(particule, self.get_pos_in_grid(pos))
+        self.number_of_particles += 1
 
     def add_(self, particule, pos_in_grid):
         if(self.debug) : print("Resulting position in grid {}".format(pos_in_grid))
@@ -168,6 +170,15 @@ class Grid(object):
 
     def get_grid(self):
         return self.grid
+    
+    def get_number_of_particles(self):
+        return self.number_of_particles
+
+    def get_number_of_cells(self):
+        if(self.sparsed_space_idx==None):
+            return self.res[0]*self.res[1]
+        else :
+            return len(self.sparsed_space_idx)    
     
     # ------------ Sparsed Space ---------------- #
     def fill_sparsed_space_from_initial_particles_position(self):

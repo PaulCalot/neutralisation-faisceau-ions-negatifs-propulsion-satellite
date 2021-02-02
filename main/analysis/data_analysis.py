@@ -8,16 +8,20 @@
 # csv usage : https://realpython.com/python-csv/#reading-csv-files-with-csv
 
 import csv
-from os.path import isfile
+from os.path import isfile, exists
 import pandas as pd
 import numpy as np
 import scipy.stats as ss
-
+from pathlib import Path, PurePath
+from os import mkdir
 
 # animation
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
+# my import
+from main import get_maxwellian_params
 
 class DataSaver :
     def __init__(self, particles, name_test, saving_directory):
@@ -27,55 +31,54 @@ class DataSaver :
 
     def save_to_csv_(self, name, list_data, erase = True, use_saving_directory = True): # by default will erase what was already here
         
-        path = self.saving_directory + name if use_saving_directory else name
+        path = self.saving_directory / name if use_saving_directory else Path(name)
 
-        if(isfile(path + '.csv') and not erase):
+        if(isfile(path) and not erase):
             mode = 'a'
         else :
             mode = 'w'
-        with open(path + '.csv', mode = mode) as csv_file:
+        with open(path, mode = mode) as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=',')
                 for data in list_data:
                     csv_writer.writerow(data)
     
-    def save_everything_to_multiple_csv(self, iter):
-        # iter : iteration number
-        list_data = [self.particles[0].get_headers()]
-        for k in range(len(self.particles)):
-            list_data.append(self.particles[k].to_list())
-        self.save_to_csv_(self.name_test + "_iter{}".format(iter), list_data)
+    # def save_everything_to_multiple_csv(self, iter):
+    #     # iter : iteration number
+    #     list_data = [self.particles[0].get_headers()]
+    #     for k in range(len(self.particles)):
+    #         list_data.append(self.particles[k].to_list())
+    #     self.save_to_csv_(self.name_test + "_iter{}".format(iter), list_data)
 
     def save_everything_to_one_csv(self, erase = False):
         list_data=[]
-        path = self.saving_directory + self.name_test
-        if(erase or not isfile(path + '.csv')):
+        path = self.saving_directory / (self.name_test)
+        if(erase or not isfile(path)):
             # does not already exist
             list_data = [self.particles[0].get_headers()]
             
         for k in range(len(self.particles)):
             list_data.append(self.particles[k].to_list())
         
-        self.save_to_csv_(self.name_test, list_data, erase = erase)
+        self.save_to_csv_(path, list_data, erase = erase)
 
     # saving test params
     def save_test_params(self, tests_summary_file_name, params_dict, use_saving_directory = True, erase = False):
-        path = self.saving_directory + tests_summary_file_name if use_saving_directory else tests_summary_file_name
-        if(isfile(path + '.csv') and not erase): # file already created
-            df = pd.read_csv(path + '.csv', sep = ',', header=0, index_col=0) # take first line as headers
+        path = self.saving_directory / (tests_summary_file_name) if use_saving_directory else Path(tests_summary_file_name)
+        if(isfile(path) and not erase): # file already created
+            df = pd.read_csv(path, sep = ',', header=0, index_col=0) # take first line as headers
             new_id = params_dict['id_test']
             count = 0
             L = [str(k) for k in list(df.index)]
-            print(L)
             while(new_id in L):
                 count+=1
                 new_id = str(params_dict['id_test'])+'({})'.format(count)
             params_dict['id_test']=new_id
-            df2 = pd.DataFrame.from_dict(params_dict, dtype = str)
+            df2 = pd.DataFrame(params_dict, index = [0], dtype = str)
             df2.set_index('id_test', inplace=True)
             df = df.append(df2)
         else:
-            df = pd.DataFrame.from_dict(params_dict, dtype = str)
-            df.set_index('id_test', inplace=True)
+            df = pd.DataFrame(params_dict, index = [0], dtype = str)
+            #df.set_index('id_test', inplace=True)
             # df.astype({'id_test': str})
             # with open(path + '.csv', mode = 'w') as csv_file:
             #     fieldnames = params_dict.keys()
@@ -83,15 +86,16 @@ class DataSaver :
             #     # first time, we add the keys
             #     csv_writer.writeheader()
             #     csv_writer.writerow(params_dict)
-        df.to_csv(path+'.csv') # should be updated
+        df.to_csv(path) # should be updated
 
     def update_saved_params(self, tests_summary_file_name, params_dict, use_saving_directory = True):
-        path = self.saving_directory + tests_summary_file_name if use_saving_directory else tests_summary_file_name
-        if(isfile(path + '.csv')): # file already created
-            df = pd.read_csv(path + '.csv', sep = ',', header=0, index_col=0) # take first line as headers
+        path = self.saving_directory / (tests_summary_file_name) if use_saving_directory else Path(tests_summary_file_name)
+        if(exists(path)): # file already created
+            df = pd.read_csv(path, sep = ',', header=0, index_col=0) # take first line as headers
             #df.set_index('id_test')
-            df.update(params_dict) # automatically update the row.
-            df.to_csv(path+'.csv') # should be updated
+            df2 = pd.DataFrame(params_dict, index = [0], dtype = str)
+            df.update(df2) # automatically update the row.
+            df.to_csv(path) # should be updated
 # ---------------------- Data Analyser ---------------------    
 # To use only matplotlib: 
 # https://brushingupscience.com/2016/06/21/matplotlib-animations-the-easy-way/
@@ -101,8 +105,8 @@ class DataSaver :
 
 
 class DataAnalyser :
-    def __init__(self, path_to_test_summary):
-        self.df = pd.read_csv(path_to_test_summary+'.csv', sep = ',', header=0, index_col=0) # take first line as headers
+    def __init__(self, path_to_test_summary):   
+        self.df = pd.read_csv(path_to_test_summary, sep = ',', header=0, index_col='id_test') # take first line as headers
         self.test_params = None
         self.current = None
         self.nb_parts = None
@@ -110,11 +114,17 @@ class DataAnalyser :
         self.test_id = None
 
     def load_test(self, test_id):
-        self.test_id = int(test_id)
-        self.test_params = self.df.loc[test_id]
+        self.test_id = test_id
+        try : 
+            self.test_params = self.df.loc[test_id]
+        except KeyError:
+            self.test_params = self.df.loc[int(test_id)]
         path_to_data = self.test_params.at['path_to_data'] # df.loc[5].at['B']
+        self.path_to_saving = path_to_data.split('/')
+        self.path_to_saving = '/'.join(self.path_to_saving[:len(self.path_to_saving)-1])+"/figures/"
+        if(not exists(self.path_to_saving)): mkdir(self.path_to_saving)
         self.nb_parts = self.test_params.at['total_number_of_particles']
-        df_data = pd.read_csv(path_to_data+'.csv', sep = ',', header=0, index_col=0) # take first line as headers
+        df_data = pd.read_csv(path_to_data, sep = ',', header=0, index_col=0) # take first line as headers
 
         if(not 'speed_norm_squared' in df_data): # first time this test is loaded.
             print('First time test {} is loaded. Computing speed norm and saving it back.'.format(test_id))
@@ -133,7 +143,7 @@ class DataAnalyser :
             df_data['speed_norm'] = df_data.apply(self.compute_speed_norm, axis=1) # 1 for columns 
 
             # updating the csv with the new columns
-            df_data.to_csv(path_to_data+'.csv') # should be updated
+            df_data.to_csv(path_to_data) # should be updated
 
         # splitting in time step
         row_count = len(df_data.index)
@@ -141,6 +151,25 @@ class DataAnalyser :
         
         self.number_of_frames = len(lst)
         self.current = lst
+
+        # --------------- Getter in csv files ----------------- #
+
+    def get_param(self, key, test_id = None):
+        # None can be used in case a test has already be defined
+        id_row = test_id if test_id != None else self.test_id
+        if(id_row == None):
+            print('Please specify a test id.')
+            return
+        try : 
+            return self.df.loc[id_row].at[key]
+        except KeyError: 
+            return self.df.loc[int(id_row)].at[key]
+
+    # TODO
+    def get_data(self, idx, time, key):
+        pass
+    # to get a line or a case for example, in the data.
+    # it's doable even though can be a long getter
 
         # --------------- utils ---------------- #
     def compute_speed_norm(self, row):
@@ -206,7 +235,7 @@ class DataAnalyser :
 
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
         if(save_animation):
-            anim.save('{}_{}_hist_distribution.mp4'.format(self.test_id, value_name))
+            anim.save(self.path_to_saving+'{}_{}_hist_distribution.mp4'.format(self.test_id, value_name))
         else:
             plt.show()
 
@@ -239,7 +268,7 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
+        ax.set_title(self.path_to_saving+'{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
         
 
         interval = 200 # default value
@@ -247,7 +276,7 @@ class DataAnalyser :
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, cb), save_count=self.number_of_frames)
 
         if(save_animation):
-            anim.save('{}_{}_spatial_distribution_evolution.mp4'.format(self.test_id, name))
+            anim.save(self.path_to_saving+'{}_{}_spatial_distribution_evolution.mp4'.format(self.test_id, name))
         else:
             plt.show()
       
@@ -280,7 +309,7 @@ class DataAnalyser :
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
 
         if(save_animation):
-            anim.save('{}_system_evolution.mp4'.format(self.test_id))
+            anim.save(self.path_to_saving+'{}_system_evolution.mp4'.format(self.test_id))
         else:
             plt.show()
 
@@ -329,7 +358,7 @@ class DataAnalyser :
         plt.legend(loc='best')
 
         if(save_frame):
-            plt.savefig('{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -371,13 +400,13 @@ class DataAnalyser :
         plt.legend(loc='best',fontsize=14)
 
         if(save_frame):
-            plt.savefig('{}_{}_spatial_distribution_it_{}.png'.format(self.test_id, name, frame + 1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_{}_spatial_distribution_it_{}.png'.format(self.test_id, name, frame + 1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
 
 
-    def draw_particles_frame(self, which = "last", save_frame=True, vmin = None, vmax=None):
+    def draw_particles_frame(self, which = "last", save_frame=True, x_min = None, x_max = None, y_min = None, y_max = None):
         # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
         # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.scatter.html 
         if(self.current == None):
@@ -399,16 +428,17 @@ class DataAnalyser :
 
         fig, ax = plt.subplots(figsize=(10,10))
         df = lst[frame]
-        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic', vmin=vmin, vmax=vmax)
-        ax.set_xlim(vmin, vmax)
-        ax.set_ylim(vmin, vmax)
+        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
+        ax.axis('equal')
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
 
         ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=15)
 
         plt.legend(loc='best',fontsize=14)
 
         if(save_frame):
-            plt.savefig('{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -509,7 +539,7 @@ class DataAnalyser :
         #plt.plot(listTime,Temp_smooth)
         plt.legend(loc='best',fontsize=14)
         if(save_frame):
-            plt.savefig('{}_temperature_evolution.png'.format(self.test_id), bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_temperature_evolution.png'.format(self.test_id), bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -583,7 +613,7 @@ class DataAnalyser :
             #plt.plot(listTime,Temp_smooth)
             plt.legend(loc='best',fontsize=14)
             if(save_frame):
-                plt.savefig('{}_temperature_evolution_{}.png'.format(self.test_id, axis[k]), bbox_inches = 'tight', pad_inches = 0)
+                plt.savefig(self.path_to_saving+'{}_temperature_evolution_{}.png'.format(self.test_id, axis[k]), bbox_inches = 'tight', pad_inches = 0)
             else:
                 plt.show()
             plt.close()

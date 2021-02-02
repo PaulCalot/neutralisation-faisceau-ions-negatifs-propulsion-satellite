@@ -1,6 +1,7 @@
 from main import merge_tests_summary
 from main import DataAnalyser
 import numpy as np
+from main import convert_string_to_list
 
 def post_processing(options):
 
@@ -14,7 +15,9 @@ def post_processing(options):
     frames_to_compute = options['frames_to_compute']
     merge_csv = options['merge_csv']
 
-    files_to_merge = options['file_to_merge']
+    compute_collisions = options['compute_collisions']
+
+    files_to_merge = options['files_to_merge']
 
     if(merge_csv):
         merge_tests_summary(files_to_merge, path_to_file)
@@ -22,13 +25,27 @@ def post_processing(options):
     for indx, id_test in enumerate(ids_test):
         data_analyser = DataAnalyser(path_to_file)
         data_analyser.load_test(id_test)
-        mass_particles = data_analyser.get('mass') # will return, for the current test, the value of the column 'mass' if it exists
-        period = data_analyser.get('dt')*data_analyser.get('MAX_INTEGRATION_STEP')
-        xy_min = data_analyser.get('xy_min')
-        xy_max = data_analyser.get('xy_max')
-        max_speed = data_analyser.get('vr_max')
-        mean_particles_number_per_cell = data_analyser.get('mean_particles_number_per_cell')
-        nb_cells = data_analyser.get('nb_cells')
+
+         # particles
+        particles_types = convert_string_to_list(data_analyser.get_param('particles_types'))
+        particles_effective_diameters = convert_string_to_list(data_analyser.get_param('particles_effective_diameters'))
+        particles_charges = convert_string_to_list(data_analyser.get_param('particles_charges'))
+        particles_masses = convert_string_to_list(data_analyser.get_param('particles_masses')) # will return, for the current test, the value of the column 'mass' if it exists
+
+        mean_particles_number_per_cell_per_type = convert_string_to_list(data_analyser.get_param('mean_particles_number_per_cell_per_type'))
+        period = data_analyser.get_param('dt')*data_analyser.get_param('MAX_INTEGRATION_STEP')
+        total_number_of_particles_per_cell = sum(mean_particles_number_per_cell_per_type)
+        # space limit
+        x_min = data_analyser.get_param('x_min')
+        x_max = data_analyser.get_param('x_max')
+        y_min = data_analyser.get_param('y_min')
+        y_max = data_analyser.get_param('y_max')
+        
+        # speed
+        max_speed = data_analyser.get_param('vr_max_final')
+
+        # system
+        nb_cells = data_analyser.get_param('nb_cells')
         
         if(compute_system_evolution):
             data_analyser.draw_particles()
@@ -41,20 +58,44 @@ def post_processing(options):
             data_analyser.draw_hist_distribution('vz', plot_gaussian=True)
 
         if(compute_spatial_distribution):
-            data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 2*mean_particles_number_per_cell) 
+            data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 2*total_number_of_particles_per_cell.sum()) 
             data_analyser.draw_spatial_distribution('vx', vmin = -max_speed, vmax = max_speed)
             data_analyser.draw_spatial_distribution('vy', vmin = -max_speed, vmax = max_speed)
             data_analyser.draw_spatial_distribution('vz', vmin = -max_speed, vmax = max_speed)
             data_analyser.draw_spatial_distribution('speed_norm', vmin = 0.01*max_speed**2, vmax = max_speed**2)
 
         for which in frames_to_compute:
-            data_analyser.draw_particles_frame(which = which, save_frame=True, vmin = xy_min, vmax = xy_max)
+            data_analyser.draw_particles_frame(which = which, save_frame=True,  x_min = x_min, x_max = x_max, y_min = y_min, y_max = y_max)
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vx', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'r')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'g')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm', save_frame = True, plot_maxwellian = True, plot_gaussian = False, density = True, range = None, color = 'k')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = 'k')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'b')
-            data_analyser.draw_spatial_distribution_frame(which, None, grid_size = int(np.sqrt(nb_cells)), vmin = 0, vmax = 2*mean_particles_number_per_cell)
+            data_analyser.draw_spatial_distribution_frame(which, None, grid_size = int(np.sqrt(nb_cells)), vmin = 0, vmax = 2*total_number_of_particles_per_cell)
 
         if compute_temperature:
-            data_analyser.draw_Temperature_evolution(period, tau_init = 5e-5, particles_mass= mass_particles, begin = 0.00, end = 1.0) # g/mol
+            for mass in particles_masses:
+                data_analyser.draw_Temperature_evolution(period, tau_init = 1e-3, particles_mass= mass, begin = 0.00, end = 1.0) # g/mol
+
+        if compute_collisions:
+            from main import collision_frequency_th_V, collision_frequency_th_T
+            # TODO : make multi particles types
+            nb_parts = data_analyser.get_param('x_min')
+            
+            dt = data_analyser.get_param('dt')
+            number_of_dt = data_analyser.get_param('MAX_INTEGRATION_STEP')
+            
+            Ne = convert_string_to_list(data_analyser.get_param('Ne_per_type'))
+            nb_coll = data_analyser.get_param('number_of_collisions')
+            number_of_collisions = Ne[0]*nb_coll
+            volume = data_analyser.get_param('volume')
+            mean_free_path = data_analyser.get_param('min_mean_free_path')
+
+            v_mean = data_analyser.get_param('v_mean')
+            particle_density = data_analyser.get_param('particles_densities')
+
+            f_th_ = collision_frequency_th_V(v_mean, mean_free_path, n = particle_density)
+            expected_number_of_collision = f_th_*volume*number_of_dt*dt
+
+            print('For test {}, N_e = {:e} vs N_t = {}.'.format(id_test , number_of_collisions, expected_number_of_collision))
+            

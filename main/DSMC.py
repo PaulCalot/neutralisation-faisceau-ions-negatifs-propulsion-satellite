@@ -344,15 +344,15 @@ class DSMC(object):
 
     def save_collisions_matrix(self, name, iteration = 0):
         from os.path import isfile
-        if(isfile(name+'.txt')):
+        if(isfile(name)):
             mode = 'a'
         else:
             mode = 'w'
-        with open(name+'.txt', mode = mode) as txt_file:
+        with open(name, mode = mode) as txt_file:
             head = "Iteration {} :\n".format(str(iteration))
             txt_file.write(head)
             L=[]
-            print(self.collisions_matrix)
+            #print(self.collisions_matrix)
             for k in range(self.collisions_matrix.shape[0]):
                 line = self. collisions_matrix[k]
                 list_ = [str(line[nb]) for nb in range(len(line))] + ['\n']

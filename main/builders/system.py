@@ -57,3 +57,9 @@ class system(ABC):
         # wall = [x1,y1,x2,y2]
         x1,y1,x2,y2 = wall
         plt.plot([x1,x2], [y1,y2], color = 'k')
+
+    def get_number_of_particles(self):
+        return self.grid.get_number_of_particles()
+
+    def get_number_of_cells(self):
+        return self.grid.get_number_of_cells()

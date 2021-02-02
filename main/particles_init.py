@@ -1,4 +1,5 @@
 from main import get_mass_part, Particule, MyVector
+from main import available_particles
 # imports,
 from dolfin import Point
 from random import gauss, random
@@ -6,25 +7,22 @@ import numpy as np
 from scipy.stats import maxwell, norm
 
 def init_particles_in_system(particles_types, particles_densities, particles_mean_number_per_cell, speed_type, speed_param1,\
-     speed_param2, particles_radius, space_size, space_resolution, zone = None, offsets = [0,0], verbose = False, debug = False, *args, **kwargs):
-    available_types = ['I','I-']
+     speed_param2, space_size, space_resolution, zone = None, offsets = [0,0], verbose = False, debug = False, *args, **kwargs):
+    available_types = particles_types
     list_particles=[]
     e = 1.6e-19
     for k in range(len(particles_densities)):
         type_ = particles_types[k]
         number_ = int(particles_mean_number_per_cell[k]*space_resolution[0]*space_resolution[1])
         speed_init_type = speed_type[k] # uniform or maxwellian
-        radius = particles_radius[k]
         m, M = speed_param1[k], speed_param2[k]
         if(debug): 
             print('Creating {} particles of type {}.'.format(number_, type_))
             print('Speed type init is {} with params {}, {}.'.format(speed_init_type, m, M))
-        if(type_ == 'I'):
-            charge = 0
-            mass = get_mass_part(53, 53, 88)
-        elif(type_ == 'I-'):
-            charge = -e
-            mass = get_mass_part(52, 53, 88) # one less electron
+        
+        charge = available_particles[type_]['charge']
+        mass = available_particles[type_]['mass']
+        effective_diameter = available_particles[type_]['effective diameter']
 
         # parameters of the maxwellian distribution
         # https://stackoverflow.com/questions/63300833/maxwellian-distribution-in-python-scipy
@@ -90,8 +88,8 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
             # my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
             my_speed = MyVector(vx, vy, vz)
 
-            x, y = get_correct_initial_positions(zone, offsets, space_size) # TODO
-            list_particles.append(Particule(charge = charge, radius = radius, 
+            x, y = get_correct_initial_positions(zone, offsets, space_size)
+            list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \
                             pos=MyVector(x,y,0), \
