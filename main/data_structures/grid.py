@@ -1,6 +1,7 @@
 from main import DynamicArray, LinkedList, MyVector
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 # 2 grid to start with
 class Grid(object):
@@ -153,9 +154,19 @@ class Grid(object):
                         particles.append(part)
         return particles
 
-    def plot(self):
-        import matplotlib.pyplot as plt
+    def plot_cell_(self, i, j):
+        dx, dy = self.lx/self.res[0],self.ly/self.res[1]
+        x, y = self.lx*i/self.res[0]-self.offsets.x, self.ly*j/self.res[1]-self.offsets.y
+        plt.plot([x, x+dx, x+dx, x, x], [y, y, y+dy, y+dy, y], color='k')
 
+    def plot_grid(self):
+        # the goal here is to plot the grid 
+        for i in range(self.res[0]):
+            for j in range(self.res[1]):
+                if(self.sparsed_space_idx == None or [i,j] in self.sparsed_space_idx):
+                    self.plot_cell_(i,j)
+
+    def plot(self):
         particles = self.get_all_particles()
         positions = [part.get_pos() for part in particles]
         speed = [part.get_speed() for part in particles]
@@ -165,7 +176,8 @@ class Grid(object):
         fig, ax = plt.subplots(figsize=(10,10))
         ax.set_aspect('equal', 'box')        
         scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
-    
+        self.plot_grid()
+
     # ------------ Getter and setter ------------- #
 
     def get_grid(self):
