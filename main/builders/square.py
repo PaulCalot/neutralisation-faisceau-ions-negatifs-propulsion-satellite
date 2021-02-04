@@ -2,22 +2,25 @@ from .system import system
 from main import segment
 from dolfin import Point
 from main.data_structures.grid import Grid
+import warnings
 
 class square(system):
     def __init__(self, options, min_mean_free_path) -> None:
         super().__init__(options, min_mean_free_path)
     
-    def make_grid(self):
-        return Grid(self.size[0],self.size[1],[self.resolution[0],self.resolution[1]], dtype = 'LinkedList')
-
-    def make_system(self):
-        self.factor = self.options['factor']
-        self.resolution = self.options['size']
-        lx, ly = self.min_mean_free_path*self.resolution[0]*self.factor,\
-            self.min_mean_free_path*self.resolution[1]*self.factor
+    def make_system(self): # called first
+        self.size = self.options['size']
+        self.resolution = self.options['resolution']
+        lx, ly = self.size[0], self.size[1]
+        cell_size_max = max(lx/self.resolution[0], ly/self.resolution[1])
+        if(cell_size_max>self.min_mean_free_path):
+            warnings.warn_explicit("Max cell size is {} m and higher than the min mean free path which is {}.".format(cell_size_max,self.min_mean_free_path))
         self.size = [lx,ly,self.options['lz']]
         walls = [segment(Point(0,0),Point(0,ly)), segment(Point(0,0),Point(lx,0)), \
             segment(Point(lx,0),Point(lx,ly)), segment(Point(0,ly),Point(lx,ly))]
         return walls
+
+    def make_grid(self): # called second
+        return Grid(self.size[0],self.size[1],[self.resolution[0],self.resolution[1]], dtype = 'LinkedList')
 
     

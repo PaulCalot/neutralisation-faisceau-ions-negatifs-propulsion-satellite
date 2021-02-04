@@ -103,6 +103,39 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
     return np.array(list_particles), mean/number_ # we don't shuffle right now
 # TODO : make it work for several particles types ...
 
+def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, speed_param1, speed_param2):
+    list_particles=[]
+    e = 1.6e-19 # C
+    x1, y1, x2, y2 = wall
+    for k in range(len(nb_particles_to_inject)):
+        type_ = particles_types[k]
+        number_ = nb_particles_to_inject[k]
+        m, M = speed_param1[k], speed_param2[k]
+        
+        charge = available_particles[type_]['charge']
+        mass = available_particles[type_]['mass']
+        effective_diameter = available_particles[type_]['effective diameter']
+
+        sigma = M
+        mu = m
+        for k in range(number_):
+            my_speed = 0
+
+            vx = norm.rvs(mu, sigma)
+            vy = norm.rvs(mu, sigma)
+            vz = norm.rvs(mu, sigma)
+                
+            my_speed = MyVector(vx, vy, vz)
+
+            # TODO: make something better here
+            x, y = x1+random()*(x2-x1), y1+random()*(y2-y1)
+            list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
+                    mass = mass, part_type = type_, \
+                        speed=my_speed, \
+                            pos=MyVector(x,y,0)))
+
+    return np.array(list_particles)
+
 def get_correct_initial_positions(zone, offsets, space_size):
     # same trouble as creating a grid for the space
     # how do we do that best

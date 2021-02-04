@@ -23,8 +23,8 @@ from .data_structures.grid import Grid
 from .collisions_handler import CollisionHandler
 from .DSMC import DSMC
 from .particules import Particule
-from .particles_init import init_particles_in_system
-
+from .particles_init import init_particles_in_system, init_particles_flux
+from .FluxHandler import FluxHandler
 from .read_cfg_files.reader import get_options
 
 # system builders

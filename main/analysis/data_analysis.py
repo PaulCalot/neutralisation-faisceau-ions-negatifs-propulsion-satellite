@@ -506,7 +506,7 @@ class DataAnalyser :
             v_mean = np.mean(v)
             w = v - v_mean
             variance_t = np.mean(w*w)
-            # 
+        
             Temp.append(variance_t)
         Temp = np.array(Temp)
         T0 = Temp[0]

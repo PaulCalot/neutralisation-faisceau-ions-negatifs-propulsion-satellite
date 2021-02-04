@@ -11,13 +11,12 @@ from fenics import *
 # local import
 from ..utils.utils import segment
 
-
 # TODO : delete unused imporrt
 
 def get_mesh(mesh_dict):
     """Returns the mesh and the segment grid.
     Args:
-        L_mot (int): 
+        L_mot (int):
         l_mot ([type]): [description]
         h_grid ([type]): [description]
         L_vacuum ([type]): [description]

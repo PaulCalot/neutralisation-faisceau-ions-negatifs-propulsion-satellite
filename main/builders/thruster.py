@@ -59,7 +59,7 @@ class thruster(system):
         import matplotlib.pyplot as plt
         plt.show()
         from fenics import plot
-        plot(self.phi)
+        #plot(self.phi)
         #from fenics import sqrt, dot
         #Ex, Ey = self.E.split(deepcopy=True)
         #NE=sqrt(dot(self.E,self.E))

@@ -120,14 +120,19 @@ def get_options(cfg_file_paths, verbose = True):
 def get_options_square(cfg_file_path):
     system_options = read_conf_square(cfg_file_path)
 
-    factor = float(system_options.factor)
-    size = list(map(int,system_options.size.split(',')))
+    resolution = list(map(int,system_options.resolution.split(',')))
+    size = list(map(float,system_options.size.split(',')))
     lz = float(system_options.lz) 
 
+    flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
+    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
+    
     return {
-        'factor':factor,
+        'resolution':resolution,
         'size':size,
-        'lz':lz
+        'lz':lz,
+        'flux_in_wall':flux_in_wall,
+        'flux_out_wall':flux_out_wall
     }
     
 def get_options_thruster(cfg_file_path):
@@ -187,10 +192,15 @@ def get_options_thruster(cfg_file_path):
         'rho_elec':rho_elec
     }
 
+    flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
+    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
+    
     return {
         'general':general,
         'phi':phi,
-        'geometry':geometry
+        'geometry':geometry,
+        'flux_in_wall':flux_in_wall,
+        'flux_out_wall':flux_out_wall
     }
 # ------------------ Reader cfg files ------------------ #
 # TODO : add the other systems (only 'square' for now)
@@ -284,10 +294,16 @@ def read_conf_square(cfg_file_path):
     Config = ConfigParser.ConfigParser()
     Config.read(options.cfg)
 
-    options.factor = Config.get('system','factor')
+    options.resolution = Config.get('system','resolution')
     options.size = Config.get('system','size')
     options.lz = Config.get('system','lz')
 
+    if(Config.has_section('flux')):
+        options.flux_in_wall = Config.get('flux','flux_in_wall')
+        options.flux_out_wall = Config.get('flux','flux_out_wall')
+    else:
+        options.flux_in_wall = 'None'
+        options.flux_out_wall = 'None'
     return options
 
 
@@ -324,5 +340,12 @@ def read_conf_thruster(cfg_file_path):
     options.phi_sup_vacuum = Config.get('phi','phi_sup_vacuum')
     options.phi_inf_vacuum = Config.get('phi','phi_inf_vacuum')
     options.rho_elec = Config.get('phi','rho_elec')
+
+    if(Config.has_section('flux')):
+        options.flux_in_wall = Config.get('flux','flux_in_wall')
+        options.flux_out_wall = Config.get('flux','flux_out_wall')
+    else:
+        options.flux_in_wall = 'None'
+        options.flux_out_wall = 'None'
 
     return options

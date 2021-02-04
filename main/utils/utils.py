@@ -68,29 +68,29 @@ def get_maxwellian_params(μ=0, σ=1):
     loc = μ - m
     return loc, a
 
-# not sorting correctly yet
 def sort_segments(walls):
+    # sorting walls by x and then y
     segments = []
     for i, wall in enumerate(walls):
-            x1,y1,x2,y2 = wall
-            min_x, max_x, min_y, max_y = x1, x2, y1, y2
-        
-            if(x1 > x2):
+        x1,y1,x2,y2 = wall
+        min_x, max_x, min_y, max_y = x1, x2, y1, y2
+    
+        if(x1 > x2):
+            min_x, max_x = x2, x1
+            min_y, max_y = y2, y1
+        elif(x1 < x2):
+            min_x, max_x = x1, x2
+            min_y, max_y = y1, y2
+        else :
+            if(y1 > y2):
                 min_x, max_x = x2, x1
                 min_y, max_y = y2, y1
-            elif(x1 < x2):
+            elif(y2 > y1):
                 min_x, max_x = x1, x2
                 min_y, max_y = y1, y2
             else :
-                if(y1 > y2):
-                    min_x, max_x = x2, x1
-                    min_y, max_y = y2, y1
-                elif(y2 > y1):
-                    min_x, max_x = x1, x2
-                    min_y, max_y = y1, y2
-                else :
-                    warnings.warn("The {}th segment-wall has the same two extremities : (x1,y1) = ({},{}) and (x2,y2) = ({},{}).".format(i,x1,y1,x2,y2))
-    segments.append(segment(Point(min_x, min_y),Point(max_x, max_y)))
+                warnings.warn("The {}th segment-wall has the same two extremities : (x1,y1) = ({},{}) and (x2,y2) = ({},{}).".format(i,x1,y1,x2,y2))
+        segments.append(segment(Point(min_x, min_y),Point(max_x, max_y)))
     return segments
 
 def collision_frequency_th_T(T, m, d, n):

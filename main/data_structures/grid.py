@@ -173,7 +173,7 @@ class Grid(object):
         norm = [v.norm() for v in speed]
         x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
 
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots(figsize=(20,20))
         ax.set_aspect('equal', 'box')        
         scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
         self.plot_grid()
