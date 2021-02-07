@@ -24,8 +24,8 @@ import matplotlib.animation as animation
 from main import get_maxwellian_params
 
 class DataSaver :
-    def __init__(self, particles, name_test, saving_directory):
-        self.particles = particles
+    debug = False
+    def __init__(self, name_test, saving_directory):
         self.name_test = name_test
         self.saving_directory = saving_directory
 
@@ -42,24 +42,22 @@ class DataSaver :
                 for data in list_data:
                     csv_writer.writerow(data)
     
-    # def save_everything_to_multiple_csv(self, iter):
-    #     # iter : iteration number
-    #     list_data = [self.particles[0].get_headers()]
-    #     for k in range(len(self.particles)):
-    #         list_data.append(self.particles[k].to_list())
-    #     self.save_to_csv_(self.name_test + "_iter{}".format(iter), list_data)
-
-    def save_everything_to_one_csv(self, erase = False):
+    def save_everything_to_one_csv(self, list_particles, iteration, erase = True):
         list_data=[]
         path = self.saving_directory / (self.name_test)
-        if(erase or not isfile(path)):
+        if((erase and iteration == 0) or not isfile(path)):
             # does not already exist
-            list_data = [self.particles[0].get_headers()]
-            
-        for k in range(len(self.particles)):
-            list_data.append(self.particles[k].to_list())
-        
-        self.save_to_csv_(path, list_data, erase = erase)
+            l = list_particles[0].get_headers()
+            l.append('iteration')
+            if(self.debug):print(l)
+            list_data.append(l)
+        for k in range(len(list_particles)):
+            l=list_particles[k].to_list()
+            l.append(iteration)          
+            list_data.append(l)
+        erase_ = (erase and iteration == 0)
+        if(self.debug):print(list_data)
+        self.save_to_csv_(path, list_data, erase = erase_)
 
     # saving test params
     def save_test_params(self, tests_summary_file_name, params_dict, use_saving_directory = True, erase = False):
@@ -106,7 +104,7 @@ class DataSaver :
 
 class DataAnalyser :
     def __init__(self, path_to_test_summary):   
-        self.df = pd.read_csv(path_to_test_summary, sep = ',', header=0, index_col='id_test') # take first line as headers
+        self.df = pd.read_csv(path_to_test_summary, sep = ',', header=0, index_col='id_test', engine='python') # take first line as headers
         self.test_params = None
         self.current = None
         self.nb_parts = None
@@ -146,12 +144,17 @@ class DataAnalyser :
             df_data.to_csv(path_to_data) # should be updated
 
         # splitting in time step
+        iterations_number = self.test_params.at['MAX_INTEGRATION_STEP']
+        period = self.test_params.at['saving_period']
         row_count = len(df_data.index)
-        lst = [df_data.iloc[i:i+self.nb_parts] for i in range(0,row_count-self.nb_parts+1,self.nb_parts)]
-        
+        #lst = [df_data.iloc[i:i+self.nb_parts] for i in range(0,row_count-self.nb_parts+1,self.nb_parts)]
+        list_times = [k for k in range(0,iterations_number,period)]
+        if((iterations_number-1)//period != 0):
+            list_times.append(iterations_number-1)
+        lst = [df_data.loc[df_data['iteration'] == k] for k in list_times]
+        self.list_times = list_times
         self.number_of_frames = len(lst)
         self.current = lst
-
         # --------------- Getter in csv files ----------------- #
 
     def get_param(self, key, test_id = None):

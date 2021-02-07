@@ -11,8 +11,12 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
     available_types = particles_types
     list_particles=[]
     e = 1.6e-19
+    mean = 0
+    number_ = 1
     for k in range(len(particles_densities)):
         type_ = particles_types[k]
+        if(type_):
+            continue
         number_ = int(particles_mean_number_per_cell[k]*space_resolution[0]*space_resolution[1])
         speed_init_type = speed_type[k] # uniform or maxwellian
         m, M = speed_param1[k], speed_param2[k]
@@ -107,6 +111,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
     list_particles=[]
     e = 1.6e-19 # C
     x1, y1, x2, y2 = wall
+    lenght = np.sqrt((x2-x1)**2+(y2-y1)**2)
     for k in range(len(nb_particles_to_inject)):
         type_ = particles_types[k]
         number_ = nb_particles_to_inject[k]
@@ -123,12 +128,15 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
 
             vx = norm.rvs(mu, sigma)
             vy = norm.rvs(mu, sigma)
+            while(direction.inner(MyVector(vx,vy))<=0):
+                vx = norm.rvs(mu, sigma)
+                vy = norm.rvs(mu, sigma)
             vz = norm.rvs(mu, sigma)
-                
+            
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
-            x, y = x1+random()*(x2-x1), y1+random()*(y2-y1)
+            x, y = x1+random()*(x2-x1)+direction.x*0.01*lenght, y1+random()*(y2-y1)+direction.y*0.01*lenght
             list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \

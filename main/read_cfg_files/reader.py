@@ -12,25 +12,26 @@ from os.path import isfile, exists
 
 def get_options(cfg_file_paths, verbose = True):
     
-    main_options = read_conf_main(cfg_file_paths['main'])
-    saving_options = read_conf_saving(cfg_file_paths['saving'])
+    system_options = read_conf_system(cfg_file_paths['system'])
     simulation_options = read_conf_simulation(cfg_file_paths['simulation'])
-    processing_options = read_conf_post_processing(cfg_file_paths['post_processing'])
+    processing_options = read_conf_processing(cfg_file_paths['processing'])
     
-    # main options
-    system_type = str(main_options.system_type)
-    id_test = str(main_options.id_test)
-    speed_type = list(map(str,main_options.speed_type.split(',')))
-    speed_param1 = list(map(float,main_options.speed_param1.split(',')))
-    speed_param2 = list(map(float,main_options.speed_param2.split(',')))
-    particles_types = list(map(str,main_options.particles_types.split(',')))
-    particles_mean_number_per_cell = list(map(int,main_options.particles_mean_number_per_cell.split(',')))
-    particles_densities = list(map(float,main_options.particles_densities.split(',')))
+    # system options
+    system_type = str(system_options.system_type)
+    speed_type = list(map(str,system_options.speed_type.split(',')))
+    speed_param1 = list(map(float,system_options.speed_param1.split(',')))
+    speed_param2 = list(map(float,system_options.speed_param2.split(',')))
+    particles_types = list(map(cfg_tools.read_args_multiple_types,system_options.particles_types.split(',')))
+    particles_mean_number_per_cell = list(map(int,system_options.particles_mean_number_per_cell.split(',')))
+    particles_densities = list(map(float,system_options.particles_densities.split(',')))
     #particles_radius = list(map(float,main_options.particles_radius.split(',')))
 
-    main = {
+    flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
+    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
+    temperatures = list(map(cfg_tools.read_args_multiple_types,system_options.temperatures.split(',')))
+
+    system = {
         'system_type': system_type,
-        'id_test' : id_test,
         'speed_type': speed_type,
         'speed_param1': speed_param1,
         'speed_param2': speed_param2,
@@ -38,23 +39,61 @@ def get_options(cfg_file_paths, verbose = True):
         'particles_mean_number_per_cell': particles_mean_number_per_cell,
         'particles_densities': particles_densities,
         #'particles_radius': particles_radius,
+        'flux_in_wall':flux_in_wall,
+        'flux_out_wall':flux_out_wall,
+        'temperatures':temperatures
+
     }
 
-    # saving options
-    save = cfg_tools.str_to_bool(saving_options.save)
-    period = int(saving_options.period)
+    # system options
+    if(system_type == 'square'):
+        other_ = get_options_square(system_options)
+    elif(system_type == 'thruster'):
+        other_ = get_options_thruster(system_options)
+    else : 
+        if verbose : print("{} system type not recognized. Stopping execution now.".format(system_type))
+        exit()
+    system.update(other_)
+
+    # processing options
+        # saving options
+    save = cfg_tools.str_to_bool(processing_options.save)
+    period = int(processing_options.period)
     path = Path(__file__).parent.parent.parent.absolute() / \
-         'results' / str(saving_options.path)
-    # absolute path to the saving directory
-    saving = {
-        'save' : save,
-        'period':period,
-        'path':path
-    }
+         'results' / str(processing_options.path)
+    id_test = str(processing_options.id_test) # list(map(str, processing_options.ids_test.split(',')))
+
     if(save and not exists(path)):
         makedirs(path)
         if(not exists(path/'figures/')) : makedirs(path/'figures/')
         if(not exists(path/'cfg_files/')) : makedirs(path/'cfg_files/')
+    
+        # post_processing options
+    compute_system_evolution = cfg_tools.str_to_bool(processing_options.compute_system_evolution)
+    compute_hist_distribution_evolution = cfg_tools.str_to_bool(processing_options.compute_hist_distribution_evolution)
+    compute_spatial_distribution = cfg_tools.str_to_bool(processing_options.compute_spatial_distribution)
+    compute_temperature = cfg_tools.str_to_bool(processing_options.compute_temperature)
+    frames_to_compute = list(map(cfg_tools.read_args_multiple_types, \
+         processing_options.frames_to_compute.split(',')))
+    compute_collisions = cfg_tools.str_to_bool(processing_options.compute_collisions)
+    merge_csv = cfg_tools.str_to_bool(processing_options.merge_csv)
+    files_to_merge = list(map(str, processing_options.files_to_merge.split(',')))
+
+    processing = {
+        'save' : save,
+        'period':period,
+        'path':path,
+        'id_test':id_test,
+        'compute_system_evolution' : compute_system_evolution,
+        'compute_hist_distribution_evolution' :compute_hist_distribution_evolution,
+        'compute_spatial_distribution':compute_spatial_distribution,
+        'compute_temperature':compute_temperature,
+        'frames_to_compute':frames_to_compute,
+        'compute_collisions':compute_collisions,
+        'merge_csv':merge_csv,
+        'files_to_merge':files_to_merge,
+    }
+
     # simulation options
     scheme = str(simulation_options.scheme)
     dt = float(simulation_options.dt)
@@ -66,77 +105,28 @@ def get_options(cfg_file_paths, verbose = True):
         'number_of_steps':number_of_steps
     }
 
-    # post processing options
-    path_save_processing = cfg_tools.read_args_multiple_types(processing_options.path)
-    if(path_save_processing==None): 
-        path_save_processing = path
-    else: 
-        path_save_processing = Path(__file__).parent.parent.parent.absolute() / \
-             'results' / path_save_processing
-
-    compute_system_evolution = cfg_tools.str_to_bool(processing_options.compute_system_evolution)
-    compute_hist_distribution_evolution = cfg_tools.str_to_bool(processing_options.compute_hist_distribution_evolution)
-    compute_spatial_distribution = cfg_tools.str_to_bool(processing_options.compute_spatial_distribution)
-    compute_temperature = cfg_tools.str_to_bool(processing_options.compute_temperature)
-    frames_to_compute = list(map(cfg_tools.read_args_multiple_types, \
-         processing_options.frames_to_compute.split(',')))
-    compute_collisions = cfg_tools.str_to_bool(processing_options.compute_collisions)
-    ids_test = list(map(str, processing_options.ids_test.split(',')))
-    merge_csv = cfg_tools.str_to_bool(processing_options.merge_csv)
-    files_to_merge = list(map(str, processing_options.ids_test.split(',')))
-
-    processing = {
-        'path':path_save_processing,
-        'compute_system_evolution' : compute_system_evolution,
-        'compute_hist_distribution_evolution' :compute_hist_distribution_evolution,
-        'compute_spatial_distribution':compute_spatial_distribution,
-        'compute_temperature':compute_temperature,
-        'frames_to_compute':frames_to_compute,
-        'compute_collisions':compute_collisions,
-        'ids_test':ids_test,
-        'merge_csv':merge_csv,
-        'files_to_merge':files_to_merge,
-    }
-
     # final options
     options = {
-        'main':main,
-        'saving':saving,
+        'system':system,
         'simulation':simulation,
-        'post_processing':processing
+        'processing':processing
     }
-
-    # system options
-    if(system_type == 'square'):
-        options['square'] = get_options_square(cfg_file_paths['system'])
-    elif(system_type == 'thruster'):
-        options['thruster'] = get_options_thruster(cfg_file_paths['system'])
-    else : 
-        if verbose : print("{} system type not recognized. Stopping execution now.".format(system_type))
-        exit()
     
     return options
 
-def get_options_square(cfg_file_path):
-    system_options = read_conf_square(cfg_file_path)
+def get_options_square(system_options):
 
     resolution = list(map(int,system_options.resolution.split(',')))
     size = list(map(float,system_options.size.split(',')))
     lz = float(system_options.lz) 
 
-    flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
-    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
-    
     return {
         'resolution':resolution,
         'size':size,
-        'lz':lz,
-        'flux_in_wall':flux_in_wall,
-        'flux_out_wall':flux_out_wall
+        'lz':lz
     }
     
-def get_options_thruster(cfg_file_path):
-    system_options = read_conf_thruster(cfg_file_path)
+def get_options_thruster(system_options):
 
     resolution = list(map(int,system_options.resolution.split(',')))
     lz = float(system_options.lz) 
@@ -191,64 +181,58 @@ def get_options_thruster(cfg_file_path):
         'phi_inf_vacuum':phi_inf_vacuum,
         'rho_elec':rho_elec
     }
-
-    flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
-    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
     
     return {
         'general':general,
         'phi':phi,
-        'geometry':geometry,
-        'flux_in_wall':flux_in_wall,
-        'flux_out_wall':flux_out_wall
+        'geometry':geometry
     }
 # ------------------ Reader cfg files ------------------ #
 # TODO : add the other systems (only 'square' for now)
 
-def read_conf_main(cfg_file_path):
+def read_conf_system(cfg_file_path):
     # Initializing dummy class with cfg folder path
     options = cfg_tools.Options(cfg_file_path)
 
     # Reading the config file with config parser
-    Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
+    config = ConfigParser.RawConfigParser()
+    config.optionxform = lambda option: option
+    #config = ConfigParser.ConfigParser()
+    config.read(options.cfg)
 
-    #[id tes]
-    options.id_test = Config.get('id_test','id_test')
-    
-    #[system]
-    options.system_type = Config.get('system','system_type')
+    if(config.has_section('square')):
+        read_conf_square(options, config)
+        options.system_type = 'square'
+    elif(config.has_section('thruster')):
+        read_conf_thruster(options, config)
+        options.system_type = 'thruster'
+    else:
+        print('System not present')
+        return
 
     #[speed]
-    options.speed_type = Config.get('speed','speed_type')
-    options.speed_param1 = Config.get('speed','speed_param1')
-    options.speed_param2 = Config.get('speed','speed_param2')
+    options.speed_type = config.get('speed','speed_type')
+    options.speed_param1 = config.get('speed','speed_param1')
+    options.speed_param2 = config.get('speed','speed_param2')
 
     #[particles]
-    options.particles_types = Config.get('particles','particles_types')
-    options.particles_mean_number_per_cell = Config.get('particles','particles_mean_number_per_cell')
-    options.particles_densities = Config.get('particles','particles_densities')
-    #options.particles_radius = Config.get('particles','particles_radius')
+    options.particles_types = config.get('particles','particles_types')
+    options.particles_mean_number_per_cell = config.get('particles','particles_mean_number_per_cell')
+    options.particles_densities = config.get('particles','particles_densities')
 
     #[collisions]
-    #options.eta = Config.get('collisions','eta')
-    #options.rho = Config.get('collisions','rho')
+    #options.eta = config.get('collisions','eta')
+    #options.rho = config.get('collisions','rho')
 
-    return options
-
-def read_conf_saving(cfg_file_path):
-    # Initializing dummy class with cfg folder path
-    options = cfg_tools.Options(cfg_file_path)
-
-    # Reading the config file with config parser
-    Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
-
-    options.save = Config.get('params','save')
-
-    options.period = Config.get('params','period')
-    options.path = Config.get('params','path')
-
+    #[flux]
+    if(config.has_section('flux')):
+        options.flux_in_wall = config.get('flux','flux_in_wall')
+        options.flux_out_wall = config.get('flux','flux_out_wall')
+        options.temperatures = config.get('flux','temperatures')
+    else:
+        options.flux_in_wall = 'None'
+        options.flux_out_wall = 'None'
+        options.temperatures = 'None'
     return options
 
 def read_conf_simulation(cfg_file_path):
@@ -256,96 +240,73 @@ def read_conf_simulation(cfg_file_path):
     options = cfg_tools.Options(cfg_file_path)
 
     # Reading the config file with config parser
-    Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
+    config = ConfigParser.ConfigParser()
+    config.read(options.cfg)
 
-    options.scheme = Config.get('params','scheme')
-    options.dt = Config.get('params','dt')
-    options.number_of_steps = Config.get('params','number_of_steps')
-
-    return options
-
-def read_conf_post_processing(cfg_file_path):
-    options = cfg_tools.Options(cfg_file_path)
-
-    # Reading the config file with config parser
-    Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
-
-    options.path = Config.get('path','path')
-    options.compute_system_evolution = Config.get('processing options','compute_system_evolution')
-    options.compute_hist_distribution_evolution = Config.get('processing options','compute_hist_distribution_evolution')
-    options.compute_spatial_distribution = Config.get('processing options','compute_spatial_distribution')
-    options.compute_temperature = Config.get('processing options','compute_temperature')
-    options.frames_to_compute = Config.get('processing options','frames_to_compute')
-    options.compute_collisions = Config.get('processing options','compute_collisions')
-    options.ids_test = Config.get('tests ids','ids_test')
-
-    options.merge_csv = Config.get('merge file','merge_csv')
-    options.files_to_merge = Config.get('merge file','files_to_merge')
+    options.scheme = config.get('params','scheme')
+    options.dt = config.get('params','dt')
+    options.number_of_steps = config.get('params','number_of_steps')
 
     return options
 
-def read_conf_square(cfg_file_path):
-    # Initializing dummy class with cfg folder path
+def read_conf_processing(cfg_file_path):
     options = cfg_tools.Options(cfg_file_path)
 
     # Reading the config file with config parser
-    Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
+    config = ConfigParser.ConfigParser()
+    config.read(options.cfg)
 
-    options.resolution = Config.get('system','resolution')
-    options.size = Config.get('system','size')
-    options.lz = Config.get('system','lz')
+    options.save = config.get('general','save')
+    options.postprocess = config.get('general','postprocess')
+    options.period = config.get('general','period')
+    options.path = config.get('general','path')
+    options.id_test = config.get('general','id_test')
 
-    if(Config.has_section('flux')):
-        options.flux_in_wall = Config.get('flux','flux_in_wall')
-        options.flux_out_wall = Config.get('flux','flux_out_wall')
-    else:
-        options.flux_in_wall = 'None'
-        options.flux_out_wall = 'None'
+    options.compute_system_evolution = config.get('processing options','compute_system_evolution')
+    options.compute_hist_distribution_evolution = config.get('processing options','compute_hist_distribution_evolution')
+    options.compute_spatial_distribution = config.get('processing options','compute_spatial_distribution')
+    options.compute_temperature = config.get('processing options','compute_temperature')
+    options.frames_to_compute = config.get('processing options','frames_to_compute')
+    options.compute_collisions = config.get('processing options','compute_collisions')
+
+    options.merge_csv = config.get('merge file','merge_csv')
+    options.files_to_merge = config.get('merge file','files_to_merge')
+
     return options
 
-
-def read_conf_thruster(cfg_file_path):
-    # Initializing dummy class with cfg folder path
-    options = cfg_tools.Options(cfg_file_path)
-
+def read_conf_square(options, config):
     # Reading the config file with config parser
-    Config = ConfigParser.RawConfigParser()
-    Config.optionxform = lambda option: option
-    #Config = ConfigParser.ConfigParser()
-    Config.read(options.cfg)
 
-    options.resolution = Config.get('general','resolution')
-    options.lz = Config.get('general','lz')
+    options.resolution = config.get('square','resolution')
+    options.size = config.get('square','size')
+    options.lz = config.get('square','lz')
 
-    options.L_mot = Config.get('geometry','L_mot')
-    options.l_mot = Config.get('geometry','l_mot')
-    options.L_1 = Config.get('geometry','L_1')
-    options.l_1 = Config.get('geometry','l_1')
-    options.L_2 = Config.get('geometry','L_2')
-    options.l_2 = Config.get('geometry','l_2')
-    options.delta_vert_12 = Config.get('geometry','delta_vert_12')
-    options.L_vacuum = Config.get('geometry','L_vacuum')
-    options.l_vacuum = Config.get('geometry','l_vacuum')
-    options.mesh_resolution = Config.get('geometry','mesh_resolution')
-    options.refine_mesh = Config.get('geometry','refine_mesh')
+    return options
 
-    options.phi_top_mot = Config.get('phi','phi_top_mot')
-    options.phi_bord_mot = Config.get('phi','phi_bord_mot')
-    options.phi_electrode1 = Config.get('phi','phi_electrode1')
-    options.phi_inter_electrode = Config.get('phi','phi_inter_electrode')
-    options.phi_electrode2 = Config.get('phi','phi_electrode2')
-    options.phi_sup_vacuum = Config.get('phi','phi_sup_vacuum')
-    options.phi_inf_vacuum = Config.get('phi','phi_inf_vacuum')
-    options.rho_elec = Config.get('phi','rho_elec')
+def read_conf_thruster(options, config):
 
-    if(Config.has_section('flux')):
-        options.flux_in_wall = Config.get('flux','flux_in_wall')
-        options.flux_out_wall = Config.get('flux','flux_out_wall')
-    else:
-        options.flux_in_wall = 'None'
-        options.flux_out_wall = 'None'
+    options.resolution = config.get('thruster','resolution')
+    options.lz = config.get('thruster','lz')
+
+    options.L_mot = config.get('thruster','L_mot')
+    options.l_mot = config.get('thruster','l_mot')
+    options.L_1 = config.get('thruster','L_1')
+    options.l_1 = config.get('thruster','l_1')
+    options.L_2 = config.get('thruster','L_2')
+    options.l_2 = config.get('thruster','l_2')
+    options.delta_vert_12 = config.get('thruster','delta_vert_12')
+    options.L_vacuum = config.get('thruster','L_vacuum')
+    options.l_vacuum = config.get('thruster','l_vacuum')
+    options.mesh_resolution = config.get('thruster','mesh_resolution')
+    options.refine_mesh = config.get('thruster','refine_mesh')
+
+    options.phi_top_mot = config.get('thruster','phi_top_mot')
+    options.phi_bord_mot = config.get('thruster','phi_bord_mot')
+    options.phi_electrode1 = config.get('thruster','phi_electrode1')
+    options.phi_inter_electrode = config.get('thruster','phi_inter_electrode')
+    options.phi_electrode2 = config.get('thruster','phi_electrode2')
+    options.phi_sup_vacuum = config.get('thruster','phi_sup_vacuum')
+    options.phi_inf_vacuum = config.get('thruster','phi_inf_vacuum')
+    options.rho_elec = config.get('thruster','rho_elec')
 
     return options

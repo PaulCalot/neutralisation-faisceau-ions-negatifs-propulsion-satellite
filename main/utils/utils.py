@@ -68,6 +68,9 @@ def get_maxwellian_params(μ=0, σ=1):
     loc = μ - m
     return loc, a
 
+def get_maxwellian_mean_speed_from_temperature(T,m):
+    return np.sqrt(8.0*BOLTZMAN_CONSTANT*T/(np.pi*m))
+
 def sort_segments(walls):
     # sorting walls by x and then y
     segments = []

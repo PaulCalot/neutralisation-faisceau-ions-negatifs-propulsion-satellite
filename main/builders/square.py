@@ -14,7 +14,8 @@ class square(system):
         lx, ly = self.size[0], self.size[1]
         cell_size_max = max(lx/self.resolution[0], ly/self.resolution[1])
         if(cell_size_max>self.min_mean_free_path):
-            warnings.warn_explicit("Max cell size is {} m and higher than the min mean free path which is {}.".format(cell_size_max,self.min_mean_free_path))
+            message = "Max cell size is {:e} m and higher than the min mean free path which is {:e}.".format(cell_size_max,self.min_mean_free_path)
+            warnings.warn(message)
         self.size = [lx,ly,self.options['lz']]
         walls = [segment(Point(0,0),Point(0,ly)), segment(Point(0,0),Point(lx,0)), \
             segment(Point(lx,0),Point(lx,ly)), segment(Point(0,ly),Point(lx,ly))]

@@ -6,7 +6,7 @@ from main import convert_string_to_list
 def post_processing(options):
 
     path_to_file = options['path']
-    ids_test = options['ids_test'] # [1,2,3,4] # [2] # [1,2,3,4] #[1,2,3,4]
+    ids_test = options['id_test'] # [1,2,3,4] # [2] # [1,2,3,4] #[1,2,3,4]
 
     compute_system_evolution = options['compute_system_evolution']
     compute_hist_distribution_evolution = options['compute_hist_distribution_evolution']
@@ -22,8 +22,11 @@ def post_processing(options):
     if(merge_csv):
         merge_tests_summary(files_to_merge, path_to_file)
 
+    if(type(ids_test)!=list):
+       ids_test = [ids_test]
+
     for indx, id_test in enumerate(ids_test):
-        data_analyser = DataAnalyser(path_to_file)
+        data_analyser = DataAnalyser(path_to_file/'params.csv')
         data_analyser.load_test(id_test)
 
          # particles

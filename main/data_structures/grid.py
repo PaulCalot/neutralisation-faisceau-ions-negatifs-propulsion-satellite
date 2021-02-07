@@ -55,6 +55,10 @@ class Grid(object):
         if(self.debug): print("\nRemoving {} in position {}.".format(particule.to_string(), pos_in_grid))
         self.grid[pos_in_grid[0],pos_in_grid[1]].delete(particule)
 
+    def remove_with_old_pos(self,particule,old_postion):
+        pos = old_postion+self.offsets
+        self.remove_(particule, self.get_pos_in_grid(pos))
+
     def update(self, particule, old_position):
         #if(self.debug):
         #    print("Updating position ... " + particule.to_string(), end= " ")
@@ -173,9 +177,7 @@ class Grid(object):
         norm = [v.norm() for v in speed]
         x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
 
-        fig, ax = plt.subplots(figsize=(20,20))
-        ax.set_aspect('equal', 'box')        
-        scat = ax.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
+        plt.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
         self.plot_grid()
 
     # ------------ Getter and setter ------------- #

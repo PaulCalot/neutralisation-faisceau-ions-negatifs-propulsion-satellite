@@ -4,7 +4,7 @@ from .utils.utils import segment, get_mass_part, sort_segments, \
     collision_frequency_th_T, collision_frequency_th_V, \
          collision_frequency_exp, get_min_mean_free_path, \
              available_particles, get_maxwellian_params
-from .utils.utils import convert_list_to_string, convert_string_to_list
+from .utils.utils import convert_list_to_string, convert_string_to_list, get_maxwellian_mean_speed_from_temperature
 from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
 from .utils.mesh import get_mesh
 from .utils.physics import get_VandE, compute_trajectory

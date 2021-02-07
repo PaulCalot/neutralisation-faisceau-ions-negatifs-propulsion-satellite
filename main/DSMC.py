@@ -15,7 +15,7 @@ from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_exp
 class DSMC(object):
     debug = False
 
-    def __init__(self, system, dsmc_params, integration_scheme, f):
+    def __init__(self, system, dsmc_params, integration_scheme, f, out_wall = None):
         
         self.dsmc_params = dsmc_params
         self.system = system
@@ -45,14 +45,28 @@ class DSMC(object):
         self.M_ =  (cross_section* vr_max*self.dsmc_params['Ne']*self.dsmc_params['mean_particles_number_per_cell'])/(2*self.dsmc_params['cell_volume'])
         self.vr_max = self.dsmc_params['vr_max']
 
+        # out wall for flux
+        self.out_wall = out_wall
+
+    # --------- adding part to the list ----------- #
+    def get_number_of_particles(self):
+        return len(self.particles)
+
+    def add(self, particle) -> None:
+        self.particles.append(particle)
+
+    def get_list_particles(self):
+        return self.particles
 
     # ------------------------------- Step Function -----------------------------------#
+
     def step(self, dt, t, f_args):
         list_previous_positions = []
         for i, part in enumerate(self.particles):
             list_previous_positions.append(part.get_2D_pos())
 
         # First phase DMSC
+        list_part_to_delete = []
         for i, part in enumerate(self.particles):
             self._one_particle_step(dt, t, part, f_args)
             #print(part.get_2D_pos(), list_previous_positions[i])
@@ -60,10 +74,28 @@ class DSMC(object):
             while(not self.grid.update(part, list_previous_positions[i])):
                 # then the particle got out of the box.
                 if not self._collision_with_wall(part):
+                    # in that case the particle exited the system by the wall
+                    # if a print message appears, then this was not suppoed to be the case
+                    # in any case : we delete it.
+                    list_part_to_delete.append([i,part])
                     break
-                
+    
         # Second phase DMSC
         self.dsmc_collisions(dt)
+
+        # delete all involved particles
+        if(self.debug): print("Number of particles that got out : {}.".format(len(list_part_to_delete)))
+        
+        for k,particle in enumerate(list_part_to_delete):
+            i, part = particle
+            # this is a bit messy as the particles list gets smaller and smaller as we delete particles
+            # we have to account for that
+            self.particles.pop(i-k)
+            try:
+                self.grid.remove(part)
+            except TypeError: 
+                self.grid.remove_with_old_pos(part,list_previous_positions[i])
+            # this should be enough.
 
     def _one_particle_step(self, dt, t, part, f_args):
         """ Update particules speed and position when there is no collision. Used in the step method.
@@ -102,13 +134,23 @@ class DSMC(object):
         radius = part.get_radius()
 
         min_time, idx_min_time, min_pos_intersect = 1e15 ,-1, None
+        wall = None
         for i in range(len(self.walls)):
             t_coll, pos_intersect = self.handler_wall_collision(pos, -1.0*speed, radius, i)
             if(t_coll<min_time):
                 idx_min_time = i
                 min_time = t_coll
                 min_pos_intersect = pos_intersect
+                wall = self.walls[i]
         
+        # in case the particle went out by the "open wall"
+        # another way is just to see if the particle is below / top / to the left / to the right 
+        # of the no wall part of the system (we don't include the given wall in that case)
+        # and thus we can simply delete the particle if it gets this way
+        # but I am not sure it would work better
+        if(self.out_wall != None and all([l1==l2 for l1, l2 in zip(self.out_wall, wall)])):
+            return False
+
         if(self.debug): print('Collision time : {}, position : {}'.format(min_time, min_pos_intersect))
         # reflect position / speed of part with respect to wall idx_min_time
         if(min_pos_intersect != None):
