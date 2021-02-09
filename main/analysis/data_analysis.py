@@ -14,8 +14,10 @@ import numpy as np
 import scipy.stats as ss
 from pathlib import Path, PurePath
 from os import mkdir
-
+from pprint import pprint
 # animation
+from main import convert_string_to_list
+
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -144,15 +146,19 @@ class DataAnalyser :
             df_data.to_csv(path_to_data) # should be updated
 
         # splitting in time step
+        # TODO make a choice between using several df or only one and selecting the frame that are interesting to me each time.
+        self.df_data = df_data
         iterations_number = self.test_params.at['MAX_INTEGRATION_STEP']
         period = self.test_params.at['saving_period']
         row_count = len(df_data.index)
+        # https://stackoverflow.com/questions/22341271/get-list-from-pandas-dataframe-column-or-row
+        list_times = df_data["iteration"].unique()
         #lst = [df_data.iloc[i:i+self.nb_parts] for i in range(0,row_count-self.nb_parts+1,self.nb_parts)]
-        list_times = [k for k in range(0,iterations_number,period)]
-        if((iterations_number-1)//period != 0):
-            list_times.append(iterations_number-1)
+        #list_times = [k for k in range(0,iterations_number,period)]
+        #if((iterations_number-1)//period != 0):
+        #    list_times.append(iterations_number-1)
         lst = [df_data.loc[df_data['iteration'] == k] for k in list_times]
-        self.list_times = list_times
+        self.list_times = np.array(list_times)
         self.number_of_frames = len(lst)
         self.current = lst
         # --------------- Getter in csv files ----------------- #
@@ -301,18 +307,19 @@ class DataAnalyser :
 
             ax.set_title('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=15)
 
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots()
+        plt.axis('scaled')
         df = lst[0]
         scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
 
         ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
 
-        interval = 40 # default value
+        interval = 40 # 25 images per second
 
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, ), save_count=self.number_of_frames)
 
         if(save_animation):
-            anim.save(self.path_to_saving+'{}_system_evolution.mp4'.format(self.test_id))
+            anim.save(self.path_to_saving+'{}_system_evolution.mp4'.format(self.test_id), dpi = 300)
         else:
             plt.show()
 
@@ -366,19 +373,15 @@ class DataAnalyser :
             plt.show()
         plt.close()
 
-    def draw_spatial_distribution_frame(self, which = "last", name = '' , save_frame = True, grid_size = 20, vmin = 0, vmax = 5e3):
+    def draw_spatial_distribution_frame(self, which = "last", name = '' , save_frame = True, grid_size = 20, mean_over_frames = None, vmin = None, vmax = None):
         # which : "first", "last" or any number between the 2.
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
             return
     
-        if(name == None):
-            name = 'particles'
-
         lst = self.current
         
-
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots()
         frame = -1
         if(which == "first"):
             frame = 0
@@ -389,21 +392,31 @@ class DataAnalyser :
         else:
             print("Please choose 'which' amongst : 'first', 'last' or any positive {}. Default is 'last'.".format(int))
             return
-        df = lst[frame]
 
+        df = lst[frame] if mean_over_frames==None else \
+            self.df_data.loc[self.df_data['iteration'].isin(self.list_times[self.number_of_frames-mean_over_frames:])]
+
+        reduce_C_function = np.mean
+        if(name == None):
+            name = 'particles'
+        elif(type(name)==tuple):
+            name, fn, reduce_C_function = name
+            df[name] = df.apply(fn, axis=1)
         if(name != 'particles' and name != None):
-            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
+            hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax, reduce_C_function = reduce_C_function)
         else :
             hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
+        #ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
         plt.legend(loc='best',fontsize=14)
 
         if(save_frame):
-            plt.savefig(self.path_to_saving+'{}_{}_spatial_distribution_it_{}.png'.format(self.test_id, name, frame + 1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
+            title = self.path_to_saving+'{}_{}_spatial_distribution_it_{}'.format(self.test_id, name, frame + 1)
+            title += '_{}frames.png'.format(mean_over_frames) if mean_over_frames != None else '.png'
+            plt.savefig(title, dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -442,6 +455,107 @@ class DataAnalyser :
 
         if(save_frame):
             plt.savefig(self.path_to_saving+'{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
+        else:
+            plt.show()
+        plt.close()
+
+    # ---------------- Plot density evolution ---------------- #
+
+    def plot_mean_density_evolution_1D(self, direction, bins = 100, frames = 10, save = True):
+        # by default will select the last 10 frames
+        
+        fig, ax = plt.subplots()
+        plt.xlabel(direction)
+        plt.ylabel('density ($m^{-3})$')
+        
+        df = self.df_data.loc[self.df_data['iteration'].isin(self.list_times[self.number_of_frames-frames:])]
+        #df['density'] = df_data.apply(lambda raw: , axis=1)
+        count, bin_edges = np.histogram(df[direction], bins = bins)
+        from main import convert_string_to_list
+
+        Ne = np.mean(np.array(convert_string_to_list(self.get_param(key='Ne_per_type', test_id = None))))
+        volume = self.get_param(key='volume', test_id = None)/bins # volume of one cell
+        # x_min = self.get_param('x_min')
+        # x_max = self.get_param('x_max')
+        # y_min = self.get_param('y_min')
+        # y_max = self.get_param('y_max')
+
+        count =  Ne / (volume*frames) * count
+        ax.plot(bin_edges[:bin_edges.size-1], count)
+        ax.hist(bin_edges[:bin_edges.size-1], bins, weights=count) 
+        #ax = df.hist(column=direction, bins = bins)
+
+        if(save):
+            plt.savefig(self.path_to_saving+'density_bins{}_frames{}_direction{}.png'.format(bins, frames, direction), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
+        else:
+            plt.show()
+        plt.close()
+
+    def plot_mean_density_evolution_by(self, direction, bins = 100, bins_ = 10, frames = 10, save = True):
+        pd.options.mode.chained_assignment = None  # default='warn'
+        # by default will select the last 10 frame
+        other_ = 'y' if direction=='x' else 'x'
+
+        df = self.df_data.loc[self.df_data['iteration'].isin(self.list_times[self.number_of_frames-frames:])]
+
+        # direction
+        min_dir = min(df[direction])
+        max_dir = max(df[direction])
+        dl_main = (max_dir-min_dir)/bins
+        sequence_bins = [dl_main*(k+0.5) for k in range(0, bins)]
+
+        # other
+        min_other_dir = min(df[other_])
+        max_other_dir = max(df[other_])
+        #print('Max / min : {:e} / {:e}'.format(max_other_dir, min_other_dir))
+        dl = (max_other_dir-min_other_dir)/bins_
+        sequence_other = [dl*(k+0.5) for k in range(0, bins_+1)]
+
+        def groupby_fn(row, direction, dl):
+            i = 0
+            value = row[direction]
+            while(value>dl*i):
+                i+=1
+            return i
+        
+        # lets say, we want to plot the density along y-axis, for a given number of x-axis boxes.
+        # then we affect 'box number' for each particle depending on its x-value, and save it in a new column called 'rank' 
+        df['rank'] = df.apply(lambda row : groupby_fn(row, other_, dl), axis = 1)
+
+        # then we select all raw that has rank = k and store them together. At this point, we have create *bins_* boxes
+        # with particle, and for which we are going to plot the density along y-axis.
+        list_rank = df["rank"].unique()
+        #print('Ranks found :'.format(list_rank))
+
+        lst = [df.loc[df['rank'] == list_rank[k]] for k in range(len(list_rank)-1)] # we dont take the last which is kind of bogus
+        # since we almost out of the space and there is no particles.
+
+        
+        fig, ax = plt.subplots()
+        plt.xlabel(direction)
+        plt.ylabel('density({})'.format(direction)+'($m^{-3})$')
+
+        colors = plt.cm.rainbow(np.linspace(0,1,len(lst)))
+
+        k = 0
+        from main import convert_string_to_list
+        Ne = np.mean(np.array(convert_string_to_list(self.get_param(key='Ne_per_type', test_id = None))))
+
+        volume = self.get_param(key='volume', test_id = None)/(len(lst)*len(sequence_bins)) # volume of one cell
+
+        for df_,color in zip(lst,colors):
+            # there compute the histogram for each x-box dataframe, along y-axis.
+            count, bin_edges = np.histogram(df_[direction], bins = sequence_bins)
+            count =  Ne / (volume*frames) * count
+            #pprint('Rank {} - count / bin_edges : {} / {}'.format(k,count, bin_edges))
+            lenght = count.size
+            ax.plot(bin_edges[:lenght], count[:lenght], color = color, label = '{:0.1e}'.format(sequence_other[k]))
+            k+=1
+        if(bins_<=20):
+            plt.legend(loc='upper left', title = other_, fontsize='x-small', title_fontsize='x-small', ncol=1, bbox_to_anchor=(1.05, 1))
+    
+        if(save):
+            plt.savefig(self.path_to_saving+'density_bins{}_frames{}_{}_{}.png'.format(bins, frames, direction, other_), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -621,6 +735,9 @@ class DataAnalyser :
                 plt.show()
             plt.close()
 
+
+
+    
 def merge_tests_summary(names, output_name):
     mode = "r"
     L = []

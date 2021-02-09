@@ -161,7 +161,7 @@ class Grid(object):
     def plot_cell_(self, i, j):
         dx, dy = self.lx/self.res[0],self.ly/self.res[1]
         x, y = self.lx*i/self.res[0]-self.offsets.x, self.ly*j/self.res[1]-self.offsets.y
-        plt.plot([x, x+dx, x+dx, x, x], [y, y, y+dy, y+dy, y], color='k')
+        plt.plot([x, x+dx, x+dx, x, x], [y, y, y+dy, y+dy, y], color='g', alpha = 0.5)
 
     def plot_grid(self):
         # the goal here is to plot the grid 
@@ -194,10 +194,15 @@ class Grid(object):
         else :
             return len(self.sparsed_space_idx)    
     
+    def get_surface(self):
+        # size of cell
+        dx, dy = self.lx/self.res[0], self.ly/self.res[1]
+        return dx*dy*self.get_number_of_cells()
+
     # ------------ Sparsed Space ---------------- #
-    def fill_sparsed_space_from_initial_particles_position(self):
+    def fill_sparsed_space_from_initial_particles_position(self, list_particles = None):
         self.sparsed_space_idx = []
-        list_particles = self.get_all_particles()
+        list_particles = list_particles if list_particles != None else self.get_all_particles()
         for part in list_particles:
             pos = part.get_pos()+self.offsets
             pos_x = int(pos.x*self.res[0]/self.lx)
@@ -211,4 +216,5 @@ class Grid(object):
                 temp.append(i)
         self.sparsed_space_idx = temp # remove same elements
 
-    
+        
+       # print(self.sparsed_space_idx)

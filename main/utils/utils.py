@@ -18,7 +18,13 @@ ELECTRON_MASS = 9.11e-31
 BOLTZMAN_CONSTANT = 1.38064e-23 # J K−1
 ELECTRON_CHARGE = -1.6e-19 # C
 ELECTRON_EFFECTIVE_DIAMETER = 2.8179403227e-15 # m
-
+CONSTANTS = {
+    'NUCLEON_MASS':NUCLEON_MASS,
+    'ELECTRON_MASS':ELECTRON_MASS,
+    'BOLTZMAN':BOLTZMAN_CONSTANT,
+    'ELECTRON_CHARGE':ELECTRON_CHARGE,
+    'ELECTRON_EFFECTIVE_DIAMETER':ELECTRON_EFFECTIVE_DIAMETER
+}
 def get_mass_part(electrons_nb, protons_number, neutrons_number):
     return (neutrons_number+protons_number)*NUCLEON_MASS+electrons_nb*ELECTRON_MASS
 
@@ -67,6 +73,13 @@ def get_maxwellian_params(μ=0, σ=1):
     m = 2.0*a*np.sqrt(2.0/np.pi)
     loc = μ - m
     return loc, a
+
+def get_gaussian_params_maxwellian(T,m):
+    #a = np.sqrt(BOLTZMAN_CONSTANT*T/m)
+    #mu = 2*a*np.sqrt(2.0/np.pi)
+    #sigma = a*a*(3*np.pi-8)/np.pi
+    v_mean = np.sqrt(3*BOLTZMAN_CONSTANT*T/m)
+    return v_mean
 
 def get_maxwellian_mean_speed_from_temperature(T,m):
     return np.sqrt(8.0*BOLTZMAN_CONSTANT*T/(np.pi*m))

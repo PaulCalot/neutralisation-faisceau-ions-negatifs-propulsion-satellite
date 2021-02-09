@@ -2,13 +2,13 @@ from .system import system
 from main import segment, get_mesh, get_VandE
 from dolfin import Point
 from main.data_structures.grid import Grid
-
+from main import init_particles_in_system
 class thruster(system):
     debug = False
-    def __init__(self, options, min_mean_free_path) -> None:
+    def __init__(self, options, min_mean_free_path=None) -> None:
         super().__init__(options, min_mean_free_path)
         # mesh may not be needed right now but may be later.
-    
+        
     def make_system(self):
         mesh, segments_list, zone = get_mesh(self.options['geometry'])
         
@@ -26,7 +26,7 @@ class thruster(system):
         max_y, min_y = max(segment_Y_list), min(segment_Y_list)
 
         self.offset = [-min_x, -min_y]
-
+        
         lx,ly = max_x - min_x, max_y - min_y
         lz = self.options['general']['lz']
         self.size = [lx,ly,lz]
@@ -46,19 +46,25 @@ class thruster(system):
         res_x, res_y = self.resolution[0], self.resolution[1]
         offset_x, offset_y = self.offset[0], self.offset[1]
         grid = Grid(lx,ly,[res_x,res_y], offsets = [offset_x,offset_y], dtype = 'LinkedList') # LinkedList , DynamicArray
+        self.set_sparsed_space(grid)
         return grid
 
     def get_zone(self):
         return self.zone
     
-    def set_sparsed_space(self):
-        self.grid.fill_sparsed_space_from_initial_particles_position()
+    def set_sparsed_space(self, grid):
+        particles_list = list(init_particles_in_system(['I'], [1e20], [100], ['gaussian'], [200],\
+     [200], self.size, self.resolution, zone = self.zone, offsets = self.offset, verbose = False, debug = self.debug,)[0])
+        grid.fill_sparsed_space_from_initial_particles_position(particles_list)
 
     def plot(self):
         super().plot()
         import matplotlib.pyplot as plt
+        fig = plt.gcf()
+        fig.set_size_inches(4, 20)
+        #plt.rcParams["figure.figsize"] = (4,20)       
         plt.show()
-        from fenics import plot
+        #from fenics import plot
         #plot(self.phi)
         #from fenics import sqrt, dot
         #Ex, Ey = self.E.split(deepcopy=True)
@@ -69,3 +75,5 @@ class thruster(system):
     
     def get_E(self):
         return self.E
+
+    

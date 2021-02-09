@@ -29,6 +29,7 @@ def get_options(cfg_file_paths, verbose = True):
     flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
     flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
     temperatures = list(map(cfg_tools.read_args_multiple_types,system_options.temperatures.split(',')))
+    drifts = list(map(cfg_tools.read_args_multiple_types,system_options.drifts.split(',')))
 
     system = {
         'system_type': system_type,
@@ -41,7 +42,8 @@ def get_options(cfg_file_paths, verbose = True):
         #'particles_radius': particles_radius,
         'flux_in_wall':flux_in_wall,
         'flux_out_wall':flux_out_wall,
-        'temperatures':temperatures
+        'temperatures':temperatures,
+        'drifts':drifts
 
     }
 
@@ -59,6 +61,7 @@ def get_options(cfg_file_paths, verbose = True):
         # saving options
     save = cfg_tools.str_to_bool(processing_options.save)
     period = int(processing_options.period)
+    saving_offset = int(processing_options.saving_offset)
     path = Path(__file__).parent.parent.parent.absolute() / \
          'results' / str(processing_options.path)
     id_test = str(processing_options.id_test) # list(map(str, processing_options.ids_test.split(',')))
@@ -82,6 +85,7 @@ def get_options(cfg_file_paths, verbose = True):
     processing = {
         'save' : save,
         'period':period,
+        'saving_offset':saving_offset,
         'path':path,
         'id_test':id_test,
         'compute_system_evolution' : compute_system_evolution,
@@ -229,10 +233,12 @@ def read_conf_system(cfg_file_path):
         options.flux_in_wall = config.get('flux','flux_in_wall')
         options.flux_out_wall = config.get('flux','flux_out_wall')
         options.temperatures = config.get('flux','temperatures')
+        options.drifts = config.get('flux','drifts')
     else:
         options.flux_in_wall = 'None'
         options.flux_out_wall = 'None'
         options.temperatures = 'None'
+        options.drifts = 'None'
     return options
 
 def read_conf_simulation(cfg_file_path):
@@ -259,6 +265,10 @@ def read_conf_processing(cfg_file_path):
     options.save = config.get('general','save')
     options.postprocess = config.get('general','postprocess')
     options.period = config.get('general','period')
+    if(config.has_option('general', 'saving_offset')):
+        options.saving_offset = config.get('general','saving_offset')
+    else:
+        options.saving_offset = 0
     options.path = config.get('general','path')
     options.id_test = config.get('general','id_test')
 

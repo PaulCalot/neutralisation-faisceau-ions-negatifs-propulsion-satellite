@@ -20,4 +20,11 @@ def euler_explicit(Y, t, dt, f, f_args):
     Y_pot = Y+dt*f(Y,t,*f_args)
     return Y_pot
 
-    
+# TODO : test if it works
+def leap_frog(Y, t, dt, f, f_args):
+    # requires d2x/dt2 = f(x)
+    v_int = Y[3:6]
+    v_int = v_int + dt*f(Y,t,*f_args)
+    pos = Y[:3]
+    pos = pos+dt*v_int
+    return np.concatenate(pos, v_int)

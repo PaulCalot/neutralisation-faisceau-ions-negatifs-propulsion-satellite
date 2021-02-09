@@ -1,22 +1,23 @@
 from main import get_mass_part, Particule, MyVector
 from main import available_particles
+from main import get_gaussian_params_maxwellian, available_particles
 # imports,
 from dolfin import Point
 from random import gauss, random
 import numpy as np
 from scipy.stats import maxwell, norm
+from pprint import pprint
 
 def init_particles_in_system(particles_types, particles_densities, particles_mean_number_per_cell, speed_type, speed_param1,\
      speed_param2, space_size, space_resolution, zone = None, offsets = [0,0], verbose = False, debug = False, *args, **kwargs):
-    available_types = particles_types
     list_particles=[]
     e = 1.6e-19
     mean = 0
     number_ = 1
     for k in range(len(particles_densities)):
+        if(debug):
+            print(particles_types)
         type_ = particles_types[k]
-        if(type_):
-            continue
         number_ = int(particles_mean_number_per_cell[k]*space_resolution[0]*space_resolution[1])
         speed_init_type = speed_type[k] # uniform or maxwellian
         m, M = speed_param1[k], speed_param2[k]
@@ -47,6 +48,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
             print("/!\\ Unknown speed init type /!\\")
             return
         mean = 0
+        if(debug):print('Number : {}'.format(number_))
         for k in range(number_):
             my_speed = 0
 
@@ -107,7 +109,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
     return np.array(list_particles), mean/number_ # we don't shuffle right now
 # TODO : make it work for several particles types ...
 
-def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, speed_param1, speed_param2):
+def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts):
     list_particles=[]
     e = 1.6e-19 # C
     x1, y1, x2, y2 = wall
@@ -115,24 +117,32 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
     for k in range(len(nb_particles_to_inject)):
         type_ = particles_types[k]
         number_ = nb_particles_to_inject[k]
-        m, M = speed_param1[k], speed_param2[k]
+        temperature, drift = temperatures[k], drifts[k]
         
         charge = available_particles[type_]['charge']
         mass = available_particles[type_]['mass']
         effective_diameter = available_particles[type_]['effective diameter']
 
-        sigma = M
-        mu = m
+        sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
+        mu = 0
         for k in range(number_):
             my_speed = 0
 
-            vx = norm.rvs(mu, sigma)
-            vy = norm.rvs(mu, sigma)
-            while(direction.inner(MyVector(vx,vy))<=0):
-                vx = norm.rvs(mu, sigma)
+            v_drift = drift*direction
+            #     
+            # vx = norm.rvs(mu, sigma)+v_drift.x # in theory there should be a drift
+            # vy = norm.rvs(mu, sigma)+v_drift.y
+            # while(direction.inner(MyVector(vx,vy))<=0):
+            #     vx = norm.rvs(mu, sigma)+v_drift.x
+            #     vy = norm.rvs(mu, sigma)+v_drift.y
+            vx, vy = 0, 0
+            if(v_drift.y == 0.0):
+                vx = sigma * np.sqrt(-2*np.log10((1-random()))) + v_drift.x
                 vy = norm.rvs(mu, sigma)
+            if(v_drift.x == 0.0):
+                vx = norm.rvs(mu, sigma)
+                vy = sigma * np.sqrt(-2*np.log10((1-random()))) + v_drift.y
             vz = norm.rvs(mu, sigma)
-            
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
@@ -141,7 +151,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
                     mass = mass, part_type = type_, \
                         speed=my_speed, \
                             pos=MyVector(x,y,0)))
-
+    #pprint(" - ".join([part.to_string() for part in list_particles]))
     return np.array(list_particles)
 
 def get_correct_initial_positions(zone, offsets, space_size):

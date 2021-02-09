@@ -58,6 +58,9 @@ class DSMC(object):
     def get_list_particles(self):
         return self.particles
 
+    def get_scheme(self):
+        return self.integration_scheme     
+        
     # ------------------------------- Step Function -----------------------------------#
 
     def step(self, dt, t, f_args):
@@ -142,6 +145,7 @@ class DSMC(object):
                 min_time = t_coll
                 min_pos_intersect = pos_intersect
                 wall = self.walls[i]
+        
         
         # in case the particle went out by the "open wall"
         # another way is just to see if the particle is below / top / to the left / to the right 
@@ -360,7 +364,7 @@ class DSMC(object):
                 else :
                     warnings.warn("The {}th segment-wall has the same two extremities : (x1,y1) = ({},{}) and (x2,y2) = ({},{}).".format(i,x1,y1,x2,y2))
 
-            self.walls[i] = segment(Point(min_x, min_y),Point(max_x, max_y))
+            #self.walls[i] = segment(Point(min_x, min_y),Point(max_x, max_y)) # not updating walls anymore as it was creating issues...
             self.walls_vector.append(MyVector(max_x-min_x, max_y-min_y).normalize())# the directing vectors
 
     # ------------------------------- Getter and setter -------------------------- #

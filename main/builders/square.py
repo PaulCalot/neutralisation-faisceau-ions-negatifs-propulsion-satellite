@@ -5,7 +5,7 @@ from main.data_structures.grid import Grid
 import warnings
 
 class square(system):
-    def __init__(self, options, min_mean_free_path) -> None:
+    def __init__(self, options, min_mean_free_path = None) -> None:
         super().__init__(options, min_mean_free_path)
     
     def make_system(self): # called first
@@ -13,7 +13,7 @@ class square(system):
         self.resolution = self.options['resolution']
         lx, ly = self.size[0], self.size[1]
         cell_size_max = max(lx/self.resolution[0], ly/self.resolution[1])
-        if(cell_size_max>self.min_mean_free_path):
+        if(self.min_mean_free_path != None and cell_size_max>self.min_mean_free_path):
             message = "Max cell size is {:e} m and higher than the min mean free path which is {:e}.".format(cell_size_max,self.min_mean_free_path)
             warnings.warn(message)
         self.size = [lx,ly,self.options['lz']]

@@ -74,7 +74,7 @@ def post_processing(options):
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm', save_frame = True, plot_maxwellian = True, plot_gaussian = False, density = True, range = None, color = 'k')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = 'k')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'b')
-            data_analyser.draw_spatial_distribution_frame(which, None, grid_size = int(np.sqrt(nb_cells)), vmin = 0, vmax = 2*total_number_of_particles_per_cell)
+            #data_analyser.draw_spatial_distribution_frame(which, None, grid_size = int(np.sqrt(nb_cells)), vmin = 0, vmax = 2*total_number_of_particles_per_cell)
 
         if compute_temperature:
             for mass in particles_masses:
@@ -100,5 +100,24 @@ def post_processing(options):
             f_th_ = collision_frequency_th_V(v_mean, mean_free_path, n = particle_density)
             expected_number_of_collision = f_th_*volume*number_of_dt*dt
 
-            print('For test {}, N_e = {:e} vs N_t = {}.'.format(id_test , number_of_collisions, expected_number_of_collision))
-            
+            print('For test {}, N_e = {:e} vs N_t = {:e}.'.format(id_test , number_of_collisions, expected_number_of_collision))
+        
+        nb_frames = 298
+        bins_x, bins_y = 30,10
+
+        data_analyser.plot_mean_density_evolution_1D(direction = 'y', bins = bins_y, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
+        data_analyser.plot_mean_density_evolution_1D(direction = 'x', bins = bins_x, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
+        data_analyser.plot_mean_density_evolution_by('y', bins = bins_y//2, bins_ = bins_x//2, frames = nb_frames)
+        data_analyser.plot_mean_density_evolution_by('x', bins = bins_x//2, bins_ = bins_y//2, frames = nb_frames)
+
+        Ne = convert_string_to_list(data_analyser.get_param('Ne_per_type'))
+        Ne_mean = np.mean(np.array(Ne))
+        volume = data_analyser.get_param('volume')/(bins_x*bins_y)
+        def f(raw):
+            return 2.0*Ne_mean / (volume*nb_frames) # I added 2.0 here because somehow plt.hexbin multiply by two the number of boxes...
+
+        data_analyser.draw_spatial_distribution_frame(which = "last", name = ('density',f, np.sum), save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+        data_analyser.draw_spatial_distribution_frame(which = "last", name = 'speed_norm', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+        data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vx', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+        data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vy', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+        data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vz', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 

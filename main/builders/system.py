@@ -20,12 +20,16 @@ class system(ABC):
         self.min_mean_free_path = min_mean_free_path
         self.size = [0,0,0]
         self.resolution = [0,0]
-        self.offset = None
+        self.offset = [0,0]
         # initializing - will call subclasses function if called
         # first walls then grid
         self.walls = self.make_system()
+        #self.update_walls_with_offset()
         self.grid = self.make_grid()
-
+        # other inits
+        self.volume = self.init_system_volume()
+        self.Ne = self.init_Ne()
+        
         # init flux if there is
         # TODO : init the flux how it should be!
         # flux_params : 
@@ -41,9 +45,18 @@ class system(ABC):
             self.temperatures = [self.temperatures[0]]*l1 if(l2!=l1) else self.temperatures #
             self.fluxes = self.init_fluxes() # consist of initializing gamma which depends upon particles density etc.
             self.flux_handler.init(self.walls, self.flux_params['in_wall'], self.flux_params['in_direction'], \
-                self.fluxes, self.options['particles_types'], self.options['speed_param1'], self.options['speed_param2'])
+                self.fluxes, self.options['particles_types'], self.options['temperatures'], self.options['drifts'])
+            if(self.debug):
+                print("Fluxes : {}".format(self.fluxes))
+    
         self.factor = .5*(self.size[0]/self.resolution[0]+self.size[1]/self.resolution[1])
 
+        # added for dictionnary purposes 
+        self.mean_speed = None
+
+        if(self.debug):
+            print('Volume : {} vs {} m-3'.format(self.volume, self.size[0]*self.size[1]*self.size[2]))
+            print('Ne : {} '.format(self.Ne))
     # the abstracts methods mean they need to be redefined by the subclass
     @abstractmethod
     def make_grid(self):
@@ -53,12 +66,32 @@ class system(ABC):
     def make_system(self):
         pass
 
+    def init_system_volume(self):
+        return self.size[2]*self.grid.get_surface()
+
+    def update_walls_with_offset(self):
+        ox, oy = self.offset
+        walls = []
+        for wall in self.walls:
+            x1,y1,x2,y2 = wall
+            wall = [x1+ox,y1+oy, x2+ox, y2+oy]
+            walls.append(wall)
+        self.walls = walls
+
+    def init_Ne(self):
+        if(self.debug):
+            print('Number of cells: {} vs {}'.format(self.grid.get_number_of_cells(), self.resolution[0]*self.resolution[1]))
+        N_particles_real = [int(density*self.volume) for density in self.options['particles_densities']] # this is the REAL number of particles
+        N_particles_simu = [int(nb*self.grid.get_number_of_cells()) for nb in self.options['particles_mean_number_per_cell']]
+        return [i/j for i, j in zip(N_particles_real,N_particles_simu)]
+
     def plot(self):
         self.grid.plot()
         # adding now the walls 
         for wall in self.walls :
             self.plot_wall(wall)
         self.plot_fluxes()
+        plt.axis('scaled')
 
     def add(self, particle):
         self.grid.add(particle)
@@ -66,7 +99,7 @@ class system(ABC):
     def get_size(self):
         return self.size
         
-    def get_space_resolutions(self):
+    def get_resolutions(self):
         return self.resolution
     
     def get_walls(self):
@@ -95,6 +128,19 @@ class system(ABC):
         
     def get_list_particles(self):
         return self.dsmc.get_list_particles()
+
+    def get_mean_speed(self):
+        return self.mean_speed
+    
+    def get_integration_scheme(self):
+        return self.dsmc.get_scheme()
+
+    def get_volume(self):
+        return self.volume
+    
+    def get_Ne(self):
+        return self.Ne
+        
     # ---------- step function ------------ #
 
     def step(self, dt, t):
@@ -115,6 +161,11 @@ class system(ABC):
         effective_diameters = [available_particles[type_]['effective diameter'] for type_ in self.options['particles_types']]
         lx, ly, lz = self.size 
         res_x, res_y = self.resolution
+        if(mean_speed==None):
+            masses = [available_particles[type_]['mass'] for type_ in self.options['particles_types']]
+            v_mean_list = np.array([get_maxwellian_mean_speed_from_temperature(self.temperatures[k], masses[k]) for k in range(len(masses))])
+            mean_speed = np.mean(v_mean_list)
+        self.mean_speed = mean_speed
         dsmc_params = {
             'vr_max' : 2*mean_speed,
             'effective_diameter':  effective_diameters[0], # for now
@@ -122,7 +173,6 @@ class system(ABC):
             'cell_volume' : lx*ly*lz/(res_x*res_y), # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
             'mean_particles_number_per_cell': sum(self.options['particles_mean_number_per_cell']) # we don't account for the type
         }
-
         out_wall = self.flux_params['out_wall'] if self.flux_params != None else None
         self.dsmc = DSMC(self, dsmc_params, integration_scheme, f, out_wall = out_wall)
 
@@ -160,10 +210,12 @@ class system(ABC):
             return None
         else:
             in_wall, in_direction = self.select_wall_(criteria = in_flux)
+            in_wall = [in_wall[0],in_wall[1],in_wall[2],in_wall[3]]
         if(out_flux == None):
             out_wall = None
         else:
             out_wall, out_direction = self.select_wall_(criteria = out_flux)
+            out_wall = [out_wall[0],out_wall[1],out_wall[2],out_wall[3]]
             out_direction = -1.0*out_direction
         return {
             'in_wall':in_wall,
@@ -177,19 +229,16 @@ class system(ABC):
         v_mean_list = [get_maxwellian_mean_speed_from_temperature(self.temperatures[k], masses[k]) for k in range(len(masses))]
         in_wall = self.flux_params['in_wall']
         lengh_wall = np.sqrt((in_wall[2]-in_wall[0])**2+(in_wall[3]-in_wall[1])**2)
+        if(self.debug):
+            print('Lenght wall : {}'.format(lengh_wall))
         surface_in = lengh_wall*self.size[2] # lengh_wall*lz
         densities = self.options['particles_densities']
 
         # function
-        get_flux = lambda n, v_mean : 0.25*n*v_mean*surface_in # this function should be modified to accomodate the true flux
+        get_flux = lambda n, v_mean, drift : 0.25*n*v_mean*surface_in+n*drift*surface_in # this function should be modified to accomodate the true flux
 
-        fluxes = [get_flux(n, v_mean) for n, v_mean in zip(densities, v_mean_list)]
-
-        lx, ly, lz = self.size 
-        res_x, res_y = self.resolution
-        N_particles_real = [int(density*lx*ly*lz) for density in self.options['particles_densities']] # this is the REAL number of particles
-        N_particles_simu = [int(nb*res_x*res_y) for nb in self.options['particles_mean_number_per_cell']]
-        self.Ne = [i/j for i, j in zip(N_particles_real,N_particles_simu)]
+        drifts = self.options['drifts']
+        fluxes = [get_flux(n, v_mean, drift) for n, v_mean, drift in zip(densities, v_mean_list, drifts)]
 
         fluxes = [flux/N for flux, N in zip(fluxes, self.Ne)]
         if(self.debug):print('My fluxes {}'.format(fluxes))
