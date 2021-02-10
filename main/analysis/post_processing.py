@@ -14,7 +14,7 @@ def post_processing(options):
     compute_temperature = options['compute_temperature']
     frames_to_compute = options['frames_to_compute']
     merge_csv = options['merge_csv']
-
+    
     compute_collisions = options['compute_collisions']
 
     files_to_merge = options['files_to_merge']
@@ -103,7 +103,7 @@ def post_processing(options):
             print('For test {}, N_e = {:e} vs N_t = {:e}.'.format(id_test , number_of_collisions, expected_number_of_collision))
         
         nb_frames = 298
-        bins_x, bins_y = 30,10
+        bins_x, bins_y = 40,60
 
         data_analyser.plot_mean_density_evolution_1D(direction = 'y', bins = bins_y, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
         data_analyser.plot_mean_density_evolution_1D(direction = 'x', bins = bins_x, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
