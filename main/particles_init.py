@@ -1,6 +1,6 @@
 from main import get_mass_part, Particule, MyVector
 from main import available_particles
-from main import get_gaussian_params_maxwellian, available_particles
+from main import get_gaussian_params_maxwellian, available_particles, get_maxwellian_mean_speed_from_temperature
 # imports,
 from dolfin import Point
 from random import gauss, random
@@ -109,7 +109,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
     return np.array(list_particles), mean/number_ # we don't shuffle right now
 # TODO : make it work for several particles types ...
 
-def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts):
+def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts, dt):
     list_particles=[]
     e = 1.6e-19 # C
     x1, y1, x2, y2 = wall
@@ -124,6 +124,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
         effective_diameter = available_particles[type_]['effective diameter']
 
         sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
+        v_mean = get_maxwellian_mean_speed_from_temperature(temperature, mass)
         mu = 0
         for k in range(number_):
             my_speed = 0
@@ -146,7 +147,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
-            x, y = x1+random()*(x2-x1)+direction.x*0.01*lenght, y1+random()*(y2-y1)+direction.y*0.01*lenght
+            x, y = x1+random()*(x2-x1)+direction.x*v_mean*(1-random())*dt, y1+random()*(y2-y1)+direction.y*v_mean*(1-random())*dt
             list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \

@@ -14,7 +14,7 @@ class FluxHandler(): # Maxwellian flux for now
             nb_particles_to_inject = [int(flux * dt) for flux in self.fluxes]
             if(self.debug):print(nb_particles_to_inject)
             return init_particles_flux(self.in_flux_wall, self.direction, nb_particles_to_inject, \
-                self.particles_types, self.temperatures, self.drifts)
+                self.particles_types, self.temperatures, self.drifts, dt)
 
     # ----------- init function -------------- #
 
