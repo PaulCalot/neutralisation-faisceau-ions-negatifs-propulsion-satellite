@@ -1,10 +1,11 @@
 # variabl
 .vscode
-*.png
+#*.png
 *.mp4
 *.csv
 *.txt
 nohup.out
+resources/
 results/
 biblio/
 # jupyter lab

@@ -86,12 +86,14 @@ class system(ABC):
         return [i/j for i, j in zip(N_particles_real,N_particles_simu)]
 
     def plot(self):
-        self.grid.plot()
-        # adding now the walls 
+        #self.grid.plot()
+        # adding now the walls
+        fig = plt.plot(figsize = (10,30))
         for wall in self.walls :
             self.plot_wall(wall)
-        self.plot_fluxes()
+        #self.plot_fluxes()
         plt.axis('scaled')
+        plt.savefig('thruster_with_arrows.png', dpi = 1200)
 
     def add(self, particle):
         self.grid.add(particle)
