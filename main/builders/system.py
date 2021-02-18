@@ -95,7 +95,7 @@ class system(ABC):
         plt.axis('scaled')
         plt.savefig('thruster_with_arrows.png', dpi = 1200)
 
-    def add(self, particle):
+    def add(self, particle): # should not be use
         self.grid.add(particle)
 
     def get_size(self):
@@ -144,16 +144,13 @@ class system(ABC):
         return self.Ne
         
     # ---------- step function ------------ #
-
+    
     def step(self, dt, t):
+        self.dsmc.step(dt, t, self.f_args)
         new_particles = self.flux_handler.step(dt)
         if(self.debug):print('Injecting {} new particles.'.format(len(new_particles)))
-        for particle in new_particles:
-            if(self.debug): print(particle.to_string())
-            self.add(particle) # adding new particle in grid
-            self.dsmc.add(particle) # adding new particle in list 
-        self.dsmc.step(dt, t, self.f_args)
-
+        self.dsmc.add_particles(new_particles)
+        
     def simulate(self, dt, max_number_of_steps):
         return
     # ----------- init DSMC --------------- #

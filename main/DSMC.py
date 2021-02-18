@@ -343,6 +343,17 @@ class DSMC(object):
 
     # ------------------------------- Init ---------------------------- #
 
+    def add_particles(self, particles_list):
+        for part in particles_list:
+            while(not self.grid.add_and_verify(part)): # adding it to the grid
+                # then the particle has been initialized out of the box.
+                if not self._collision_with_wall(part):
+                    # in that case the particle exited the system by the wall
+                    # if a print message appears, then this was not suppoed to be the case
+                    # in any case : we delete it.
+                    print('ERROR - newly initialized particle can not be linked to any wall it could have exited')
+            self.add(part)
+
     def init_walls(self):
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall

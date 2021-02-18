@@ -127,7 +127,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
         v_mean = get_maxwellian_mean_speed_from_temperature(temperature, mass)
         mu = 0
         for k in range(number_):
-            my_speed = 0
+            my_speed = None
 
             v_drift = drift*direction
             #     
@@ -147,7 +147,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
-            x, y = x1+random()*(x2-x1)+direction.x*v_mean*(1-random())*dt, y1+random()*(y2-y1)+direction.y*v_mean*(1-random())*dt
+            x, y = x1+random()*(x2-x1)+vx*(1-random())*dt, y1+random()*(y2-y1)+vy*(1-random())*dt # problem : this can go out of the domain if I am not careful
             list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \

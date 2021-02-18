@@ -24,16 +24,16 @@ class Grid(object):
         self.sparsed_space_idx = None
         self.number_of_particles = 0
 
-    def add(self, particule):
-        pos = particule.get_pos()+self.offsets
+    def add(self, particle):
+        pos = particle.get_pos()+self.offsets
         if(self.debug) : print("Position with offsets correcting : {}".format(pos))
-        self.add_(particule, self.get_pos_in_grid(pos))
+        self.add_(particle, self.get_pos_in_grid(pos))
         self.number_of_particles += 1
 
-    def add_(self, particule, pos_in_grid):
+    def add_(self, particle, pos_in_grid):
         if(self.debug) : print("Resulting position in grid {}".format(pos_in_grid))
         if(self.debug):
-            print("Adding ... " + particule.to_string() + " in grid position {}.".format(pos_in_grid), end=" " )
+            print("Adding ... " + particle.to_string() + " in grid position {}.".format(pos_in_grid), end=" " )
         
         if(self.grid[pos_in_grid[0],pos_in_grid[1]] == None): # checking if we already created this list or not
             self.grid[pos_in_grid[0],pos_in_grid[1]] = self.data_structure_class()
@@ -42,10 +42,20 @@ class Grid(object):
         else:
             if(self.debug):
                 print("Added the particule to pre-existing data structure (type {})".format(self.dtype), end = ' ')
-        self.grid[pos_in_grid[0],pos_in_grid[1]].insert(particule)
+        self.grid[pos_in_grid[0],pos_in_grid[1]].insert(particle)
         
         if(self.debug):
             print("     [OK]")
+
+    def add_and_verify(self, particle):
+        pos = particle.get_pos()+self.offsets
+        if(self.debug) : print("Position with offsets correcting : {}".format(pos))
+        pos_in_grid = self.get_pos_in_grid(pos)
+        if(pos_in_grid == None):
+            # Not in grid
+            return False
+        self.add_(particle, pos_in_grid)
+        self.number_of_particles += 1
 
     def remove(self, particule):
         pos = particule.get_pos()+self.offsets

@@ -11,9 +11,11 @@ class FluxHandler(): # Maxwellian flux for now
 
     def step(self, dt):
         if(self.use_flux):
-            nb_particles_to_inject = [int(flux * dt) for flux in self.fluxes]
+            nb_particles_to_inject_float = dt*self.fluxes
+            remainders_, nb_particles_to_inject = np.modf(np.add(self.remainders, nb_particles_to_inject_float))
+            self.remainders = remainders_
             if(self.debug):print(nb_particles_to_inject)
-            return init_particles_flux(self.in_flux_wall, self.direction, nb_particles_to_inject, \
+            return init_particles_flux(self.in_flux_wall, self.direction, int(nb_particles_to_inject), \
                 self.particles_types, self.temperatures, self.drifts, dt)
 
     # ----------- init function -------------- #
@@ -24,7 +26,8 @@ class FluxHandler(): # Maxwellian flux for now
         self.temperatures = temperatures
         self.drifts = drifts
         self.list_walls = list_walls 
-        self.fluxes = fluxes
+        self.fluxes = np.array(fluxes)
+        self.remainders = np.zeros(self.fluxes.shape)
         self.in_flux_wall = in_flux_wall
         self.direction = direction
         self.use_flux = True
