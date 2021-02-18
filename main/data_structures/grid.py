@@ -56,6 +56,7 @@ class Grid(object):
             return False
         self.add_(particle, pos_in_grid)
         self.number_of_particles += 1
+        return True
 
     def remove(self, particule):
         pos = particule.get_pos()+self.offsets

@@ -5,17 +5,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class FluxHandler(): # Maxwellian flux for now
-    debug=False
+    debug=True
     def __init__(self):
-        self.use_flux = False
+        self.use_flux = True
 
     def step(self, dt):
         if(self.use_flux):
             nb_particles_to_inject_float = dt*self.fluxes
             remainders_, nb_particles_to_inject = np.modf(np.add(self.remainders, nb_particles_to_inject_float))
+            nb_particles_to_inject = nb_particles_to_inject. astype(int)
             self.remainders = remainders_
-            if(self.debug):print(nb_particles_to_inject)
-            return init_particles_flux(self.in_flux_wall, self.direction, int(nb_particles_to_inject), \
+            if(self.debug):
+                print('Particles injected : {}, remainder : {}'.format(nb_particles_to_inject, self.remainders))
+            return init_particles_flux(self.in_flux_wall, self.direction, nb_particles_to_inject, \
                 self.particles_types, self.temperatures, self.drifts, dt)
 
     # ----------- init function -------------- #

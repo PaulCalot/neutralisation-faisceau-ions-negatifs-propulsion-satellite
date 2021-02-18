@@ -154,7 +154,7 @@ class Particule(object):
 
     def to_string(self):
         return "{} particule of charge {} C and mass {} kg in position ({},{}) m with speed ({},{}) m/s" \
-            .format(self.part_type, self.charge, self.mass, round(self.pos.x,3), round(self.pos.y,3), round(self.speed.x,3), round(self.speed.y,3))
+            .format(self.part_type, self.charge, self.mass, round(self.pos.x,5), round(self.pos.y,5), round(self.speed.x,3), round(self.speed.y,3))
     
     def to_list(self): # facilitates data analysis
         return [self.id, self.part_type, self.pos.x, self.pos.y, self.pos.z, \

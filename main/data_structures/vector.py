@@ -139,6 +139,8 @@ class MyVector(object):
     def __repr__(self):
         return str(self.values)
 
+    def __str__(self) -> str:
+        return str(self.values)        
     # added it after a comment : https://gist.github.com/mcleonard/5351452
     @property
     def x(self):
