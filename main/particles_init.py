@@ -147,7 +147,9 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
-            x, y = x1+np.random.uniform(0.01,0.99)*(x2-x1)+vx*(1-random())*dt*direction.x, y1+np.random.uniform(0.01,0.99)*(y2-y1)+vy*(1-random())*dt*direction.y # problem : this can go out of the domain if I am not careful
+            #x, y = x1+np.random.uniform(0.01,0.99)*(x2-x1)+vx*(1-random())*dt*direction.x, y1+np.random.uniform(0.01,0.99)*(y2-y1)+vy*(1-random())*dt*direction.y # problem : this can go out of the domain if I am not careful
+            x, y = x1+np.random.uniform(0.01,0.99)*(x2-x1)+vx*(1-random())*dt, y1+np.random.uniform(0.01,0.99)*(y2-y1)+vy*(1-random())*dt # problem : this can go out of the domain if I am not careful
+            
             list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \

@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class FluxHandler(): # Maxwellian flux for now
-    debug=True
+    debug=False
     def __init__(self):
         self.use_flux = True
 

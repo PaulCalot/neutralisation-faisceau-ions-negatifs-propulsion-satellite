@@ -29,6 +29,7 @@ class Grid(object):
         if(self.debug) : print("Position with offsets correcting : {}".format(pos))
         self.add_(particle, self.get_pos_in_grid(pos))
         self.number_of_particles += 1
+        particle.set_id(self.number_of_particles)
 
     def add_(self, particle, pos_in_grid):
         if(self.debug) : print("Resulting position in grid {}".format(pos_in_grid))
@@ -183,12 +184,13 @@ class Grid(object):
 
     def plot(self):
         particles = self.get_all_particles()
+        print("In grid number of particles {}".format(len(particles)))
         positions = [part.get_pos() for part in particles]
         speed = [part.get_speed() for part in particles]
         norm = [v.norm() for v in speed]
         x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
 
-        plt.scatter(x_pos, y_pos, s=0.3, c = norm, cmap='seismic') # problem if offset
+        plt.scatter(x_pos, y_pos, s=2.0, c = norm, cmap='seismic') # problem if offset
         self.plot_grid()
 
     # ------------ Getter and setter ------------- #

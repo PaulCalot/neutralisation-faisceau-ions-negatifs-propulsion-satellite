@@ -2,6 +2,8 @@
 import warnings
 
 from main import MyVector, get_mass_part
+import matplotlib.pyplot as plt
+
 # constant
 IODINE_RADIUS = 1.98e-10 # 198 pm
 IODINE_MASS = get_mass_part(53, 53, 88) # Iodine : 53 protons, 53 electrons, 131 nucleons => 88 neutrons
@@ -153,8 +155,8 @@ class Particule(object):
     # ----------------- to String -------------------- #
 
     def to_string(self):
-        return "{} particule of charge {} C and mass {} kg in position ({},{}) m with speed ({},{}) m/s" \
-            .format(self.part_type, self.charge, self.mass, round(self.pos.x,5), round(self.pos.y,5), round(self.speed.x,3), round(self.speed.y,3))
+        return "{}:{} particule of charge {} C and mass {} kg in position ({},{}) m with speed ({},{}) m/s" \
+            .format(self.id, self.part_type, self.charge, self.mass, round(self.pos.x,5), round(self.pos.y,5), round(self.speed.x,3), round(self.speed.y,3))
     
     def to_list(self): # facilitates data analysis
         return [self.id, self.part_type, self.pos.x, self.pos.y, self.pos.z, \
@@ -162,3 +164,6 @@ class Particule(object):
 
     def get_headers(self):
         return ['id', 'type','x','y','z','vx','vy','vz']
+
+    def plot(self):
+        plt.plot([self.pos.x, self.pos.y], 'o', color = 'r')

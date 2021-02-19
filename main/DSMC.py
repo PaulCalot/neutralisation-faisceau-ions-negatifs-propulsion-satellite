@@ -65,6 +65,11 @@ class DSMC(object):
     # ------------------------------- Step Function -----------------------------------#
 
     def step(self, dt, t, f_args):
+        debug=False
+        if(debug):
+            print("Number of parts : {}".format(len(self.particles)))
+            plt.figure(figsize=(30,10))
+            self.grid.plot()
         list_previous_positions = []
         for i, part in enumerate(self.particles):
             list_previous_positions.append(part.get_2D_pos())
@@ -85,14 +90,24 @@ class DSMC(object):
                     # in any case : we delete it.
                     list_part_to_delete.append([i,part])
                     break
-                list_count.append(count)
-        plt.hist(list_count, bins = 100)
-        plt.show()
+
+            if(debug and count == 10):
+                print('\n/!\ particle too much reflection /!\ \n')
+                print(part.to_string()+" - count : {}".format(count))
+                part.plot()
+            list_count.append(count)
+
+        if(debug):
+            plt.show()
+            plt.hist(list_count, bins = 'auto')
+            if(len(list_count)>0):
+                plt.title("Mean : {} ; std  : {} ; max : {}".format(np.mean(np.array(list_count)),np.std(np.array(list_count)), np.max(np.array(list_count))))
+            plt.show()
         # Second phase DMSC
         self.dsmc_collisions(dt)
 
         # delete all involved particles
-        if(self.debug): print("Number of particles that got out : {}.".format(len(list_part_to_delete)))
+        if(debug): print("Number of particles that got out : {}.".format(len(list_part_to_delete)))
         
         for k,particle in enumerate(list_part_to_delete):
             i, part = particle
@@ -137,6 +152,8 @@ class DSMC(object):
 
     # ----------------------------- Wall collision -------------------------- #
     def _collision_with_wall(self, part):
+        debug=False
+
         pos = part.get_2D_pos()
         speed = part.get_2D_speed()
         radius = part.get_radius()
@@ -147,6 +164,7 @@ class DSMC(object):
         for i in range(len(self.walls)):
             t_coll, pos_intersect = self.handler_wall_collision(pos, -1.0*speed, radius, i)
             liste.append((t_coll, pos_intersect, self.walls[i]))
+
             if(t_coll<min_time):
                 idx_min_time = i
                 min_time = t_coll
@@ -161,7 +179,12 @@ class DSMC(object):
         if(self.out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(self.out_wall, wall)])):
             return False
 
-        if(self.debug): print('Collision time : {}, position : {}'.format(min_time, min_pos_intersect))
+        if(debug): 
+            print('Particule : {}'.format(part.to_string()))
+            print('Collision time : {}, position : {}'.format(min_time, min_pos_intersect))
+            print('with wall {}'.format(wall))
+            print('Other walls : ')
+            pprint(liste)
         # reflect position / speed of part with respect to wall idx_min_time
         if(min_pos_intersect != None):
             self.reflect_particle(part, min_time, idx_min_time, min_pos_intersect)
@@ -235,13 +258,13 @@ class DSMC(object):
         t_coll_1 = (-A_prime-radius)/B
         t_coll_2 = (-A_prime+radius)/B
         if(self.debug): print("Collision time with wall : {} or {}".format(t_coll_1, t_coll_2))
-
-        if(t_coll_1 > 0 and t_coll_2 > 0):
-            t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
-            pos_intersect = position + t_intersect * speed 
+        
+        t_intersect = max(t_coll_1, t_coll_2)
+        if(t_intersect > 0):
+            # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
+            # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
+            pos_intersect = position + t_intersect * speed
             
-            if(self.debug): print("Intersection position with wall : {}, {}".format(pos_intersect.x, pos_intersect.y))
-
             wall_extrimity1_coordinates = MyVector(x1,y1)
             wall_extrimity2_coordinates = MyVector(x2,y2)
             # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
@@ -250,21 +273,41 @@ class DSMC(object):
             norm_1 = dP1.norm()
             norm_2 = dP2.norm()
             # norm_3 = dP3.norm()
-            if(norm_2 != 0.0):
-                cosAngle = dP1.inner(dP2)/(norm_1*norm_2)
-                distance_pos_intersect_to_wall = norm_2*np.sqrt(1-cosAngle*cosAngle)
-                tol = 1.0 # for now
-                if(self.debug): print('Distance intersection to wall vs radius : {} vs {}'.format(distance_pos_intersect_to_wall, radius))
-                if(distance_pos_intersect_to_wall<radius*tol):
-                    if(self.debug):
-                        print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
-                    return min(t_coll_1, t_coll_2), pos_intersect
-            else:
-                # means the two are exactly the same which should virtually never happen
-                if(self.debug): 
-                    print('Wall extremity one and intersection are the same.')
-                    print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
-                return min(t_coll_1, t_coll_2), pos_intersect
+            if(norm_1 != 0.0): # in theory impossible
+               qty=dP1.inner(dP2)/(norm_1*norm_1)
+               if(qty < 1 and qty > 0):
+                   return t_intersect, pos_intersect
+
+        # if(t_coll_1 > 0 and t_coll_2 > 0):
+
+        #     t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
+        #     pos_intersect = position + t_intersect * speed 
+            
+        #     if(self.debug): print("Intersection position with wall : {}, {}".format(pos_intersect.x, pos_intersect.y))
+
+        #     wall_extrimity1_coordinates = MyVector(x1,y1)
+        #     wall_extrimity2_coordinates = MyVector(x2,y2)
+        #     # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
+        #     dP1, dP2, dP3 = wall_extrimity2_coordinates-wall_extrimity1_coordinates, \
+        #         pos_intersect-wall_extrimity1_coordinates, wall_extrimity2_coordinates-pos_intersect 
+        #     norm_1 = dP1.norm()
+        #     norm_2 = dP2.norm()
+        #     # norm_3 = dP3.norm()
+        #     if(norm_2 != 0.0):
+        #         cosAngle = dP1.inner(dP2)/(norm_1*norm_2)
+        #         distance_pos_intersect_to_wall = norm_2*np.sqrt(1-cosAngle*cosAngle)
+        #         tol = 1.0 # for now
+        #         if(self.debug): print('Distance intersection to wall vs radius : {} vs {}'.format(distance_pos_intersect_to_wall, radius))
+        #         if(distance_pos_intersect_to_wall<radius*tol):
+        #             if(self.debug):
+        #                 print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
+        #             return min(t_coll_1, t_coll_2), pos_intersect
+        #     else:
+        #         # means the two are exactly the same which should virtually never happen
+        #         if(self.debug): 
+        #             print('Wall extremity one and intersection are the same.')
+        #             print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
+        #         #return min(t_coll_1, t_coll_2), pos_intersect
 
             # if(self.debug): print("Wall position : ({}, {}) - ({}, {})".format(x1,y1,x2,y2))
             # if(self.debug): print("Norm : 1, 2, 3: {}, {}, {} \t - \t diff vs radius : {} vs {}.".format(norm_1,norm_2,norm_3,abs(norm_1-norm_2-norm_3), radius))
@@ -382,10 +425,10 @@ class DSMC(object):
                     # in that case the particle exited the system by the wall
                     # if a print message appears, then this was not suppoed to be the case
                     # in any case : we delete it.
-                    print('ERROR - newly initialized particle can not be linked to any wall it could have exited')
-                    print(part.to_string())
-                    print('Initial position : {}'.format(init_position))
-                    print('Init speed : {}'.format(init_speed))
+                    # print('ERROR - newly initialized particle can not be linked to any wall it could have exited')
+                    # print(part.to_string())
+                    # print('Initial position : {}'.format(init_position))
+                    # print('Init speed : {}'.format(init_speed))
                     return
                 
             self.add(part)
