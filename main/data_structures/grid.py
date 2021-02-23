@@ -54,6 +54,7 @@ class Grid(object):
         pos_in_grid = self.get_pos_in_grid(pos)
         if(pos_in_grid == None):
             # Not in grid
+            # print('Position in grid : {}'.format(self.get_pos_in_grid_(pos)))
             return False
         self.add_(particle, pos_in_grid)
         self.number_of_particles += 1
@@ -107,7 +108,7 @@ class Grid(object):
             print("     [OK]")
         return True
 
-    def get_pos_in_grid(self, position):
+    def get_pos_in_grid_(self, position):
         #return [int(position.x*self.res[0]/self.lx), int(position.y*self.res[1]/self.ly)]
         pos_x = position.x*self.res[0]/self.lx
         # First problem : we accepted -1 because list[-1] returns the last element which works. So I add to add the final if.
@@ -123,7 +124,10 @@ class Grid(object):
             pos_y = -1
         else :
             pos_y = int(pos_y)
+        return pos_x, pos_y
 
+    def get_pos_in_grid(self, position):
+        pos_x, pos_y = self.get_pos_in_grid_(position)
         
         if(self.debug) : print("Real position : [{},{}], position in grid : [{},{}].".format(position.x, position.y, pos_x, pos_y))
         #return [min(max(0,pos_x),self.res[0]-1), min(max(0,pos_y),self.res[1]-1)]

@@ -190,8 +190,8 @@ class DSMC(object):
             self.reflect_particle(part, min_time, idx_min_time, min_pos_intersect)
             return True
         else:
-            pprint(liste)
-            print("No wall nearby.")
+            #pprint(liste)
+            #print("No wall nearby.")
             return False
 
     def handler_wall_collision(self, position, speed, radius, wall_indx):
@@ -415,24 +415,28 @@ class DSMC(object):
     # ------------------------------- Init ---------------------------- #
 
     def add_particles(self, particles_list):
+        
         for part in particles_list:
             init_position = part.get_2D_pos()
             init_speed = part.get_2D_speed()
             if(self.debug): print("\n\n"+part.to_string())
+            B = True
             while(not self.grid.add_and_verify(part)): # adding it to the grid
                 # then the particle has been initialized out of the box.
                 if not self._collision_with_wall(part):
                     # in that case the particle exited the system by the wall
                     # if a print message appears, then this was not suppoed to be the case
                     # in any case : we delete it.
-                    # print('ERROR - newly initialized particle can not be linked to any wall it could have exited')
-                    # print(part.to_string())
-                    # print('Initial position : {}'.format(init_position))
-                    # print('Init speed : {}'.format(init_speed))
-                    return
+                    print('ERROR - newly initialized particle can not be linked to any wall it could have exited')
+                    print(part.to_string())
+                    print('Initial position : {}'.format(init_position))
+                    print('Init speed : {}'.format(init_speed))
+                    part.plot()
+                    B = False
+                    break 
+            if(B):             
+                self.add(part)
                 
-            self.add(part)
-
     def init_walls(self):
         for i, wall in enumerate(self.walls):
             x1,y1,x2,y2 = wall

@@ -51,7 +51,7 @@ def post_processing(options):
         nb_cells = data_analyser.get_param('nb_cells')
         
         if(compute_system_evolution):
-            data_analyser.draw_particles()
+            data_analyser.draw_particles(x_min, x_max, y_min, y_max)
 
         if(compute_hist_distribution_evolution):
             # speed_norm , speed_norm_squared , vz

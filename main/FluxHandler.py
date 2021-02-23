@@ -7,7 +7,7 @@ import numpy as np
 class FluxHandler(): # Maxwellian flux for now
     debug=False
     def __init__(self):
-        self.use_flux = True
+        self.use_flux = False
 
     def step(self, dt):
         if(self.use_flux):
@@ -16,6 +16,7 @@ class FluxHandler(): # Maxwellian flux for now
             nb_particles_to_inject = nb_particles_to_inject. astype(int)
             self.remainders = remainders_
             if(self.debug):
+                
                 print('Particles injected : {}, remainder : {}'.format(nb_particles_to_inject, self.remainders))
             return init_particles_flux(self.in_flux_wall, self.direction, nb_particles_to_inject, \
                 self.particles_types, self.temperatures, self.drifts, dt)

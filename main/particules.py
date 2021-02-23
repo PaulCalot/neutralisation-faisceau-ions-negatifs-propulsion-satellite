@@ -166,4 +166,4 @@ class Particule(object):
         return ['id', 'type','x','y','z','vx','vy','vz']
 
     def plot(self):
-        plt.plot([self.pos.x, self.pos.y], 'o', color = 'r')
+        plt.plot([self.pos.x, self.pos.y], '+', color = 'r', markersize=12)

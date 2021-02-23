@@ -289,7 +289,7 @@ class DataAnalyser :
         else:
             plt.show()
       
-    def draw_particles(self, save_animation=True):
+    def draw_particles(self, x_min, x_max, y_min, y_max, save_animation=True):
         # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
         # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.scatter.html 
         if(self.current == None):
@@ -307,10 +307,13 @@ class DataAnalyser :
 
             ax.set_title('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=15)
 
+
         fig, ax = plt.subplots()
         plt.axis('scaled')
+        ax.set_xlim(x_min, x_max)
+        ax.set_ylim(y_min, y_max)
         df = lst[0]
-        scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
+        scat = ax.scatter(df['x'], df['y'], s=0.1, c = df['speed_norm'], cmap='seismic')
 
         ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
 

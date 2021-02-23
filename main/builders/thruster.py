@@ -8,6 +8,7 @@ class thruster(system):
     def __init__(self, options, min_mean_free_path=None) -> None:
         super().__init__(options, min_mean_free_path)
         # mesh may not be needed right now but may be later.
+        #print("Offset vs grid offset : {} vs {}".format(self.offset, self.grid.offsets))
         
     def make_system(self):
         mesh, segments_list, zone = get_mesh(self.options['geometry'])
