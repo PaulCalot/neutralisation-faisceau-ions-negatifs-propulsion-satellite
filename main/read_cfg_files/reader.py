@@ -79,6 +79,12 @@ def get_options(cfg_file_paths, verbose = True):
     frames_to_compute = list(map(cfg_tools.read_args_multiple_types, \
          processing_options.frames_to_compute.split(',')))
     compute_collisions = cfg_tools.str_to_bool(processing_options.compute_collisions)
+    compute_density = cfg_tools.str_to_bool(processing_options.compute_density)
+    args_density = list(map(int, \
+         processing_options.args_density.split(',')))
+    compute_number_of_particles = cfg_tools.str_to_bool(processing_options.compute_number_of_particles)
+
+    
     merge_csv = cfg_tools.str_to_bool(processing_options.merge_csv)
     files_to_merge = list(map(str, processing_options.files_to_merge.split(',')))
 
@@ -92,6 +98,9 @@ def get_options(cfg_file_paths, verbose = True):
         'compute_hist_distribution_evolution' :compute_hist_distribution_evolution,
         'compute_spatial_distribution':compute_spatial_distribution,
         'compute_temperature':compute_temperature,
+        'compute_density':compute_density,
+        'args_density':args_density,
+        'compute_number_of_particles':compute_number_of_particles,
         'frames_to_compute':frames_to_compute,
         'compute_collisions':compute_collisions,
         'merge_csv':merge_csv,
@@ -99,11 +108,13 @@ def get_options(cfg_file_paths, verbose = True):
     }
 
     # simulation options
+    seed = cfg_tools.read_args_multiple_types(simulation_options.seed) # can also be None
     scheme = str(simulation_options.scheme)
     dt = float(simulation_options.dt)
     number_of_steps = int(simulation_options.number_of_steps)
 
     simulation = {
+        'seed':seed,
         'scheme':scheme,
         'dt':dt,
         'number_of_steps':number_of_steps
@@ -249,6 +260,7 @@ def read_conf_simulation(cfg_file_path):
     config = ConfigParser.ConfigParser()
     config.read(options.cfg)
 
+    options.seed = config.get('params','seed')
     options.scheme = config.get('params','scheme')
     options.dt = config.get('params','dt')
     options.number_of_steps = config.get('params','number_of_steps')
@@ -278,6 +290,9 @@ def read_conf_processing(cfg_file_path):
     options.compute_temperature = config.get('processing options','compute_temperature')
     options.frames_to_compute = config.get('processing options','frames_to_compute')
     options.compute_collisions = config.get('processing options','compute_collisions')
+    options.compute_density = config.get('processing options','compute_density')
+    options.args_density = config.get('processing options','args_density')
+    options.compute_number_of_particles = config.get('processing options','compute_number_of_particles')
 
     options.merge_csv = config.get('merge file','merge_csv')
     options.files_to_merge = config.get('merge file','files_to_merge')

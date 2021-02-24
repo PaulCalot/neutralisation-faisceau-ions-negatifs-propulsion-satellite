@@ -28,7 +28,12 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
         'processing':processing_cfg
     }
 
+
     options = get_options(cfg_path_dict)
+    simu = options['simulation']
+    
+    np.seed(simu['seed'])
+
     if(verbose):
         pprint(options)
     system, zone, offset = init_system(options['system'])
@@ -37,7 +42,6 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
     # TODO there could be an initialization of particles of the system, in which case mean_speed would not be none
     mean_speed=None
 
-    simu = options['simulation']
     integration_scheme = get_scheme(simu)
 
     system.init_dsmc(mean_speed = mean_speed, integration_scheme = integration_scheme, f = f, f_args = args)
