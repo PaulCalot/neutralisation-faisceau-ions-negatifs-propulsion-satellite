@@ -20,7 +20,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
     system_cfg = system_cfg_path
     simulation_cfg = simulation_cfg_path
     processing_cfg = processing_cfg_path
-
+    
     list_cfg_files = [system_cfg, simulation_cfg, processing_cfg]
     cfg_path_dict = {
         'system':system_cfg,
@@ -115,26 +115,36 @@ def init_system(system_options):
 def get_update_fn(system, system_type):
 
     if(system_type=='thruster'):
-
-        def f(Y,t,m,q,zone,E):
-            '''
-            Renvoie la dérivée de Y en y (en faisant un bilan des forces notamment) pr être entré dans RK4
-            Y=[x, y, z, vx, vy, vz] ce n'est pas le Y de liste_Y
-            '''
-            Ex, Ey = E.split(deepcopy=True)
+        def f(Y,t,m,q):
             vx=Y[3]
             vy=Y[4]
             vz=Y[5]
-            if zone.inside(Point(Y[0],Y[1])):
-                ax = (1/m) * q * Ex(Y[0], Y[1])
-                ay = (1/m) * q * Ey(Y[0], Y[1])
-            else :
-                ax = 0  #utile si les ki sont hors du mesh,
-                ay = 0
-            az=0
+
+            ax = 0 
+            ay = 0
+            az = 0
             return np.array([vx, vy, vz, ax, ay, az])
+
+        args = []
+        # def f(Y,t,m,q,zone,E):
+        #     '''
+        #     Renvoie la dérivée de Y en y (en faisant un bilan des forces notamment) pr être entré dans RK4
+        #     Y=[x, y, z, vx, vy, vz] ce n'est pas le Y de liste_Y
+        #     '''
+        #     Ex, Ey = E.split(deepcopy=True)
+        #     vx=Y[3]
+        #     vy=Y[4]
+        #     vz=Y[5]
+        #     if zone.inside(Point(Y[0],Y[1])):
+        #         ax = (1/m) * q * Ex(Y[0], Y[1])
+        #         ay = (1/m) * q * Ey(Y[0], Y[1])
+        #     else :
+        #         ax = 0  #utile si les ki sont hors du mesh,
+        #         ay = 0
+        #     az=0
+        #     return np.array([vx, vy, vz, ax, ay, az])
         
-        args = [system.get_zone(), system.get_E()]
+        # args = [system.get_zone(), system.get_E()]
         
     elif(system_type=='square'):
         def f(Y,t,m,q):

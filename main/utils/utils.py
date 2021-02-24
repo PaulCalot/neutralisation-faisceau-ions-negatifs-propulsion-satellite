@@ -12,19 +12,21 @@ def segment(Point1,Point2):
     """
     return [Point1[0],Point1[1],Point2[0],Point2[1]]
 
-
+ATOMIC_MASS = 1.66053906660e-27 # kg
 NUCLEON_MASS = 1.672e-27 # kg
 ELECTRON_MASS = 9.11e-31
 BOLTZMAN_CONSTANT = 1.38064e-23 # J K−1
 ELECTRON_CHARGE = -1.6e-19 # C
 ELECTRON_EFFECTIVE_DIAMETER = 2.8179403227e-15 # m
 CONSTANTS = {
+    'ATOMIC_MASS':ATOMIC_MASS,
     'NUCLEON_MASS':NUCLEON_MASS,
     'ELECTRON_MASS':ELECTRON_MASS,
     'BOLTZMAN_CONSTANT':BOLTZMAN_CONSTANT,
     'ELECTRON_CHARGE':ELECTRON_CHARGE,
     'ELECTRON_EFFECTIVE_DIAMETER':ELECTRON_EFFECTIVE_DIAMETER
 }
+
 def get_mass_part(electrons_nb, protons_number, neutrons_number):
     return (neutrons_number+protons_number)*NUCLEON_MASS+electrons_nb*ELECTRON_MASS
 
@@ -32,31 +34,40 @@ available_particles = {
     'I':{
         'symbol' : 'I',
         'name' : 'iodine',
-        'mass' : get_mass_part(53, 53, 88),
+        'atomic mass': 126.90447,
+        'mass' : get_mass_part(53, 53, 74),
         'charge' : 0,
         'effective diameter' : 4e-10
     },
     'I+':{
         'symbol' : 'I+',
         'name' : 'iodine cation',
-        'mass' : get_mass_part(52, 53, 88),
+        'mass' : get_mass_part(52, 53, 74),
         'charge' : -ELECTRON_CHARGE,
         'effective diameter' : 4e-10
     },
     'I-':{
         'symbol' : 'I-',
         'name' : 'iodide',
-        'mass' : get_mass_part(54, 53, 88),
+        'mass' : get_mass_part(54, 53, 74),
         'charge' : ELECTRON_CHARGE,
         'effective diameter' : 4e-10
     },
     'I2':{
         'symbol' : 'I2',
         'name' : 'diiodine',
-        'mass' : 2*get_mass_part(53, 53, 88),
+        'mass' : 2*get_mass_part(53, 53, 74),
         'charge' : 0,
         # TODO
         'effective diameter' : 4e-10 + 266e-12 # distance between the two atoms
+    },
+    'Xe':{
+        'symbol' : 'Xe',
+        'name' : 'xenon',
+        'atomic mass': 131.293,
+        'mass' : get_mass_part(54, 54, 74),
+        'charge' : 0,
+        'effective diameter' : 4.32e-10 # Van der Waals radius = 216 pm
     },
     'e':{
         'symbol' : 'e',

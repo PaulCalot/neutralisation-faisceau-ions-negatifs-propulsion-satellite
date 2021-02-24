@@ -102,17 +102,18 @@ def post_processing(options):
 
             print('For test {}, N_e = {:e} vs N_t = {:e}.'.format(id_test , number_of_collisions, expected_number_of_collision))
         
-        nb_frames = 240
-        bins_x, bins_y = 30,10
+        nb_frames = 280  # 80
+        bins_x, bins_y = 25,10 # 20,20
 
         data_analyser.plot_mean_density_evolution_1D(direction = 'y', bins = bins_y, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
         data_analyser.plot_mean_density_evolution_1D(direction = 'x', bins = bins_x, frames = nb_frames) # last 10 frames, with period 10 means we are going to take the last 100 time step... (in theory)
-        data_analyser.plot_mean_density_evolution_by('y', bins = bins_y//2, bins_ = bins_x//2, frames = nb_frames)
+        data_analyser.plot_mean_density_evolution_by('y', bins =  bins_y//2, bins_ = bins_x//2, frames = nb_frames)
         data_analyser.plot_mean_density_evolution_by('x', bins = bins_x//2, bins_ = bins_y//2, frames = nb_frames)
 
         Ne = convert_string_to_list(data_analyser.get_param('Ne_per_type'))
         Ne_mean = np.mean(np.array(Ne))
         volume = data_analyser.get_param('volume')/(bins_x*bins_y)
+
         def f(raw):
             return 2.0*Ne_mean / (volume*nb_frames) # I added 2.0 here because somehow plt.hexbin multiply by two the number of boxes...
 
@@ -121,3 +122,5 @@ def post_processing(options):
         data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vx', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
         data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vy', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
         data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vz', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+
+        data_analyser.number_of_particles(save=True)

@@ -53,8 +53,7 @@ class Grid(object):
         if(self.debug) : print("Position with offsets correcting : {}".format(pos))
         pos_in_grid = self.get_pos_in_grid(pos)
         if(pos_in_grid == None):
-            # Not in grid
-            # print('Position in grid : {}'.format(self.get_pos_in_grid_(pos)))
+            #print('Position in grid : {}'.format(self.get_pos_in_grid_(pos)))
             return False
         self.add_(particle, pos_in_grid)
         self.number_of_particles += 1

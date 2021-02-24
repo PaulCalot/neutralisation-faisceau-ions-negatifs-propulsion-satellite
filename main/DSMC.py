@@ -233,6 +233,7 @@ class DSMC(object):
         Returns:
             int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. 
         """
+        debug = False
         # p index of the part
         wall_directing_vector = self.walls_vector[wall_indx]
         x1, y1, x2, y2 = self.walls[wall_indx] # x1<=x2 etc.
@@ -244,27 +245,28 @@ class DSMC(object):
         sTheta, cTheta = np.sin(theta), np.cos(theta)
         B = -speed.x*sTheta+speed.y*cTheta
         if B == 0.0 : 
-            if(self.debug): print('B==0.0')
+            if(debug): print('B==0.0')
             return np.nan, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
         A = -position.x*sTheta+position.y*cTheta
         
         # new position of the wall in the new base
         y1_new_base = -x1*sTheta+y1*cTheta
-        if(self.debug):
+        if(debug):
             y2_new_base = -x2*sTheta+y2*cTheta
             assert(abs(y1_new_base-y2_new_base)<1e-6)
         A_prime = A-y1_new_base
         # possible collision time :
         t_coll_1 = (-A_prime-radius)/B
         t_coll_2 = (-A_prime+radius)/B
-        if(self.debug): print("Collision time with wall : {} or {}".format(t_coll_1, t_coll_2))
+        if(debug): print("Collision time with wall : {} or {}".format(t_coll_1, t_coll_2))
         
         t_intersect = max(t_coll_1, t_coll_2)
+        
         if(t_intersect > 0):
             # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
             # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
             pos_intersect = position + t_intersect * speed
-            
+
             wall_extrimity1_coordinates = MyVector(x1,y1)
             wall_extrimity2_coordinates = MyVector(x2,y2)
             # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
@@ -273,11 +275,19 @@ class DSMC(object):
             norm_1 = dP1.norm()
             norm_2 = dP2.norm()
             # norm_3 = dP3.norm()
-            if(norm_1 != 0.0): # in theory impossible
-               qty=dP1.inner(dP2)/(norm_1*norm_1)
-               if(qty < 1 and qty > 0):
-                   return t_intersect, pos_intersect
-
+            qty=dP1.inner(dP2)/(norm_1*norm_1) # norm_1 cant be 0 because wall segments are not on same points.
+            if(qty < 1 and qty > 0):
+                return t_intersect, pos_intersect
+            # else:
+            #     print("\nQty : {} ".format(qty))
+            #     print(self.walls[wall_indx])
+            #     print(wall_extrimity1_coordinates)
+            #     print(wall_extrimity2_coordinates)
+            #     print(pos_intersect)
+            #     print('\n')
+        else:
+            if(debug):
+                print(t_intersect)
         # if(t_coll_1 > 0 and t_coll_2 > 0):
 
         #     t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
@@ -318,7 +328,7 @@ class DSMC(object):
             #     if(self.debug):
             #         print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
             #     return min(t_coll_1, t_coll_2), pos_intersect
-        if(self.debug): print('Default out.')
+        if(debug): print('Default out.')
         return np.nan, None
 
     def reflect_particle(self, part, time, idx, pos_intersect):
@@ -415,8 +425,10 @@ class DSMC(object):
     # ------------------------------- Init ---------------------------- #
 
     def add_particles(self, particles_list):
-        
+        tmp = 0
         for part in particles_list:
+            part.set_id(tmp)
+            tmp+=1
             init_position = part.get_2D_pos()
             init_speed = part.get_2D_speed()
             if(self.debug): print("\n\n"+part.to_string())

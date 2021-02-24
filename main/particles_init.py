@@ -1,3 +1,4 @@
+from typing import OrderedDict
 from main import get_mass_part, Particule, MyVector
 from main import available_particles
 from main import get_gaussian_params_maxwellian, available_particles, get_maxwellian_mean_speed_from_temperature
@@ -114,6 +115,8 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
     e = 1.6e-19 # C
     x1, y1, x2, y2 = wall
     lenght = np.sqrt((x2-x1)**2+(y2-y1)**2)
+
+    list_pos = OrderedDict()
     for k in range(len(nb_particles_to_inject)):
         type_ = particles_types[k]
         number_ = nb_particles_to_inject[k]
@@ -121,16 +124,18 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
         
         charge = available_particles[type_]['charge']
         mass = available_particles[type_]['mass']
-        effective_diameter = available_particles[type_]['effective diameter']
+        radius = available_particles[type_]['effective diameter']/2.0
 
         sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
         v_mean = get_maxwellian_mean_speed_from_temperature(temperature, mass)
         mu = 0
+        n = MyVector(direction.y, -direction.x,0)
+        p1, p2 = MyVector(x1,y1,0),MyVector(x2,y2,0)
         for k in range(number_):
             my_speed = None
 
             v_drift = drift*direction
-            #     
+            
             # vx = norm.rvs(mu, sigma)+v_drift.x # in theory there should be a drift
             # vy = norm.rvs(mu, sigma)+v_drift.y
             # while(direction.inner(MyVector(vx,vy))<=0):
@@ -147,14 +152,29 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             my_speed = MyVector(vx, vy, vz)
 
             # TODO: make something better here
-            x, y = x1+np.random.uniform(0.05,0.95)*(x2-x1)+vx*(1-random())*dt*direction.x, y1+np.random.uniform(0.05,0.95)*(y2-y1)+vy*(1-random())*dt*direction.y # problem : this can go out of the domain if I am not careful
-            #x, y = x1+np.random.uniform(0.01,0.99)*(x2-x1)+vx*(1-random())*dt, y1+np.random.uniform(0.01,0.99)*(y2-y1)+vy*(1-random())*dt # problem : this can go out of the domain if I am not careful
-            
-            list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
+            # xf = radius*direction.x
+            # yf = radius*direction.y 
+            # if(x1==x2):
+            #     x = xf
+            # else:
+            #     x = x1+xf+np.random.uniform(0.0,1.0)*(x2-x1-2*xf)
+            # if(y1==y2):
+            #     y = yf
+            # else:
+            #     y = y1+yf+np.random.uniform(0.0,1.0)*(y2-y1-2*yf)
+
+            pos = radius*n+p1+np.random.uniform(0.0,1.0)*(p2-p1-2*radius*n)
+            list_pos[k] = pos
+            pos+=(1-random())*dt*my_speed
+            # x+=vx*(1-random())*dt # *abs(direction.x)
+            # y+=vy*(1-random())*dt # *abs(direction.y)
+            #while():
+            list_particles.append(Particule(charge = charge, radius = radius, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \
-                            pos=MyVector(x,y,0)))
-    #pprint(" - ".join([part.to_string() for part in list_particles]))
+                            pos=pos))
+    #pprint(list_pos)
+    # print(" - ".join([part.to_string() for part in list_particles]))
     return np.array(list_particles)
 
 def get_correct_initial_positions(zone, offsets, space_size):

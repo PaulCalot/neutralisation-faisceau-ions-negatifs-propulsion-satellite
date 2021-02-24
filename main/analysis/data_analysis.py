@@ -485,7 +485,7 @@ class DataAnalyser :
 
         count =  Ne / (volume*frames) * count
         ax.plot(bin_edges[:bin_edges.size-1], count)
-        ax.hist(bin_edges[:bin_edges.size-1], bins, weights=count) 
+        #ax.hist(bin_edges[:bin_edges.size-1], bins, weights=count) 
         #ax = df.hist(column=direction, bins = bins)
 
         if(save):
@@ -530,7 +530,7 @@ class DataAnalyser :
         list_rank = df["rank"].unique()
         #print('Ranks found :'.format(list_rank))
 
-        lst = [df.loc[df['rank'] == list_rank[k]] for k in range(len(list_rank)-1)] # we dont take the last which is kind of bogus
+        lst = [df.loc[df['rank'] == list_rank[k]] for k in range(len(list_rank))] # we dont take the last which is kind of bogus
         # since we almost out of the space and there is no particles.
 
         
@@ -565,6 +565,27 @@ class DataAnalyser :
 
     # https://sciencing.com/maxwell-boltzmann-distribution-function-derivation-examples-13722756.html
     
+
+    # ----------------- Plot evolution number of particles ------------------ #
+    def number_of_particles(self, save = True):
+        period = int(self.get_param(key='saving_period', test_id = None))
+
+        # by default will select the last 10 frames
+        X = [k*period for k in range(len(self.current))]
+        Y = [len(self.current[k]) for k in range(len(self.current))]
+
+        fig, ax= plt.subplots(figsize = (20,10))
+        plt.plot(X,Y)
+        plt.xlabel('iteration')
+        plt.ylabel('Number of particles')
+       
+        if(save):
+            plt.savefig(self.path_to_saving+'_number_part_evolution.png', dpi = 400, bbox_inches = 'tight', pad_inches = 0)
+        else:
+            plt.show()
+        plt.close()
+
+    # ---------------------------- Temperature evolution ------------------------- #
     def savitzky_golay(self, y, window_size, order, deriv=0, rate=1):
         # https://fr.wikipedia.org/wiki/Algorithme_de_Savitzky-Golay
         
