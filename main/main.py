@@ -32,7 +32,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
     options = get_options(cfg_path_dict)
     simu = options['simulation']
     
-    np.seed(simu['seed'])
+    np.random.seed(simu['seed'])
 
     if(verbose):
         pprint(options)
