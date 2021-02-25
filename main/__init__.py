@@ -9,7 +9,7 @@ from .utils.utils import get_maxwellian_mean_speed_from_temperature, get_gaussia
 from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
 from .utils.mesh import get_mesh
 from .utils.physics import get_VandE, compute_trajectory
-
+from .utils.split_csv import split, reversed_lines
 # data analysis
 from .analysis.data_analysis import DataAnalyser, DataSaver, merge_tests_summary
 from .analysis.post_processing import post_processing

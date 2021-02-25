@@ -95,9 +95,9 @@ class system(ABC):
         plt.axis('scaled')
         #plt.savefig('thruster_with_arrows.png', dpi = 1200)
 
-    def add(self, particle): # should not be use
-        self.grid.add(particle)
-
+    def add(self, list_particles): # should not be use
+        self.dsmc.add_particles(list_particles)
+    
     def get_size(self):
         return self.size
         

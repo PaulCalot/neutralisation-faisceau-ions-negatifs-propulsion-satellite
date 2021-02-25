@@ -12,7 +12,8 @@ class FluxHandler(): # Maxwellian flux for now
     def step(self, dt):
         if(self.use_flux):
             nb_particles_to_inject_float = dt*self.fluxes
-            remainders_, nb_particles_to_inject = np.modf(np.add(self.remainders, nb_particles_to_inject_float))
+            remainders_, nb_particles_to_
+            inject = np.modf(np.add(self.remainders, nb_particles_to_inject_float))
             nb_particles_to_inject = nb_particles_to_inject. astype(int)
             self.remainders = remainders_
             if(self.debug):

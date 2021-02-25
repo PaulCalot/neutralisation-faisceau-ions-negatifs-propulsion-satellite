@@ -1,10 +1,13 @@
+from main.particules import Particule
 from pprint import pprint
 import numpy as np
 from dolfin import Point
 from tqdm import tqdm
 from shutil import copyfile, copy 
 from os import mkdir
+import pandas as pd
 import matplotlib.pyplot as plt
+
 # importing functions and modules useful for launching simulations
 from main import get_options, get_min_mean_free_path, init_particles_in_system
 from main import square, thruster
@@ -14,9 +17,11 @@ from main import DataAnalyser, DataSaver
 from main import available_particles
 from main import post_processing
 from main import convert_list_to_string
+from main import MyVector
+
 from collections import OrderedDict
 
-def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose = False):
+def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = False, verbose = False):
     system_cfg = system_cfg_path
     simulation_cfg = simulation_cfg_path
     processing_cfg = processing_cfg_path
@@ -36,6 +41,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
 
     if(verbose):
         pprint(options)
+
     system, zone, offset = init_system(options['system'])
     f, args = get_update_fn(system, options['system']['system_type'])
 
@@ -52,6 +58,12 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
         pprint(params_dict)
         system.plot()
         plt.show()
+
+    start = 0
+    if(load):
+        list_particles, start = get_particles_from_csv(path = params_dict['path_to_data'], frame='last')
+        system.add(list_particles)
+
     # loop
     handler = system.dsmc
     MAX_INTEGRATION_STEP =  simu['number_of_steps']
@@ -61,7 +73,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
     dir_saving = options['processing']['path']
     dt = simu['dt']*float(params_dict['min_mean_free_time'])
     t = 0
-    for k in tqdm(range(MAX_INTEGRATION_STEP)): #
+    for k in tqdm(range(start, MAX_INTEGRATION_STEP+start)): #
         system.step(dt, t)
         t+=dt
         list_particles = system.get_list_particles()
@@ -77,7 +89,8 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbose 
     # last saving
     if(save_test):
         update_params(handler, params_dict, data_analyser, dir_saving)
-        post_processing(options['processing'])
+        #post_processing(options['processing']) # we don't do processing anymore
+        
         for file in list_cfg_files:
             copy(src = file, dst = dir_saving/"cfg_files/")
 
@@ -97,8 +110,7 @@ def processing_only(system_cfg_path, simulation_cfg_path, processing_cfg_path, v
     dir_saving = options['processing']['path']
     
     post_processing(options['processing'])
-    for file in list_cfg_files:
-        copy(src = file, dst = dir_saving/"cfg_files/")
+    
 
 def init_system(system_options):
     system_type = system_options['system_type']
@@ -269,3 +281,33 @@ def update_params(handler, params_dict, data_analyser, path_dir):
     params_dict['vr_max']=str(vr_max_final)
     data_analyser.update_saved_params(path_dir/'params.csv', params_dict, use_saving_directory = False)
 
+
+def get_particles_from_csv(path, frame ='last'):
+    list_particles = []
+
+    # loading the csv
+    df_data = pd.read_csv(path, sep = ',', header=0, index_col=0) # take first line as headers
+
+    # splitting in time step
+    list_times = df_data["iteration"].unique()
+    lst = [df_data.loc[df_data['iteration'] == k] for k in list_times]
+    lenght = len(lst)
+    
+    if(frame=='last'):
+        frame = lenght-1
+    elif(frame=='first'):
+        frame = 0
+    
+    particles_in_frame = lst[frame]
+
+    for k, row in enumerate(particles_in_frame):
+        part_type = row['type']
+        params = available_particles[part_type]
+        pos = MyVector(float(row['x'], float(row['y']), float(row['z'])))
+        speed = MyVector(float(row['vx'], float(row['vy']), float(row['vz'])))
+        part = Particule(charge = params['charge'], mass = params['mass'], \
+            pos = pos, speed = speed, part_type = part_type, \
+                radius = params['effective diameter']/2.0, id = k)
+        list_particles.append(part)
+
+    return list_particles, frame

@@ -14,7 +14,7 @@ class Particule(object):
     e = 1.602e-19 # C
     types = ["I", "I2", "I-", "I+", "e"]
     def __init__(self, charge = 0, mass = IODINE_MASS, pos = MyVector(0,0,0), speed = MyVector(0,0,0), \
-        part_type = "I", radius = IODINE_RADIUS, verbose = False, status = -1):
+        part_type = "I", radius = IODINE_RADIUS, verbose = False, id = None):
         """ Create a particule, by default an neutral atom of mass ... (Iode).
 
         Args:
@@ -39,8 +39,7 @@ class Particule(object):
         self.speed = speed
         self.part_type = part_type
         self.radius = radius
-        self.status = status
-        self.id = None
+        self.id = id
         if(verbose):
             print("Created a " + self.to_string())
     
@@ -137,13 +136,6 @@ class Particule(object):
 
     def set_radius(self,new_radius):
         self.radius = new_radius
-
-        # status
-    def get_status(self):
-        return self.status
-
-    def set_status(self, new_status):
-        self.status = new_status
 
         #id
     def get_id(self):

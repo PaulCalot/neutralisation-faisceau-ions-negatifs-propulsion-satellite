@@ -427,8 +427,6 @@ class DSMC(object):
     def add_particles(self, particles_list):
         tmp = 0
         for part in particles_list:
-            part.set_id(tmp)
-            tmp+=1
             init_position = part.get_2D_pos()
             init_speed = part.get_2D_speed()
             if(self.debug): print("\n\n"+part.to_string())
