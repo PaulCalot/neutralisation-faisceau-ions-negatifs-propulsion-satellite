@@ -1,13 +1,20 @@
-# variable
-biblio/
-.vscode/
-
+# variabl
+.VSCodeCounter/
+.vscode
+#*.png
+*.mp4
+*.csv
+*.txt
 nohup.out
-
+resources/
+results/
+biblio/
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
 
+# no hup
+nohup.out
 
 # python gitignore https://github.com/github/gitignore/blob/master/Python.gitignore
 
