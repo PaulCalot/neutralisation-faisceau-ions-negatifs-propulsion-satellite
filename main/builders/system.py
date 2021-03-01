@@ -143,14 +143,15 @@ class system(ABC):
     def get_Ne(self):
         return self.Ne
         
-    # ---------- step function ------------ #
+    # ---------- step function ------------c #
     
     def step(self, dt, t):
+        if(self.flux_params != None):
+            new_particles = self.flux_handler.step(dt)
+            if(self.debug):print('Injecting {} new particles.'.format(len(new_particles)))
+            self.dsmc.add_particles(new_particles)
         self.dsmc.step(dt, t, self.f_args)
-        new_particles = self.flux_handler.step(dt)
-        if(self.debug):print('Injecting {} new particles.'.format(len(new_particles)))
-        self.dsmc.add_particles(new_particles)
-        
+
     def simulate(self, dt, max_number_of_steps):
         return
     # ----------- init DSMC --------------- #
@@ -251,11 +252,11 @@ class system(ABC):
                 size = np.sqrt((in_wall[2]-in_wall[0])**2+(in_wall[3]-in_wall[1])**2)
                 in_direction = self.flux_params['in_direction']
                 factor = size*0.2
-                plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.5*factor)
+                plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
             out_wall = self.flux_params['out_wall']
             if(out_wall != None):
                 x, y = 0.5*(out_wall[0]+out_wall[2]), 0.5*(out_wall[1]+out_wall[3])
                 size = np.sqrt((out_wall[2]-out_wall[0])**2+(out_wall[3]-out_wall[1])**2)
                 out_direction = self.flux_params['out_direction']
                 factor =  size*0.2
-                plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.5*factor)
+                plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)

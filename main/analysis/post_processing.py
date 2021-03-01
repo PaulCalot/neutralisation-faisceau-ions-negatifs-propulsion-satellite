@@ -3,7 +3,7 @@ from main import DataAnalyser
 import numpy as np
 from main import convert_string_to_list
 
-def post_processing(options):
+def post_processing(options, recompute = False):
 
     path_to_file = options['path']
     ids_test = options['id_test'] # [1,2,3,4] # [2] # [1,2,3,4] #[1,2,3,4]
@@ -31,7 +31,7 @@ def post_processing(options):
 
     for indx, id_test in enumerate(ids_test):
         data_analyser = DataAnalyser(path_to_file/'params.csv')
-        data_analyser.load_test(id_test)
+        data_analyser.load_test(id_test, recompute = recompute)
 
          # particles
         particles_types = convert_string_to_list(data_analyser.get_param('particles_types'))
@@ -51,6 +51,8 @@ def post_processing(options):
         # speed
         max_speed = data_analyser.get_param('vr_max_final')
 
+        #np.quantile(array, q=0.1),np.quantile(array, q=0.9)
+
         # system
         nb_cells = data_analyser.get_param('nb_cells')
         
@@ -67,7 +69,7 @@ def post_processing(options):
         if(compute_spatial_distribution):
             data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 2*total_number_of_particles_per_cell.sum()) 
             data_analyser.draw_spatial_distribution('vx', vmin = -max_speed, vmax = max_speed)
-            data_analyser.draw_spatial_distribution('vy', vmin = -max_speed, vmax = max_speed)
+            data_analyser.draw_spatial_distribution('vy', vmin = -300, vmax = 50)
             data_analyser.draw_spatial_distribution('vz', vmin = -max_speed, vmax = max_speed)
             data_analyser.draw_spatial_distribution('speed_norm', vmin = 0.01*max_speed**2, vmax = max_speed**2)
 
@@ -125,7 +127,7 @@ def post_processing(options):
             data_analyser.draw_spatial_distribution_frame(which = "last", name = ('density',f, np.sum), save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'speed_norm', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vx', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
-            data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vy', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+            data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vy', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames, vmin = -300., vmax = 50.) 
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vz', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
 
         if compute_number_of_particles:

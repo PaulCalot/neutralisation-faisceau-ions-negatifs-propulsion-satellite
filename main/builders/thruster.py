@@ -64,7 +64,7 @@ class thruster(system):
         fig = plt.gcf()
         fig.set_size_inches(4, 20)
         #plt.rcParams["figure.figsize"] = (4,20)       
-        plt.show()
+        plt.savefig('thruster_grid.png')
         #from fenics import plot
         #plot(self.phi)
         #from fenics import sqrt, dot

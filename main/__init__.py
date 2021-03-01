@@ -10,6 +10,7 @@ from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_exp
 from .utils.mesh import get_mesh
 from .utils.physics import get_VandE, compute_trajectory
 from .utils.split_csv import split, reversed_lines
+
 # data analysis
 from .analysis.data_analysis import DataAnalyser, DataSaver, merge_tests_summary
 from .analysis.post_processing import post_processing
@@ -24,7 +25,7 @@ from .data_structures.grid import Grid
 from .collisions_handler import CollisionHandler
 from .DSMC import DSMC
 from .particules import Particule
-from .particles_init import init_particles_in_system, init_particles_flux
+from .particles_init import init_particles_in_system, init_particles_flux, init_particles_flux_naive
 from .FluxHandler import FluxHandler
 from .read_cfg_files.reader import get_options
 

@@ -63,7 +63,9 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
     if(load):
         list_particles, start = get_particles_from_csv(path = params_dict['path_to_data'], frame='last')
         system.add(list_particles)
-
+    elif(convert_list_to_string(options['system']['speed_type']) != 'None'):
+        list_particles, mean = init_particles_in_system(**options['system'], zone = zone, offsets = offset)
+        system.add(list_particles)
     # loop
     handler = system.dsmc
     MAX_INTEGRATION_STEP =  simu['number_of_steps']
@@ -94,7 +96,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
         for file in list_cfg_files:
             copy(src = file, dst = dir_saving/"cfg_files/")
 
-def processing_only(system_cfg_path, simulation_cfg_path, processing_cfg_path, verbiose = False):
+def processing_only(system_cfg_path, simulation_cfg_path, processing_cfg_path, recompute = False, verbiose = False):
     system_cfg = system_cfg_path
     simulation_cfg = simulation_cfg_path
     processing_cfg = processing_cfg_path
@@ -109,7 +111,7 @@ def processing_only(system_cfg_path, simulation_cfg_path, processing_cfg_path, v
     options = get_options(cfg_path_dict)
     dir_saving = options['processing']['path']
     
-    post_processing(options['processing'])
+    post_processing(options['processing'], recompute = recompute)
     
 
 def init_system(system_options):
@@ -294,17 +296,28 @@ def get_particles_from_csv(path, frame ='last'):
     lenght = len(lst)
     
     if(frame=='last'):
-        frame = lenght-1
+        frame = lenght-2 # cuz we dont want the last one in case it's bogus
     elif(frame=='first'):
         frame = 0
     
     particles_in_frame = lst[frame]
 
-    for k, row in enumerate(particles_in_frame):
+    keys = {
+        'id':0,
+        'type':1,
+        'x':2,
+        'y':3,
+        'z':4,
+        'vx':5,
+        'vy':6,
+        'vz':7,
+        'iteration':8
+    }
+    for k, row in particles_in_frame.iterrows():
         part_type = row['type']
         params = available_particles[part_type]
-        pos = MyVector(float(row['x'], float(row['y']), float(row['z'])))
-        speed = MyVector(float(row['vx'], float(row['vy']), float(row['vz'])))
+        pos = MyVector(float(row['x']), float(row['y']), float(row['z']))
+        speed = MyVector(float(row['vx']), float(row['vy']), float(row['vz']))
         part = Particule(charge = params['charge'], mass = params['mass'], \
             pos = pos, speed = speed, part_type = part_type, \
                 radius = params['effective diameter']/2.0, id = k)

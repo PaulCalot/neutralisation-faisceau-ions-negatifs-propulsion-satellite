@@ -113,7 +113,7 @@ class DataAnalyser :
         self.number_of_frames = None
         self.test_id = None
 
-    def load_test(self, test_id):
+    def load_test(self, test_id, recompute = False):
         self.test_id = test_id
         try : 
             self.test_params = self.df.loc[test_id]
@@ -126,7 +126,7 @@ class DataAnalyser :
         self.nb_parts = self.test_params.at['total_number_of_particles']
         df_data = pd.read_csv(path_to_data, sep = ',', header=0, index_col=0) # take first line as headers
 
-        if(not 'speed_norm_squared' in df_data): # first time this test is loaded.
+        if(recompute or not 'speed_norm_squared' in df_data): # first time this test is loaded.
             print('First time test {} is loaded. Computing speed norm and saving it back.'.format(test_id))
             # converting data to int :
                 # position

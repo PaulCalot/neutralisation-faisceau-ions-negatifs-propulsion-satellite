@@ -10,7 +10,7 @@ from scipy.stats import maxwell, norm
 from pprint import pprint
 
 def init_particles_in_system(particles_types, particles_densities, particles_mean_number_per_cell, speed_type, speed_param1,\
-     speed_param2, space_size, space_resolution, zone = None, offsets = [0,0], verbose = False, debug = False, *args, **kwargs):
+     speed_param2, size, resolution, zone = None, offsets = [0,0], verbose = False, debug = False, *args, **kwargs):
     list_particles=[]
     e = 1.6e-19
     mean = 0
@@ -19,7 +19,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
         if(debug):
             print(particles_types)
         type_ = particles_types[k]
-        number_ = int(particles_mean_number_per_cell[k]*space_resolution[0]*space_resolution[1])
+        number_ = int(particles_mean_number_per_cell[k]*resolution[0]*resolution[1])
         speed_init_type = speed_type[k] # uniform or maxwellian
         m, M = speed_param1[k], speed_param2[k]
         if(debug): 
@@ -95,14 +95,14 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
             # my_speed = MyVector(norm_speed*cTheta,norm_speed*sTheta,0)
             my_speed = MyVector(vx, vy, vz)
 
-            x, y = get_correct_initial_positions(zone, offsets, space_size)
+            x, y = get_correct_initial_positions(zone, offsets, size)
             list_particles.append(Particule(charge = charge, radius = effective_diameter/2.0, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \
                             pos=MyVector(x,y,0), \
                                 verbose = verbose))
             mean += my_speed.norm()
-            if(debug): 
+            if(debug):
                 print(my_speed)
 
         if(debug): print("Mean speed init : {} m/s".format(round(mean/number_,2)))
@@ -112,9 +112,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
 
 def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts, dt):
     list_particles=[]
-    e = 1.6e-19 # C
     x1, y1, x2, y2 = wall
-    lenght = np.sqrt((x2-x1)**2+(y2-y1)**2)
 
     list_pos = OrderedDict()
     for k in range(len(nb_particles_to_inject)):
@@ -127,7 +125,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
         radius = available_particles[type_]['effective diameter']/2.0
 
         sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
-        v_mean = get_maxwellian_mean_speed_from_temperature(temperature, mass)
+
         mu = 0
         n = MyVector(direction.y, -direction.x,0)
         p1, p2 = MyVector(x1,y1,0),MyVector(x2,y2,0)
@@ -136,45 +134,79 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
 
             v_drift = drift*direction
             
-            # vx = norm.rvs(mu, sigma)+v_drift.x # in theory there should be a drift
-            # vy = norm.rvs(mu, sigma)+v_drift.y
-            # while(direction.inner(MyVector(vx,vy))<=0):
-            #     vx = norm.rvs(mu, sigma)+v_drift.x
-            #     vy = norm.rvs(mu, sigma)+v_drift.y
             vx, vy = 0, 0
             if(v_drift.y == 0.0):
-                vx = sigma * np.sqrt(-2*np.log10((1-random()))) + v_drift.x
+                vx = sigma * np.sqrt(-2*np.log10((1-random())))*direction.x + v_drift.x
                 vy = norm.rvs(mu, sigma)
             if(v_drift.x == 0.0):
                 vx = norm.rvs(mu, sigma)
-                vy = sigma * np.sqrt(-2*np.log10((1-random()))) + v_drift.y
+                vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y + v_drift.y
             vz = norm.rvs(mu, sigma)
             my_speed = MyVector(vx, vy, vz)
 
-            # TODO: make something better here
-            # xf = radius*direction.x
-            # yf = radius*direction.y 
-            # if(x1==x2):
-            #     x = xf
-            # else:
-            #     x = x1+xf+np.random.uniform(0.0,1.0)*(x2-x1-2*xf)
-            # if(y1==y2):
-            #     y = yf
-            # else:
-            #     y = y1+yf+np.random.uniform(0.0,1.0)*(y2-y1-2*yf)
-
             pos = radius*n+p1+np.random.uniform(0.0,1.0)*(p2-p1-2*radius*n)
             list_pos[k] = pos
-            pos+=(1-random())*dt*my_speed
-            # x+=vx*(1-random())*dt # *abs(direction.x)
-            # y+=vy*(1-random())*dt # *abs(direction.y)
-            #while():
+            pos+=(1-random())*dt*my_speed # in theory, since we are updating the particls positions after,
+            # we should not use this speed, but it's okay I guess since it's constant.
+            
+            
             list_particles.append(Particule(charge = charge, radius = radius, 
                     mass = mass, part_type = type_, \
                         speed=my_speed, \
                             pos=pos))
-    #pprint(list_pos)
-    # print(" - ".join([part.to_string() for part in list_particles]))
+    
+    return np.array(list_particles)
+
+
+
+def init_particles_flux_naive(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts, dt, factor = 1):
+    list_particles=[]
+    x1, y1, x2, y2 = wall
+
+    
+    delta_t = dt / factor
+
+    for k in range(len(nb_particles_to_inject)):
+        type_ = particles_types[k]
+        number_ = nb_particles_to_inject[k]
+        temperature, drift = temperatures[k], drifts[k]
+        
+        charge = available_particles[type_]['charge']
+        mass = available_particles[type_]['mass']
+        radius = available_particles[type_]['effective diameter']/2.0
+
+        sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
+        mu = 0
+        n = MyVector(direction.y, -direction.x,0)
+        p1, p2 = MyVector(x1,y1,0),MyVector(x2,y2,0)
+        
+        t = 0
+        split = [number_//factor]*factor
+        split[-1]+=number_%factor # in order not to forget any particle
+        for nb in split:
+            for k in range(nb):
+                my_speed = None
+                v_drift = drift*direction
+
+                vx, vy = 0, 0
+                if(v_drift.y == 0.0):
+                    vx = sigma * np.sqrt(-2*np.log10((1-random())))*direction.x + v_drift.x
+                    vy = norm.rvs(mu, sigma)
+                if(v_drift.x == 0.0):
+                    vx = norm.rvs(mu, sigma)
+                    vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y + v_drift.y
+                vz = norm.rvs(mu, sigma)
+                my_speed = MyVector(vx, vy, vz)
+
+                pos = radius*n+p1+np.random.uniform(0.0,1.0)*(p2-p1-2*radius*n)
+                pos += t*my_speed
+
+                list_particles.append(Particule(charge = charge, radius = radius, 
+                        mass = mass, part_type = type_, \
+                            speed=my_speed, \
+                                pos=pos))
+            t += delta_t
+
     return np.array(list_particles)
 
 def get_correct_initial_positions(zone, offsets, space_size):
