@@ -14,21 +14,12 @@ For clarity purpose, we use the environment name : **NIRN** (for *Negative Ions 
 <br>
 
 ```shell
-<<<<<<< HEAD
 conda create --name NIRN -c conda-forge fenics=2018 mshr=2018
 conda activate NIRN
 conda install -c conda-forge matplotlib=3.3.2
 conda install -c anaconda scipy=1.5.2 
 conda install -c conda-forge tqdm # progress bar
 conda install pandas=1.0.5 
-=======
-conda create --name NIRN -c conda-forge fenics=2018
-conda activate NIRN
-conda install -c conda-forge matplotlib=3.3.2
-conda install -c anaconda scipy=1.5.2 
-#conda install pandas=0.20.3
-conda install -c conda-forge mshr=2018
->>>>>>> origin/Paul
 ```
 
 If you want to use *jupyter notebook* or *jupyter lab*, please install : 
