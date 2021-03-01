@@ -385,6 +385,8 @@ class DataAnalyser :
         lst = self.current
         
         fig, ax = plt.subplots()
+        ax.axis('equal')
+        #plt.axis('scaled')
         frame = -1
         if(which == "first"):
             frame = 0
