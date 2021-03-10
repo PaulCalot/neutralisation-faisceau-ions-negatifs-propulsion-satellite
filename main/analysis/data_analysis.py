@@ -146,7 +146,6 @@ class DataAnalyser :
             df_data.to_csv(path_to_data) # should be updated
 
         # splitting in time step
-        # TODO make a choice between using several df or only one and selecting the frame that are interesting to me each time.
         self.df_data = df_data
         iterations_number = self.test_params.at['MAX_INTEGRATION_STEP']
         period = self.test_params.at['saving_period']
@@ -219,7 +218,7 @@ class DataAnalyser :
             plt.xlabel(value_name,fontsize=16)
             plt.ylabel("density",fontsize=16)
 
-        fig = plt.figure(figsize=(10,10))
+        fig = plt.figure() # figsize=(10,10)
         
         col = lst[0][value_name]
         plt.hist(col, bins = 'auto', density=density, range = range, color = color)
@@ -267,7 +266,7 @@ class DataAnalyser :
 
             ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id, name, num+1, self.number_of_frames), fontsize=12)
             
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots() # figsize=(10,10)
         df = lst[0]
         if(name != 'particles' and name != None):
             hexbin = ax.hexbin(df['x'], df['y'], df[name], gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
@@ -279,7 +278,6 @@ class DataAnalyser :
 
         ax.set_title(self.path_to_saving+'{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, 1, self.number_of_frames), fontsize=12)
         
-
         interval = 200 # default value
 
         anim = animation.FuncAnimation(fig, update_hist, interval=interval, frames=self.number_of_frames, fargs=(lst, cb), save_count=self.number_of_frames)
@@ -307,15 +305,20 @@ class DataAnalyser :
 
             ax.set_title('{} : System evolution - iteration {}/{}'.format(self.test_id, num+1, self.number_of_frames), fontsize=15)
 
-
         fig, ax = plt.subplots()
-        plt.axis('scaled')
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
+
         df = lst[0]
         scat = ax.scatter(df['x'], df['y'], s=0.1, c = df['speed_norm'], cmap='seismic')
 
         ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, 1, self.number_of_frames), fontsize=12)
+
+        # ax.axis('equal')
+        # ax.set_xlim(x_min, x_max)
+        # ax.set_ylim(y_min, y_max)
+
+        ax.axis('equal')
+        min_x, min_y, max_x, max_y = min(df['x']), min(df['y']), max(df['x']), max(df['y'])
+        ax.set(xlim=(min_x, max_x), ylim=(min_y, max_y))
 
         interval = 40 # 25 images per second
 
@@ -348,7 +351,7 @@ class DataAnalyser :
 
         df = lst[frame]
          
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots() # figsize=(10,10)
         
         col = df[value_name]
         plt.hist(col, bins = 'auto', density=density, range = range, color = color)
@@ -365,10 +368,13 @@ class DataAnalyser :
             else :
                 Y = ss.norm.pdf(X, loc=μ, scale = std)
             plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
-        ax.set_title('{} : {} - it {}/{} - $\\mu$ : {} - $\\sigma$ : {}'.format(self.test_id, value_name, frame+1, self.number_of_frames,round(μ,1),round(std,2)), fontsize=15)
+        ax.set_title('{} : $\\mu$ = {} ; $\\sigma$ = {}'.format(value_name,round(μ,1),round(std,2)), fontsize=15)
         plt.xlabel(value_name,fontsize=16)
         plt.ylabel("density",fontsize=16)
-        plt.legend(loc='best')
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+        if(plot_gaussian or plot_maxwellian):
+            plt.legend(loc='best')
 
         if(save_frame):
             plt.savefig(self.path_to_saving+'{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), bbox_inches = 'tight', pad_inches = 0)
@@ -385,8 +391,7 @@ class DataAnalyser :
         lst = self.current
         
         fig, ax = plt.subplots()
-        ax.axis('equal')
-        #plt.axis('scaled')
+        #ax.axis('equal')
         frame = -1
         if(which == "first"):
             frame = 0
@@ -415,9 +420,17 @@ class DataAnalyser :
         cb = fig.colorbar(hexbin, ax=ax)
         cb.set_label(name)
 
-        #ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
-        plt.legend(loc='best',fontsize=14)
-
+        # ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
+        # plt.legend(loc='best',fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.xlabel('x', fontsize=14)
+        plt.ylabel('y', fontsize=14)
+        ax.axis('equal')
+        plt.gca().set_adjustable("box")
+        min_x, min_y, max_x, max_y = min(df['x']), min(df['y']), max(df['x']), max(df['y'])
+        ax.set(xlim=(min_x, max_x), ylim=(min_y, max_y))
+        ax.axis('off')
         if(save_frame):
             title = self.path_to_saving+'{}_{}_spatial_distribution_it_{}'.format(self.test_id, name, frame + 1)
             title += '_{}frames.png'.format(mean_over_frames) if mean_over_frames != None else '.png'
@@ -447,16 +460,25 @@ class DataAnalyser :
             print("Please choose 'which' amongst : 'first', 'last' or any positive {}. Default is 'last'.".format(int))
             return
 
-        fig, ax = plt.subplots(figsize=(10,10))
+        fig, ax = plt.subplots() # figsize=(10,10)
         df = lst[frame]
         scat = ax.scatter(df['x'], df['y'], s=0.3, c = df['speed_norm'], cmap='seismic')
+        
+        #ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=15)
+
+        #plt.legend(loc='best',fontsize=14)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
+        plt.xlabel('x', fontsize=14)
+        plt.ylabel('y', fontsize=14)
+        
         ax.axis('equal')
-        ax.set_xlim(x_min, x_max)
-        ax.set_ylim(y_min, y_max)
-
-        ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=15)
-
-        plt.legend(loc='best',fontsize=14)
+        ax.axis('off')
+        plt.gca().set_adjustable("box")
+        min_x, min_y, max_x, max_y = min(df['x']), min(df['y']), max(df['x']), max(df['y'])
+        ax.plot([min_x,min_x,max_x, max_x], [min_y, max_y, max_y, min_y], color = 'b')
+        #print(min_x, min_y, max_x, max_y)n
+        ax.set(xlim=(min_x, max_x), ylim=(min_y, max_y))
 
         if(save_frame):
             plt.savefig(self.path_to_saving+'{}_system_state_it_{}.png'.format(self.test_id, frame +1), dpi = 300, bbox_inches = 'tight', pad_inches = 0)
@@ -578,9 +600,10 @@ class DataAnalyser :
 
         fig, ax= plt.subplots(figsize = (20,10))
         plt.plot(X,Y)
-        plt.xlabel('iteration')
-        plt.ylabel('Number of particles')
-       
+        plt.xlabel('iteration', fontsize = 16)
+        plt.ylabel('Number of particles', fontsize = 16)
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
         if(save):
             plt.savefig(self.path_to_saving+'_number_part_evolution.png', dpi = 400, bbox_inches = 'tight', pad_inches = 0)
         else:
@@ -674,13 +697,15 @@ class DataAnalyser :
             return (T0-eq_std)*np.exp(-Time/tau)+eq_std
 
         fig, ax = plt.subplots(figsize=(15,10))
-        ax.set_title("évolution de la variance de la norme de la vitesse - $\sigma_e$ = {} m/s ; $\\tau$ = {} s".format("{:e}".format(np.sqrt(eq_std)),"{:e}".format(tau)))
-        plt.xlabel("temps (s)",fontsize=16)
+        ax.set_title("$\sigma_e$ = {} m/s ; $\\tau$ = {} s".format("{:e}".format(np.sqrt(eq_std)),"{:e}".format(tau)))
+        plt.xlabel("temps (s)",fontsize=18)
         plt.ylabel("variance de la vitesse ($m^2/s^2$)",fontsize=16)
         plt.plot(listTime, get_Temp(listTime), label = '$\sigma^2(t) = (\sigma^2(0)-\sigma^2_e)exp(-t/\\tau)+\sigma^2_e$')
         plt.plot(listTime,Temp, label = 'Simulation')
+        plt.xticks(fontsize=18)
+        plt.yticks(fontsize=18)
         #plt.plot(listTime,Temp_smooth)
-        plt.legend(loc='best',fontsize=14)
+        plt.legend(loc='best',fontsize=16)
         if(save_frame):
             plt.savefig(self.path_to_saving+'{}_temperature_evolution.png'.format(self.test_id), bbox_inches = 'tight', pad_inches = 0)
         else:

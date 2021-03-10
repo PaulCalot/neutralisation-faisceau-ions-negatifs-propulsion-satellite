@@ -151,8 +151,8 @@ class Particule(object):
             .format(self.id, self.part_type, self.charge, self.mass, round(self.pos.x,5), round(self.pos.y,5), round(self.speed.x,3), round(self.speed.y,3))
     
     def to_list(self): # facilitates data analysis
-        return [self.id, self.part_type, self.pos.x, self.pos.y, self.pos.z, \
-            self.speed.x, self.speed.y, self.speed.z]
+        return [self.part_type, self.pos.x, self.pos.y, \
+            self.speed.x, self.speed.y, self.speed.z] # deleted self.pos.z and self.id which are never used.
 
     def get_headers(self):
         return ['id', 'type','x','y','z','vx','vy','vz']

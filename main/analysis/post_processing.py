@@ -23,15 +23,22 @@ def post_processing(options, recompute = False):
 
     files_to_merge = options['files_to_merge']
 
-    if(merge_csv):
-        merge_tests_summary(files_to_merge, path_to_file)
 
+    if(merge_csv):
+        print('Merging files...', end = '')
+        merge_tests_summary(files_to_merge, path_to_file)
+        print('\t[OK]')
     if(type(ids_test)!=list):
        ids_test = [ids_test]
 
+    print("Creating data analyser from {}...".format(path_to_file/'params.csv'), end = '')
+    data_analyser = DataAnalyser(path_to_file/'params.csv')
+    print('\t[OK]')
+
     for indx, id_test in enumerate(ids_test):
-        data_analyser = DataAnalyser(path_to_file/'params.csv')
+        print('Loading test {}...'.format(id_test), end = '')
         data_analyser.load_test(id_test, recompute = recompute)
+        print('\t[OK]')
 
          # particles
         particles_types = convert_string_to_list(data_analyser.get_param('particles_types'))
@@ -57,23 +64,29 @@ def post_processing(options, recompute = False):
         nb_cells = data_analyser.get_param('nb_cells')
         
         if(compute_system_evolution):
+            print('\tCompute system evolution...', end = '')
             data_analyser.draw_particles(x_min, x_max, y_min, y_max)
+            print('\t[OK]')
 
         if(compute_hist_distribution_evolution):
             # speed_norm , speed_norm_squared , vz
+            print('\tCompute histrogram distribution evolution...', end = '')
             data_analyser.draw_hist_distribution('vx',plot_gaussian=True)
             data_analyser.draw_hist_distribution('vy',plot_gaussian=True)
             data_analyser.draw_hist_distribution('speed_norm', plot_maxwellian = True)
             data_analyser.draw_hist_distribution('vz', plot_gaussian=True)
-
+            print('\t[OK]')
         if(compute_spatial_distribution):
-            data_analyser.draw_spatial_distribution(None, vmin = 0, vmax = 2*total_number_of_particles_per_cell.sum()) 
-            data_analyser.draw_spatial_distribution('vx', vmin = -max_speed, vmax = max_speed)
-            data_analyser.draw_spatial_distribution('vy', vmin = -300, vmax = 50)
-            data_analyser.draw_spatial_distribution('vz', vmin = -max_speed, vmax = max_speed)
-            data_analyser.draw_spatial_distribution('speed_norm', vmin = 0.01*max_speed**2, vmax = max_speed**2)
+            print('\tCompute spatial distribution evolution...', end = '')
+            data_analyser.draw_spatial_distribution(None, vmin = 50, vmax = 300) 
+            #data_analyser.draw_spatial_distribution('vx', vmin = -max_speed, vmax = max_speed)
+            #data_analyser.draw_spatial_distribution('vy', vmin = -300, vmax = 50)
+            #data_analyser.draw_spatial_distribution('vz', vmin = -max_speed, vmax = max_speed)
+            #data_analyser.draw_spatial_distribution('speed_norm', vmin = 0.01*max_speed**2, vmax = max_speed**2)
+            print('\t[OK]')
 
         for which in frames_to_compute:
+            print('\tCompute selected frames...', end = '')
             data_analyser.draw_particles_frame(which = which, save_frame=True,  x_min = x_min, x_max = x_max, y_min = y_min, y_max = y_max)
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vx', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'r')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vy', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'g')
@@ -81,15 +94,18 @@ def post_processing(options, recompute = False):
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'speed_norm_squared', save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = 'k')
             data_analyser.draw_hist_distribution_frame(which = which, value_name = 'vz', save_frame = True, plot_maxwellian = False, plot_gaussian = True, density = True, range = None, color = 'b')
             #data_analyser.draw_spatial_distribution_frame(which, None, grid_size = int(np.sqrt(nb_cells)), vmin = 0, vmax = 2*total_number_of_particles_per_cell)
+            print('\t[OK]')
 
         if compute_temperature:
+            print('\tCompute temperatures evolution...', end = '')
             for mass in particles_masses:
                 data_analyser.draw_Temperature_evolution(period, tau_init = 1e-3, particles_mass= mass, begin = 0.00, end = 1.0) # g/mol
+            print('\t[OK]')
 
         if compute_collisions:
+            print('\tCollisions...')
             from main import collision_frequency_th_V, collision_frequency_th_T
             # TODO : make multi particles types
-            nb_parts = data_analyser.get_param('x_min')
             
             dt = data_analyser.get_param('dt')
             number_of_dt = data_analyser.get_param('MAX_INTEGRATION_STEP')
@@ -107,8 +123,10 @@ def post_processing(options, recompute = False):
             expected_number_of_collision = f_th_*volume*number_of_dt*dt
 
             print('For test {}, N_e = {:e} vs N_t = {:e}.'.format(id_test , number_of_collisions, expected_number_of_collision))
-        
+            print('[END COLLISIONS]')
+
         if compute_density:
+            print('\tCompute density...', end = '')
 
             nb_frames, bins_x, bins_y = args_density  # 80
 
@@ -129,6 +147,9 @@ def post_processing(options, recompute = False):
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vx', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vy', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames, vmin = -300., vmax = 50.) 
             data_analyser.draw_spatial_distribution_frame(which = "last", name = 'vz', save_frame = True, grid_size = (bins_x,bins_y), mean_over_frames = nb_frames) 
+            print('\t[OK]')
 
         if compute_number_of_particles:
+            print('\tCompute number of particles evolution...', end = '')
             data_analyser.number_of_particles(save=True)
+            print('\t[OK]')

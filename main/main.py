@@ -75,6 +75,10 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
     dir_saving = options['processing']['path']
     dt = simu['dt']*float(params_dict['min_mean_free_time'])
     t = 0
+
+    if(save_test):
+        data_analyser.save_everything_to_one_csv(list_particles = list_particles, iteration = 0, erase = True)
+
     for k in tqdm(range(start, MAX_INTEGRATION_STEP+start)): #
         system.step(dt, t)
         t+=dt
@@ -84,9 +88,9 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
             system.plot()
         if(save_test and k > saving_offset and k%saving_period==0 or (k == MAX_INTEGRATION_STEP-1 and k%saving_period!=0)):
             if(len(list_particles) > 0):
-                data_analyser.save_everything_to_one_csv(list_particles = list_particles, iteration = k, erase = True)
+                data_analyser.save_everything_to_one_csv(list_particles = list_particles, iteration = k+1, erase = True)
             
-            handler.save_collisions_matrix(name = dir_saving/("test_"+params_dict['id_test']+"_collision_matrix.txt"), iteration = k)
+            handler.save_collisions_matrix(name = dir_saving/("test_"+params_dict['id_test']+"_collision_matrix.txt"), iteration = k+1)
             
     # last saving
     if(save_test):
@@ -200,10 +204,22 @@ def get_saving_dict(options, system):
     MAX_INTEGRATION_STEP = options['simulation']['number_of_steps']
 
     save_test = options['processing']['save']
-    lx, ly, lz = system.get_size()
+    lx, ly, lz = system.get_size() # the size is absolute value unfortunately
     offset = system.get_offset()
     res_x, res_y = system.get_resolutions()
     
+    segments_list = system.get_walls()
+    segment_X_list = []
+    segment_Y_list = []
+    for segment in segments_list:
+        segment_X_list.append(segment[0])
+        segment_X_list.append(segment[2])
+        segment_Y_list.append(segment[1])
+        segment_Y_list.append(segment[3])
+    max_x, min_x = max(segment_X_list), min(segment_X_list)
+    max_y, min_y = max(segment_Y_list), min(segment_Y_list)
+
+
     saving_period = options['processing']['period']
     dir_saving = options['processing']['path']
     path_saving = dir_saving/(options['processing']['id_test']+'.csv')
@@ -225,13 +241,14 @@ def get_saving_dict(options, system):
     params_dict['mean_acceptance_rate'] = '0'
     params_dict['mean_proba'] = '0'
     params_dict['mean_vr_norm'] = '0'
+
     # on system =
     params_dict['nb_cells'] = str(system.get_number_of_cells())
     params_dict['volume'] = str(system.get_volume())
-    params_dict['x_min'] = str(offset[0])
-    params_dict['x_max'] = str(offset[0]+lx)
-    params_dict['y_min'] = str(offset[1])
-    params_dict['y_max'] = str(offset[1]+ly)
+    params_dict['x_min'] = str(min_x)
+    params_dict['x_max'] = str(max_x)
+    params_dict['y_min'] = str(min_y)
+    params_dict['y_max'] = str(max_y)
     # on particles =
     params_dict['total_number_of_particles'] = str(system.get_number_of_particles())
     params_dict['particles_types'] = convert_list_to_string(types)

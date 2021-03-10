@@ -30,7 +30,8 @@ class thruster(system):
         
         lx,ly = max_x - min_x, max_y - min_y
         lz = self.options['general']['lz']
-        self.size = [lx,ly,lz]
+        self.size = [lx,ly,lz] # offset not taken into account here. It's purely the size of the system
+        # and thus it's purely positive...
 
         if(self.debug): print("Dimension : {}x{}x{} m".format(round(lx,2),round(ly,2),lz))        
 
