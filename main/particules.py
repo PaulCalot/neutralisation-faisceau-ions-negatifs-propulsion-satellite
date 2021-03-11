@@ -155,7 +155,7 @@ class Particule(object):
             self.speed.x, self.speed.y, self.speed.z] # deleted self.pos.z and self.id which are never used.
 
     def get_headers(self):
-        return ['id', 'type','x','y','z','vx','vy','vz']
+        return ['type','x','y','vx','vy','vz'] # ['id', 'type','x','y','z','vx','vy','vz']
 
     def plot(self):
         plt.plot([self.pos.x, self.pos.y], '+', color = 'r', markersize=12)
