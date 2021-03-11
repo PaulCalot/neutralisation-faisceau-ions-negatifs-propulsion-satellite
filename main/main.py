@@ -60,6 +60,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
         plt.show()
 
     start = 0
+    list_particles=[]
     if(load):
         list_particles, start = get_particles_from_csv(path = params_dict['path_to_data'], frame='last')
         system.add(list_particles)
