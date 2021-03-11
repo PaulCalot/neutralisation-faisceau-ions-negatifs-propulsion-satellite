@@ -314,23 +314,32 @@ def get_particles_from_csv(path, frame ='last'):
     lenght = len(lst)
     
     if(frame=='last'):
-        frame = lenght-2 # cuz we dont want the last one in case it's bogus
+        frame = lenght-1 # cuz we dont want the last one in case it's bogus
     elif(frame=='first'):
         frame = 0
     
     particles_in_frame = lst[frame]
 
     keys = {
-        'id':0,
         'type':1,
-        'x':2,
-        'y':3,
-        'z':4,
-        'vx':5,
-        'vy':6,
-        'vz':7,
-        'iteration':8
+        'x':1,
+        'y':2,
+        'vx':3,
+        'vy':4,
+        'vz':5,
+        'iteration':6
     }
+    # keys = {
+    #     'id':0,
+    #     'type':1,
+    #     'x':2,
+    #     'y':3,
+    #     'z':4,
+    #     'vx':5,
+    #     'vy':6,
+    #     'vz':7,
+    #     'iteration':8
+    # }
     for k, row in particles_in_frame.iterrows():
         part_type = row['type']
         params = available_particles[part_type]
