@@ -132,7 +132,7 @@ class DataAnalyser :
                 # position
             df_data['x'] = df_data['x'].astype(float)
             df_data['y'] = df_data['y'].astype(float) 
-            df_data['z'] = df_data['z'].astype(float)
+            # df_data['z'] = df_data['z'].astype(float)
                 # speed
             df_data['vx'] = df_data['vx'].astype(float)
             df_data['vy'] = df_data['vy'].astype(float) 

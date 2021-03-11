@@ -87,7 +87,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
         if(verbose and k%saving_period==0): 
             print('Iteration {} : {} particles.'.format(k, len(list_particles)))
             system.plot()
-        if(save_test and k > saving_offset and k%saving_period==0 or (k == MAX_INTEGRATION_STEP-1 and k%saving_period!=0)):
+        if(save_test and k > saving_offset and k%saving_period==0 or (k == MAX_INTEGRATION_STEP-1 and k%saving_period!=0 and not (load and k==start))):
             if(len(list_particles) > 0):
                 data_analyser.save_everything_to_one_csv(list_particles = list_particles, iteration = k+1, erase = True)
             
@@ -306,7 +306,7 @@ def get_particles_from_csv(path, frame ='last'):
     list_particles = []
 
     # loading the csv
-    df_data = pd.read_csv(path, sep = ',', header=0, index_col=0) # take first line as headers
+    df_data = pd.read_csv(path, sep = ',', header=0) # , index_col=0) # take first line as headers
 
     # splitting in time step
     list_times = df_data["iteration"].unique()
@@ -321,7 +321,7 @@ def get_particles_from_csv(path, frame ='last'):
     particles_in_frame = lst[frame]
 
     keys = {
-        'type':1,
+        'type':0,
         'x':1,
         'y':2,
         'vx':3,
