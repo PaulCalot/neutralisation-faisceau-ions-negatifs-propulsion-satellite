@@ -77,7 +77,7 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load = F
     dt = simu['dt']*float(params_dict['min_mean_free_time'])
     t = 0
 
-    if(save_test):
+    if(save_test and list_particles != []):
         data_analyser.save_everything_to_one_csv(list_particles = list_particles, iteration = 0, erase = True)
 
     for k in tqdm(range(start, MAX_INTEGRATION_STEP+start)): #
