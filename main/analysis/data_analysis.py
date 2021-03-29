@@ -47,7 +47,9 @@ class DataSaver :
     def save_everything_to_one_csv(self, list_particles, iteration, erase = True):
         list_data=[]
         path = self.saving_directory / (self.name_test)
-        if((erase and iteration == 0) or not isfile(path)):
+        erase_ = (erase and iteration == 0) # 0 means the system is only initialized.
+        
+        if(erase_ or not isfile(path)):
             # does not already exist
             l = list_particles[0].get_headers()
             l.append('iteration')
@@ -57,7 +59,6 @@ class DataSaver :
             l=list_particles[k].to_list()
             l.append(iteration)          
             list_data.append(l)
-        erase_ = (erase and iteration == 0)
         if(self.debug):print(list_data)
         self.save_to_csv_(path, list_data, erase = erase_)
 
@@ -160,6 +161,8 @@ class DataAnalyser :
         self.list_times = np.array(list_times)
         self.number_of_frames = len(lst)
         self.current = lst
+        print('Number of iterations : {}'.format(max(list_times)))
+        #pprint(list_times)
         # --------------- Getter in csv files ----------------- #
 
     def get_param(self, key, test_id = None):
@@ -186,6 +189,18 @@ class DataAnalyser :
     def compute_speed_norm_square(self, row):
         return (row['vx']*row['vx']+row['vy']*row['vy']+row['vz']*row['vz'])
 
+    def get_unit(self,name):
+        if(name in ['particles','density']):
+            return '($m^{-3})$'
+        elif (name in ['speed_norm','vx', 'vy', 'vz']):
+            return '($m.s^{-1}$)'
+        elif(name ==  'speed_norm_squared'):
+            return '($m^2.s^{-2}$)'
+        elif(name in ['x', 'y', 'z']):
+            return '($m$)'
+        else:
+            return ''
+            
         # -------------- drawing --------------- #
     def draw_hist_distribution(self, value_name = "", save_animation = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color = None):
         if(self.current == None):
@@ -367,17 +382,16 @@ class DataAnalyser :
                 Y = ss.maxwell.pdf(X, loc = loc, scale = a)
             else :
                 Y = ss.norm.pdf(X, loc=μ, scale = std)
-            plt.plot(X,Y, label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
-        ax.set_title('{} : $\\mu$ = {} ; $\\sigma$ = {}'.format(value_name,round(μ,1),round(std,2)), fontsize=15)
-        plt.xlabel(value_name,fontsize=16)
-        plt.ylabel("density",fontsize=16)
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
+            plt.plot(X,Y, 'c', linestyle='dashed', linewidth=3) # label = 'maxwellian pdf' if plot_maxwellian else 'gaussian pdf')
+        ax.set_title('{} : $\\mu$ = {} {}; $\\sigma$ = {} {}'.format(value_name,round(μ,1),self.get_unit(value_name),round(std,2),self.get_unit(value_name)), fontsize=14)
+        plt.xlabel(value_name+' '+self.get_unit(value_name),fontsize=14)
+        plt.ylabel("density", fontsize=14)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         if(plot_gaussian or plot_maxwellian):
             plt.legend(loc='best')
-
         if(save_frame):
-            plt.savefig(self.path_to_saving+'{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), dpi=300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -418,12 +432,12 @@ class DataAnalyser :
             hexbin = ax.hexbin(df['x'], df['y'], None, gridsize = grid_size,  cmap='seismic', vmin = vmin, vmax = vmax)
 
         cb = fig.colorbar(hexbin, ax=ax)
-        cb.set_label(name)
+        cb.set_label(name+' '+self.get_unit(name))
 
         # ax.set_title('{} : {} spatial distribution - iteration {}/{}'.format(self.test_id,name, frame +1, self.number_of_frames), fontsize=15)
         # plt.legend(loc='best',fontsize=14)
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         plt.xlabel('x', fontsize=14)
         plt.ylabel('y', fontsize=14)
         ax.axis('equal')
@@ -467,8 +481,8 @@ class DataAnalyser :
         #ax.set_title('{} :  System evolution - iteration {}/{}'.format(self.test_id, frame+1, self.number_of_frames), fontsize=15)
 
         #plt.legend(loc='best',fontsize=14)
-        plt.xticks(fontsize=14)
-        plt.yticks(fontsize=14)
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
         plt.xlabel('x', fontsize=14)
         plt.ylabel('y', fontsize=14)
         
@@ -492,8 +506,10 @@ class DataAnalyser :
         # by default will select the last 10 frames
         
         fig, ax = plt.subplots()
-        plt.xlabel(direction)
-        plt.ylabel('density ($m^{-3})$')
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.xlabel(direction+''+self.get_unit(direction), fontsize=14)
+        plt.ylabel('density ($m^{-3})$', fontsize=14)
         
         df = self.df_data.loc[self.df_data['iteration'].isin(self.list_times[self.number_of_frames-frames:])]
         #df['density'] = df_data.apply(lambda raw: , axis=1)
@@ -559,8 +575,10 @@ class DataAnalyser :
 
         
         fig, ax = plt.subplots()
-        plt.xlabel(direction)
-        plt.ylabel('density({})'.format(direction)+'($m^{-3})$')
+        plt.xticks(fontsize=12)
+        plt.yticks(fontsize=12)
+        plt.xlabel(direction+''+self.get_unit(direction), fontsize=14)
+        plt.ylabel('density ($m^{-3})$', fontsize=14)
 
         colors = plt.cm.rainbow(np.linspace(0,1,len(lst)))
 
@@ -594,7 +612,6 @@ class DataAnalyser :
     def number_of_particles(self, save = True):
         period = int(self.get_param(key='saving_period', test_id = None))
 
-        # by default will select the last 10 frames
         X = [k*period for k in range(len(self.current))]
         Y = [len(self.current[k]) for k in range(len(self.current))]
 
@@ -602,8 +619,8 @@ class DataAnalyser :
         plt.plot(X,Y)
         plt.xlabel('iteration', fontsize = 16)
         plt.ylabel('Number of particles', fontsize = 16)
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
+        plt.xticks(fontsize=14)
+        plt.yticks(fontsize=14)
         if(save):
             plt.savefig(self.path_to_saving+'_number_part_evolution.png', dpi = 400, bbox_inches = 'tight', pad_inches = 0)
         else:
@@ -702,12 +719,12 @@ class DataAnalyser :
         plt.ylabel("variance de la vitesse ($m^2/s^2$)",fontsize=16)
         plt.plot(listTime, get_Temp(listTime), label = '$\sigma^2(t) = (\sigma^2(0)-\sigma^2_e)exp(-t/\\tau)+\sigma^2_e$')
         plt.plot(listTime,Temp, label = 'Simulation')
-        plt.xticks(fontsize=18)
-        plt.yticks(fontsize=18)
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)
         #plt.plot(listTime,Temp_smooth)
         plt.legend(loc='best',fontsize=16)
         if(save_frame):
-            plt.savefig(self.path_to_saving+'{}_temperature_evolution.png'.format(self.test_id), bbox_inches = 'tight', pad_inches = 0)
+            plt.savefig(self.path_to_saving+'{}_temperature_evolution.png'.format(self.test_id), dpi=300, bbox_inches = 'tight', pad_inches = 0)
         else:
             plt.show()
         plt.close()
@@ -781,7 +798,7 @@ class DataAnalyser :
             #plt.plot(listTime,Temp_smooth)
             plt.legend(loc='best',fontsize=14)
             if(save_frame):
-                plt.savefig(self.path_to_saving+'{}_temperature_evolution_{}.png'.format(self.test_id, axis[k]), bbox_inches = 'tight', pad_inches = 0)
+                plt.savefig(self.path_to_saving+'{}_temperature_evolution_{}.png'.format(self.test_id, axis[k]), dpi=300, bbox_inches = 'tight', pad_inches = 0)
             else:
                 plt.show()
             plt.close()

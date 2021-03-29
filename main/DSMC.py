@@ -489,6 +489,10 @@ class DSMC(object):
     def get_mean_proba(self):
         return self.mean_proba/self.total_considered_couples
     
+    def set_nb_collisions(self, new):
+        self.collisions_count = new
+
+    
     # ------------------ Saving function ------------------ # 
     # Not sure I should put it there ...
 

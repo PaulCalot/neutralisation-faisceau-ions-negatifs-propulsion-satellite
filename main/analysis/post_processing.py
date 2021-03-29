@@ -29,8 +29,10 @@ def post_processing(options, recompute = False):
         merge_tests_summary(files_to_merge, path_to_file)
         print('\t[OK]')
     if(type(ids_test)!=list):
-       ids_test = [ids_test]
-
+        ids_test = [int(ids_test)]
+    else:
+        ids_test = [int(id_) for id_ in ids_test]
+    
     print("Creating data analyser from {}...".format(path_to_file/'params.csv'), end = '')
     data_analyser = DataAnalyser(path_to_file/'params.csv')
     print('\t[OK]')
@@ -47,7 +49,7 @@ def post_processing(options, recompute = False):
         particles_masses = convert_string_to_list(data_analyser.get_param('particles_masses')) # will return, for the current test, the value of the column 'mass' if it exists
 
         mean_particles_number_per_cell_per_type = convert_string_to_list(data_analyser.get_param('mean_particles_number_per_cell_per_type'))
-        period = data_analyser.get_param('dt')*data_analyser.get_param('MAX_INTEGRATION_STEP')
+        period = data_analyser.get_param('dt')
         total_number_of_particles_per_cell = sum(mean_particles_number_per_cell_per_type)
         # space limit
         x_min = data_analyser.get_param('x_min')

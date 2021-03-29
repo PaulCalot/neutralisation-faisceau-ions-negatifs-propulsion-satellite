@@ -9,6 +9,7 @@ nohup.out
 resources/
 results/
 biblio/
+
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*

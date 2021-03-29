@@ -30,6 +30,9 @@ class system(ABC):
         self.volume = self.init_system_volume()
         self.Ne = self.init_Ne()
         
+        # time of the system - initialized at 0
+        self.t = 0
+
         # init flux if there is
         # TODO : init the flux how it should be!
         # flux_params : 
@@ -88,7 +91,8 @@ class system(ABC):
     def plot(self):
         self.grid.plot()
         # adding now the walls
-        fig = plt.plot(figsize = (10,30))
+        fig = plt.figure(figsize = (10,30))
+        plt.title = 'time = {:e} s'.format(self.t)
         for wall in self.walls :
             self.plot_wall(wall)
         self.plot_fluxes()
@@ -143,6 +147,12 @@ class system(ABC):
     def get_Ne(self):
         return self.Ne
         
+    def set_time(self, t):
+        self.t = t
+
+    def set_nb_collisions(self, new):
+        self.dsmc.set_nb_collisions(new)
+        
     # ---------- step function ------------c #
     
     def step(self, dt, t):
@@ -151,13 +161,14 @@ class system(ABC):
             if(self.debug):print('Injecting {} new particles.'.format(len(new_particles)))
             self.dsmc.add_particles(new_particles)
         self.dsmc.step(dt, t, self.f_args)
+        self.t = t+dt
 
     def simulate(self, dt, max_number_of_steps):
         return
     # ----------- init DSMC --------------- #
     def init_dsmc(self, mean_speed, integration_scheme, f, f_args) -> None:
         # TODO : make it better
-        self.f_args =f_args
+        self.f_args = f_args
         effective_diameters = [available_particles[type_]['effective diameter'] for type_ in self.options['particles_types']]
         lx, ly, lz = self.size 
         res_x, res_y = self.resolution
