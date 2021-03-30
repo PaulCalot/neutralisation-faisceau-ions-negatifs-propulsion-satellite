@@ -1,0 +1,12 @@
+vm(r)=d/(s-1)*exp(-sqrt(2*s)*B*(r-re))-d*s/(s-1)*exp(-sqrt(2/s)*B*(r-re)) 
+vt(r)=a*exp(-l*r)-b*exp(-m*r)
+re=1.39
+d=6.0
+B=2.1
+s=1.22
+a=2605.8416
+b=1397.0730
+print b,B
+1397.073 2.1
+l=3.2803
+m=2.6888

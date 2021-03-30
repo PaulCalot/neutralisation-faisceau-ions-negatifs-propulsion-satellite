@@ -1,0 +1,80 @@
+Tue Feb 22 08:42:04 PST 2000
+%%%%
+%%%% md2 -- Molecular dynamics simulations of ion/surface interactions
+%%%%
+%%%% (c) 2000 Cameron F. Abrams
+%%%%
+%%%% University of California, Berkeley
+%%%% Department of Chemical Engineering
+%%%% Berkeley, California  94720
+%%%%
+%%%% cfa@raven.cchem.berkeley.edu
+%%%%
+
+IMPORTANT DISCLAIMER:  md2 is NOT a commercial code!! It
+was developed as an academic research tool, and is being
+published via the Web in conjunction with the publication
+of my PhD thesis.  I make NO GUARANTEES about the accuracy
+of md2 or any of its affiliated programs.  I assume NO
+RESPONSIBILITY WHATSOEVER for any results that others may
+obtain using md2 or its affiliated programs.
+
+This README file accompanies the 22 Feb release of the md2
+molecular dynamics simulation code.  If you have unpacked
+the md2.tar.gz file in its own subdirectory, you should
+now see the following files:
+
+args.c
+atom.c
+bicubic.c
+cfg.c
+chem.c
+clust.c
+cryst.c
+dblmat.c
+domd.c
+ion.c
+point.c
+push.c
+tbt_sicf.c
+tricubic.c
+main.c
+args.h
+atom.h
+bicubic.h
+cfg.h
+chem.h
+clust.h
+cryst.h
+dblmat.h
+domd.h
+ion.h
+point.h
+push.h
+tbt_sicf.h
+tricubic.h
+units.h
+sicf_params.h
+tricof.h
+genforce.h
+cfg2r3d.c
+colormap.c
+r3d_utils.c
+colormap.h
+r3d_utils.h
+README
+manual.ps
+aSi.cfg
+makefile.sgi
+makefile.linux
+
+The first step is to print out the manual.ps file, which is a sort
+of bare-bones user's manual and tutorial for the md2 code, along
+with some very minimal developer-oriented documentation.  Within
+this manual are all of the instructions necessary to compile
+and run md2 and its auxiliary programs.
+
+--Cameron Abrams, 
+  Berkeley, California,
+  22 Feb 2000
+

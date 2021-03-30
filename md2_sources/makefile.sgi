@@ -1,0 +1,44 @@
+# SGI makefile for md series 2
+# (c) 2000 Cameron Abrams & UC Regents
+
+C_SRCS = args.c atom.c bicubic.c cfg.c chem.c clust.c cryst.c \
+	 dblmat.c domd.c ion.c point.c push.c tbt_sicf.c tricubic.c
+
+C_R3D	= cfg2r3d.c colormap.c r3d_utils.c
+
+OBJS    = $(C_SRCS:.c=.o)
+OR3D    = $(C_R3D:.c=.o)
+
+CC = cc
+RM = rm -f
+
+D = 0
+B3 = 1
+V = 1.0
+MXA=2000
+CFLAGS_GENERAL = -O3 -64 -D BUILD_NUMBER=`date +%e%m%y` -D DIAG=$(D) \
+	 -D VERSION_NUMBER=$(V) -DTHREE_BODY=$(B3) -DTERSOFF_NEIGHBORS \
+	 -Xcpluscomm -DMXA=$(MXA)
+
+CFLAGS = $(CFLAGS_GENERAL)
+
+LFLAGS = -64 
+LIBS	= -lm
+
+md2:	$(OBJS) main.o
+	$(CC) $(LFLAGS) -o $@ $(OBJS) main.o $(LIBS)
+
+cfg.o:   cfg.h
+tbt_sicf.o: cfg.h tbt_sicf.h sicf_params.h
+
+cgmin:	$(OBJS) cfg_cgmin.o  main_cgmin.o
+	$(CC) $(LFLAGS) -o $@ $(OBJS) cfg_cgmin.o main_cgmin.o $(LIBS)
+
+cfg2r3d: $(OBJS) $(OR3D)
+	$(CC) $(LFLAGS) -o $@ $(OBJS) $(OR3D) $(LIBS)
+
+cfginfo: $(OBJS) $(OBJS) cfginfo.o
+	$(CC) $(LFLAGS) -o $@ $(OBJS) cfginfo.o $(LIBS)
+
+clean:
+	$(RM) *.o

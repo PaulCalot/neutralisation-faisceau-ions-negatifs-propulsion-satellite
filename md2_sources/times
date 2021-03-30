@@ -1,0 +1,27 @@
+==============================================================================
+MD series 2 vs series 1 timing results
+cfa
+Thu Mar 11 08:48:42 PST 1999
+
+Compilations are done using 64 bit, level 3 optimization.
+Codes run on SGI Indigo2 10000 
+
+Series 1 timing results:
+% tersoff_sictest a:Si.cfg -dt 1.e-3 -n 100 -xp -yp (na=506)
+w1:33.91 u44.519 s0.396 bi19 bo0 sw0
+w7:49.84 u215.419 s0.900 bi2 bo0 sw0
+
+Series 2 timing results: (MA=2000)
+% a.out -c a:Si.cfg -dt 1.e-3 -Ndt 100 +dtvar (na=506)
+w1:07.52 u32.351 s0.259 bi0 bo0 sw0
+% a.out -c CF3.0900.cfg -dt 1.e-3 -Ndt 100 +dtvar (na=1569)
+w6:43.19 u194.045 s0.668 bi2 bo0 sw0
+
+Key comparisons, averaged between the na=506 and the na=1569 runs:
+(1) user time:		srs2 is ~1.24 times faster computationally
+(2) system time: 	srs2 is ~1.44 times faster wrt. system calls
+(3) wall clock time:	srs2 is ~1.24 times faster overall
+
+Conclusion:
+Implement a full-featured version of series 2, and abandon series 1.
+==============================================================================
