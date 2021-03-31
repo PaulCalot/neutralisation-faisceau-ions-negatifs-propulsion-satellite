@@ -365,7 +365,7 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
                                   -sigmax*np.cos(i_prime)*Vit_xy, 
                                   sigmay*np.sin(i_prime)*Vit_xy, 
                                   (1-eta*np.cos(incidence))*vz])
-            if q!=0 and np.random.random_sample()<=p*np.cos(incidence):
+            if q!=0 and np.random.random_sample()<=p: # *np.cos(incidence):
                 q,espece=0,'I'
 
         else: #normale selon y 
@@ -403,7 +403,7 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,t,E,dt):
                                   sigmax*np.sin(i_prime)*Vit_xy, 
                                   -sigmay*np.cos(i_prime)*Vit_xy, 
                                   (1-eta*np.cos(incidence))*vz])
-            if q!=0 and np.random.random_sample()<=p*np.cos(incidence):
+            if q!=0 and np.random.random_sample()<=p: # *np.cos(incidence):
                 q,espece=0,'I'
          
     return Particule(espece, q, m, Y_pot[0], Y_pot[1], Y_pot[2], Y_pot[3], Y_pot[4], Y_pot[5])

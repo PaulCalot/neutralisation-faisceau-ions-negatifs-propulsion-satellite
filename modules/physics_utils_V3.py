@@ -371,12 +371,13 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,physics_consts_dic
                                   -sigmax*np.cos(i_prime)*Vit_xy, 
                                   sigmay*np.sin(i_prime)*Vit_xy, 
                                   np.sqrt(1-coef_perte_energie)*vz])
-                
-            if q!=0 and np.random.random_sample()<=np.cos(incidence) and Cond3==True:
+            
+            # perte = 1 maintenant
+            if q!=0 and np.random.random_sample()<=1 and Cond3==True: # np.cos(incidence)
                 q,espece=0,'I'
                 
 ##############################################################################################################################
-        else: #normale selon y 
+        else: #normale selon y
         
             sigmax=np.sign(Y_pot[0]-Y[0])
             sigmay=np.sign(Y_pot[1]-Y[1])
@@ -420,7 +421,7 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,physics_consts_dic
                                   -sigmay*np.cos(i_prime)*Vit_xy, 
                                   np.sqrt(1-coef_perte_energie)*vz])
                 
-            if q!=0 and np.random.random_sample()<=np.cos(incidence) and Cond3==True:
+            if q!=0 and np.random.random_sample()<=1 and Cond3==True: # np.cos(incidence)
                 q,espece=0,'I'
                 
     sect_eff=1e-19
@@ -430,6 +431,8 @@ def One_step(liste_Y,n,segments_list,zone,mode_dict,mesh_dict,physics_consts_dic
         d=d1
     else:
         d=d2
+    
+    # pris en compte ici des collisions avec neutres 
     if np.random.random_sample()<dt*d*sect_eff*V and Cond2==True and espece=='I-':
         q,espece=0,'I'
         vx_ini=np.random.normal(loc_neutre,scale_neutre)
