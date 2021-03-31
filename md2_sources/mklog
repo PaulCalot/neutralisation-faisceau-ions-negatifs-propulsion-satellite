@@ -1,0 +1,847 @@
+	cc -O3 -64 -D BUILD_NUMBER=`date +%e%m%y` -D DIAG=0  -D VERSION_NUMBER=1.0 -DTHREE_BODY=1 -DTERSOFF_NEIGHBORS  -Xcpluscomm -DMXA=2000 -c args.c
+"args.c", line 168: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ic", "CfgInputFile",   cfg_infile_0,    0L,strasn,0L,strprn}, 
+                                                      ^
+
+"args.c", line 168: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ic", "CfgInputFile",   cfg_infile_0,    0L,strasn,0L,strprn}, 
+                                                                ^
+
+"args.c", line 169: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-is", "SetupInputFile", setup_infile_,  0L,strasn,0L,strprn}, 
+                                                     ^
+
+"args.c", line 169: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-is", "SetupInputFile", setup_infile_,  0L,strasn,0L,strprn}, 
+                                                               ^
+
+"args.c", line 170: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-os", "SetupOutputFile",setup_outfile_, 0L,strasn,0L,strprn}, 
+                                                     ^
+
+"args.c", line 170: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-os", "SetupOutputFile",setup_outfile_, 0L,strasn,0L,strprn}, 
+                                                               ^
+
+"args.c", line 171: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-oc", "CfgOutputFile",  cfg_outfile_0,   0L,strasn,0L,strprn}, 
+                                                      ^
+
+"args.c", line 171: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-oc", "CfgOutputFile",  cfg_outfile_0,   0L,strasn,0L,strprn}, 
+                                                                ^
+
+"args.c", line 172: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ocl","ClustOutputFile",clust_outfile_0, 0L,strasn,0L,strprn}, 
+                                                      ^
+
+"args.c", line 172: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ocl","ClustOutputFile",clust_outfile_0, 0L,strasn,0L,strprn}, 
+                                                                ^
+
+"args.c", line 173: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-oi", "IonOutputFile",  ion_.outfile_0,   0L,strasn,0L,strprn}, 
+                                                       ^
+
+"args.c", line 173: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-oi", "IonOutputFile",  ion_.outfile_0,   0L,strasn,0L,strprn}, 
+                                                                 ^
+
+"args.c", line 174: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-csn","CfgSnapshotFile",cfg_snapfile_,  0L,strasn,0L,strprn}, 
+                                                     ^
+
+"args.c", line 174: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-csn","CfgSnapshotFile",cfg_snapfile_,  0L,strasn,0L,strprn}, 
+                                                               ^
+
+"args.c", line 175: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-cnm","CfgNameDesc",    cfgName_,	    0L,strasn,0L,strprn}, 
+                                           	       ^
+
+"args.c", line 175: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-cnm","CfgNameDesc",    cfgName_,	    0L,strasn,0L,strprn}, 
+                                           	                 ^
+
+"args.c", line 176: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-cdt","CreationDate",   cfgCreateDate_, 0L,strasn,0L,strprn}, 
+                                                     ^
+
+"args.c", line 176: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-cdt","CreationDate",   cfgCreateDate_, 0L,strasn,0L,strprn}, 
+                                                               ^
+
+"args.c", line 177: warning(1140): a value of type "void (*)(char *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-uc", "UnitCell",	unitCell_,	0L,strasn,0L,strprn}, 
+                           	          	   ^
+
+"args.c", line 177: warning(1140): a value of type
+          "void (*)(FILE *, char *, char *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-uc", "UnitCell",	unitCell_,	0L,strasn,0L,strprn}, 
+                           	          	             ^
+
+"args.c", line 179: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-dt",  "TimeStep",      &dt_,	    0L,dblasn,0L,dblprn}, 
+                                       	       ^
+
+"args.c", line 179: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-dt",  "TimeStep",      &dt_,	    0L,dblasn,0L,dblprn}, 
+                                       	                 ^
+
+"args.c", line 180: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-mndt","MinTimeStep",   &mindt_,	    0L,dblasn,0L,dblprn}, 
+                                          	       ^
+
+"args.c", line 180: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-mndt","MinTimeStep",   &mindt_,	    0L,dblasn,0L,dblprn}, 
+                                          	                 ^
+
+"args.c", line 181: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-mxdt","MaxTimeStep",   &maxdt_,	    0L,dblasn,0L,dblprn}, 
+                                          	       ^
+
+"args.c", line 181: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-mxdt","MaxTimeStep",   &maxdt_,	    0L,dblasn,0L,dblprn}, 
+                                          	                 ^
+
+"args.c", line 182: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-t0",  "LowerIntegLim", &tlim0_,	    0L,dblasn,0L,dblprn}, 
+                                          	       ^
+
+"args.c", line 182: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-t0",  "LowerIntegLim", &tlim0_,	    0L,dblasn,0L,dblprn}, 
+                                          	                 ^
+
+"args.c", line 183: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-t1",  "UpperIntegLim", &tlim1_,	    0L,dblasn,0L,dblprn}, 
+                                          	       ^
+
+"args.c", line 183: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-t1",  "UpperIntegLim", &tlim1_,	    0L,dblasn,0L,dblprn}, 
+                                          	                 ^
+
+"args.c", line 184: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ff",  "FixFrac",	&ff_,		    0L,dblasn,0L,dblprn}, 
+                           	     		       ^
+
+"args.c", line 184: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ff",  "FixFrac",	&ff_,		    0L,dblasn,0L,dblprn}, 
+                           	     		                 ^
+
+"args.c", line 185: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-xlre", "CrystRe",	&xl_Re_,	    0L,dblasn,0L,dblprn}, 
+                            	        	       ^
+
+"args.c", line 185: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-xlre", "CrystRe",	&xl_Re_,	    0L,dblasn,0L,dblprn}, 
+                            	        	                 ^
+
+"args.c", line 186: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-Lx",  "BoxSize.x",     &(Lr_.x),	    0L,dblasn,0L,dblprn}, 
+                                           	       ^
+
+"args.c", line 186: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-Lx",  "BoxSize.x",     &(Lr_.x),	    0L,dblasn,0L,dblprn}, 
+                                           	                 ^
+
+"args.c", line 187: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-Ly",  "BoxSize.y",     &(Lr_.y),	    0L,dblasn,0L,dblprn}, 
+                                           	       ^
+
+"args.c", line 187: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-Ly",  "BoxSize.y",     &(Lr_.y),	    0L,dblasn,0L,dblprn}, 
+                                           	                 ^
+
+"args.c", line 188: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-Lz",  "BoxSize.z",     &(Lr_.z),	    0L,dblasn,0L,dblprn}, 
+                                           	       ^
+
+"args.c", line 188: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-Lz",  "BoxSize.z",     &(Lr_.z),	    0L,dblasn,0L,dblprn}, 
+                                           	                 ^
+
+"args.c", line 189: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ctm", "ConfigTime",    &cfgTime_,    0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 189: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ctm", "ConfigTime",    &cfgTime_,    0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 190: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-Tset","BerendsenT",    &bhb_Tset_,   0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 190: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-Tset","BerendsenT",    &bhb_Tset_,   0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 191: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-tau", "BerendsenTau",  &bhb_tau_,    0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 191: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-tau", "BerendsenTau",  &bhb_tau_,    0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 192: error(1020): identifier "bmb_Tset_" is undefined
+  {0,0,1,"-Pset","BerendsenP",    &bmb_Tset_,   0L,dblasn,0L,dblprn}, 
+                                   ^
+
+"args.c", line 192: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-Pset","BerendsenP",    &bmb_Tset_,   0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 192: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-Pset","BerendsenP",    &bmb_Tset_,   0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 193: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ptau","BerendsenPTau", &bmb_tau_,    0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 193: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ptau","BerendsenPTau", &bmb_tau_,    0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 194: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-tdt", "ThmlDesThryTau",&td_tau_,    0L,dblasn,0L,dblprn}, 
+                                                  ^
+
+"args.c", line 194: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-tdt", "ThmlDesThryTau",&td_tau_,    0L,dblasn,0L,dblprn}, 
+                                                            ^
+
+"args.c", line 195: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-tdA", "ThmlDesThryA",  &td_A_,    0L,dblasn,0L,dblprn}, 
+                                                ^
+
+"args.c", line 195: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-tdA", "ThmlDesThryA",  &td_A_,    0L,dblasn,0L,dblprn}, 
+                                                          ^
+
+"args.c", line 196: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ftol","ConjGradTol",   &ftol_,	    0L,dblasn,0L,dblprn}, 
+                                         	       ^
+
+"args.c", line 196: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ftol","ConjGradTol",   &ftol_,	    0L,dblasn,0L,dblprn}, 
+                                         	                 ^
+
+"args.c", line 197: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ionE","IonEnergy",     &(ion_.E_i),  0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 197: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ionE","IonEnergy",     &(ion_.E_i),  0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 198: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ionT","IonTheta",      &(ion_.Th_i), 0L,dblasn,0L,dblprn}, 
+                                                   ^
+
+"args.c", line 198: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ionT","IonTheta",      &(ion_.Th_i), 0L,dblasn,0L,dblprn}, 
+                                                             ^
+
+"args.c", line 199: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ionP","IonPhi",	    &(ion_.P_i),&(ion_.pRand), dblasn,shton,dblprn},
+                          	                               ^
+
+"args.c", line 199: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ionP","IonPhi",	    &(ion_.P_i),&(ion_.pRand), dblasn,shton,dblprn},
+                          	                                      ^
+
+"args.c", line 199: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ionP","IonPhi",	    &(ion_.P_i),&(ion_.pRand), dblasn,shton,dblprn},
+                          	                                            ^
+
+"args.c", line 200: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-prt","PhiRateTol",     &(phi_rate_tol_),  0L,dblasn,0L,dblprn}, 
+                                                        ^
+
+"args.c", line 200: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-prt","PhiRateTol",     &(phi_rate_tol_),  0L,dblasn,0L,dblprn}, 
+                                                                  ^
+
+"args.c", line 201: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-fccta","fcctestA",     &(fcc_a_t),  0L,dblasn,0L,dblprn}, 
+                                                  ^
+
+"args.c", line 201: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-fccta","fcctestA",     &(fcc_a_t),  0L,dblasn,0L,dblprn}, 
+                                                            ^
+
+"args.c", line 202: warning(1140): a value of type "void (*)(double *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-hccta","hcctestA",     &(hcc_a_t),  0L,dblasn,0L,dblprn}, 
+                                                  ^
+
+"args.c", line 202: warning(1140): a value of type
+          "void (*)(FILE *, char *, double *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-hccta","hcctestA",     &(hcc_a_t),  0L,dblasn,0L,dblprn}, 
+                                                            ^
+
+"args.c", line 205: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ncx", "nCellx",	    &(nCell_.i),    0L,intasn,0L,intprn},
+                          	                       ^
+
+"args.c", line 205: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ncx", "nCellx",	    &(nCell_.i),    0L,intasn,0L,intprn},
+                          	                                 ^
+
+"args.c", line 206: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ncy", "nCelly",	    &(nCell_.j),    0L,intasn,0L,intprn},
+                          	                       ^
+
+"args.c", line 206: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ncy", "nCelly",	    &(nCell_.j),    0L,intasn,0L,intprn},
+                          	                                 ^
+
+"args.c", line 207: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ncz", "nCellz",	    &(nCell_.k),    0L,intasn,0L,intprn},
+                          	                       ^
+
+"args.c", line 207: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ncz", "nCellz",	    &(nCell_.k),    0L,intasn,0L,intprn},
+                          	                                 ^
+
+"args.c", line 208: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-n",   "NumOfTimeSteps",&Ndt_,	    0L,intasn,0L,intprn},
+                                        	       ^
+
+"args.c", line 208: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-n",   "NumOfTimeSteps",&Ndt_,	    0L,intasn,0L,intprn},
+                                        	                 ^
+
+"args.c", line 209: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-i",   "ImpactNum",   &impact_num_,   0L,intasn,0L,intprn},
+                                                   ^
+
+"args.c", line 209: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-i",   "ImpactNum",   &impact_num_,   0L,intasn,0L,intprn},
+                                                             ^
+
+"args.c", line 210: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-i0",  "FirstImpactNum",&impact0_num_,  0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 210: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-i0",  "FirstImpactNum",&impact0_num_,  0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 211: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-i1",  "LastImpactNum", &impact1_num_,  0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 211: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-i1",  "LastImpactNum", &impact1_num_,  0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 212: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-soi", "SnapshotInt",   &cfg_outint_,   0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 212: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-soi", "SnapshotInt",   &cfg_outint_,   0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 213: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-idi", "IntDataInt",    &data_int_,   0L,intasn,0L,intprn},
+                                                   ^
+
+"args.c", line 213: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-idi", "IntDataInt",    &data_int_,   0L,intasn,0L,intprn},
+                                                             ^
+
+"args.c", line 214: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-iui", "IonUpdateInt",  &(ion_.uint),   0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 214: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-iui", "IonUpdateInt",  &(ion_.uint),   0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 215: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ioi", "IonOutputInt",  &(ion_.oint),   0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 215: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ioi", "IonOutputInt",  &(ion_.oint),   0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 216: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-bc",  "BondDefCtrlPar",&(bond_ctrl_),   0L,intasn,0L,intprn},
+                                                      ^
+
+"args.c", line 216: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-bc",  "BondDefCtrlPar",&(bond_ctrl_),   0L,intasn,0L,intprn},
+                                                                ^
+
+"args.c", line 217: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-dc",  "DesorbCtrlPar", &(des_ctrl_),   0L,intasn,0L,intprn},
+                                                     ^
+
+"args.c", line 217: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-dc",  "DesorbCtrlPar", &(des_ctrl_),   0L,intasn,0L,intprn},
+                                                               ^
+
+"args.c", line 218: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-hbn", "HeatBathStartStep", &(bhb_start_),   0L,intasn,0L,intprn},
+                                                          ^
+
+"args.c", line 218: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-hbn", "HeatBathStartStep", &(bhb_start_),   0L,intasn,0L,intprn},
+                                                                    ^
+
+"args.c", line 219: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-mbn", "MomentumBathStartStep", &(bmb_start_),   0L,intasn,0L,intprn},
+                                                              ^
+
+"args.c", line 219: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-mbn", "MomentumBathStartStep", &(bmb_start_),   0L,intasn,0L,intprn},
+                                                                        ^
+
+"args.c", line 220: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-d3", "Sicf_diag3", &(SIC_DIAG3_),   0L,intasn,0L,intprn},
+                                                  ^
+
+"args.c", line 220: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-d3", "Sicf_diag3", &(SIC_DIAG3_),   0L,intasn,0L,intprn},
+                                                            ^
+
+"args.c", line 221: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-d2", "Sicf_diag2", &(SIC_DIAG2_),   0L,intasn,0L,intprn},
+                                                  ^
+
+"args.c", line 221: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-d2", "Sicf_diag2", &(SIC_DIAG2_),   0L,intasn,0L,intprn},
+                                                            ^
+
+"args.c", line 224: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-oldhcc", "UseTanakaIHcc",   &hcc_opt_,        0L,shton, 0L,shtprn}, 
+                                                            ^
+
+"args.c", line 224: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-oldhcc", "UseTanakaIHcc",   &hcc_opt_,        0L,shton, 0L,shtprn}, 
+                                                                      ^
+
+"args.c", line 225: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-oldhcf", "UseTanakaIHcf",   &hcf_opt_,        0L,shton, 0L,shtprn}, 
+                                                            ^
+
+"args.c", line 225: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-oldhcf", "UseTanakaIHcf",   &hcf_opt_,        0L,shton, 0L,shtprn}, 
+                                                                      ^
+
+"args.c", line 226: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-oldfcc", "UseTanakaIFcc",   &fcc_opt_,        0L,shton, 0L,shtprn}, 
+                                                            ^
+
+"args.c", line 226: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-oldfcc", "UseTanakaIFcc",   &fcc_opt_,        0L,shton, 0L,shtprn}, 
+                                                                      ^
+
+"args.c", line 227: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-dtv", "VarTimeStep",   &dtvar_,        0L,shton, 0L,shtprn}, 
+                                                     ^
+
+"args.c", line 227: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-dtv", "VarTimeStep",   &dtvar_,        0L,shton, 0L,shtprn}, 
+                                                               ^
+
+"args.c", line 228: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"+dtv", "ConstTimeStep", &dtvar_,	    0L,shtoff,0L,shtprn}, 
+                                          	       ^
+
+"args.c", line 228: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"+dtv", "ConstTimeStep", &dtvar_,	    0L,shtoff,0L,shtprn}, 
+                                          	                 ^
+
+"args.c", line 229: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-q",   "Quiet",         &quiet_,        0L,shton, 0L,shtprn}, 
+                                                     ^
+
+"args.c", line 229: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-q",   "Quiet",         &quiet_,        0L,shton, 0L,shtprn}, 
+                                                               ^
+
+"args.c", line 230: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-echo","Echo",	    &echo_,	    0L,shton, 0L,shtprn}, 
+                        	           	       ^
+
+"args.c", line 230: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-echo","Echo",	    &echo_,	    0L,shton, 0L,shtprn}, 
+                        	           	                 ^
+
+"args.c", line 231: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"+fcc", "NoFcc",	    &USE_FCC,	    0L,shtoff,0L,shtprn}, 
+                         	             	       ^
+
+"args.c", line 231: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"+fcc", "NoFcc",	    &USE_FCC,	    0L,shtoff,0L,shtprn}, 
+                         	             	                 ^
+
+"args.c", line 232: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-fcctest", "fcctest",	    &FCC_TESTER,	    0L,shton,0L,shtprn}, 
+                               	                	       ^
+
+"args.c", line 232: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-fcctest", "fcctest",	    &FCC_TESTER,	    0L,shton,0L,shtprn}, 
+                               	                	                ^
+
+"args.c", line 233: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"-hijtest", "hijtest",	    &HIJ_TESTER,	    0L,shton,0L,shtprn}, 
+                               	                	       ^
+
+"args.c", line 233: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"-hijtest", "hijtest",	    &HIJ_TESTER,	    0L,shton,0L,shtprn}, 
+                               	                	                ^
+
+"args.c", line 234: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,0,"+hij", "NoHij",	    &USE_HIJ,	    0L,shtoff,0L,shtprn}, 
+                         	             	       ^
+
+"args.c", line 234: warning(1140): a value of type
+          "void (*)(FILE *, char *, short *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,0,"+hij", "NoHij",	    &USE_HIJ,	    0L,shtoff,0L,shtprn}, 
+                         	             	                 ^
+
+"args.c", line 237: warning(1140): a value of type "void (*)(pt *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,3,"-L",   "BoxSize.xyz",   &Lr_,	    0L,pntasn,0L,pntprn}, 
+                                       	       ^
+
+"args.c", line 237: warning(1140): a value of type
+          "void (*)(FILE *, char *, pt *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,3,"-L",   "BoxSize.xyz",   &Lr_,	    0L,pntasn,0L,pntprn}, 
+                                       	                 ^
+
+"args.c", line 239: warning(1140): a value of type "void (*)(ipt *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,3,"-nc",  "nCell.xyz",     &nCell_,	    0L,iptasn,0L,iptprn}, 
+                                          	       ^
+
+"args.c", line 239: warning(1140): a value of type
+          "void (*)(FILE *, char *, ipt *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,3,"-nc",  "nCell.xyz",     &nCell_,	    0L,iptasn,0L,iptprn}, 
+                                          	                 ^
+
+"args.c", line 240: warning(1140): a value of type "void (*)(ipt *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,3,"-per", "Periodicities", &per_,	    0L,iptasn,0L,iptprn}, 
+                                        	       ^
+
+"args.c", line 240: warning(1140): a value of type
+          "void (*)(FILE *, char *, ipt *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,3,"-per", "Periodicities", &per_,	    0L,iptasn,0L,iptprn}, 
+                                        	                 ^
+
+"args.c", line 242: warning(1140): a value of type "void (*)(pt *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,4,"-ionr","IonAtomPos",    ion_.r0ex,&(ion_.rExplic),paeasn,shton,NULL}, 
+                                                            ^
+
+"args.c", line 242: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,4,"-ionr","IonAtomPos",    ion_.r0ex,&(ion_.rExplic),paeasn,shton,NULL}, 
+                                                                   ^
+
+"args.c", line 243: warning(1140): a value of type "void (*)(pt *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,4,"-ionv","IonAtomVel",   &(ion_.v0ex),&(ion_.vExplic),paeasn,shton,NULL},
+                                                              ^
+
+"args.c", line 243: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,4,"-ionv","IonAtomVel",   &(ion_.v0ex),&(ion_.vExplic),paeasn,shton,NULL},
+                                                                     ^
+
+"args.c", line 245: warning(1140): a value of type
+          "void (*)(unit_type *, char *)" cannot be used to initialize an
+          entity of type "void (*)(void *, void *)"
+  {0,0,1,"-u",   "UnitSystem",    &U_,	    0L,usasn, 0L,usprn}, 
+                                      	       ^
+
+"args.c", line 245: warning(1140): a value of type
+          "void (*)(FILE *, char *, unit_type *)" cannot be used to initialize
+          an entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-u",   "UnitSystem",    &U_,	    0L,usasn, 0L,usprn}, 
+                                      	                 ^
+
+"args.c", line 246: warning(1140): a value of type "void (*)(int *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ion", "Ion", &(ion_.spec),&(cfg_ionctrl_),ionasn,shton,ionprn}, 
+                                                     ^
+
+"args.c", line 246: warning(1140): a value of type "void (*)(short *, char *)"
+          cannot be used to initialize an entity of type
+          "void (*)(void *, void *)"
+  {0,0,1,"-ion", "Ion", &(ion_.spec),&(cfg_ionctrl_),ionasn,shton,ionprn}, 
+                                                            ^
+
+"args.c", line 246: warning(1140): a value of type
+          "void (*)(FILE *, char *, int *)" cannot be used to initialize an
+          entity of type "void (*)(FILE *, char *, void *)"
+  {0,0,1,"-ion", "Ion", &(ion_.spec),&(cfg_ionctrl_),ionasn,shton,ionprn}, 
+                                                                  ^
+
+1 error detected in the compilation of "args.c".
+*** Error code 2 (bu21)
