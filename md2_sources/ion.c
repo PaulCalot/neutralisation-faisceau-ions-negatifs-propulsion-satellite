@@ -27,32 +27,32 @@ typedef struct ion_int_coords
 } iic_type;
 
 /* Ion type ID's:				    |  ion classes: */
-enum {I_He, I_C, I_F, I_Ne, I_Si, I_Ar, I_Kr, I_Xe, /* atoms */
+enum {I_He, I_C, I_F, I_Ne, I_Si, I_Ar, I_Kr, I_Xe, I_I, /* atoms */
       I_CC, I_FF, I_SiSi,			    /* homodimers AA */
       I_CF, I_SiF, I_SiC,			    /* heterodimers AX */
       I_CF2, I_SiF2, I_SiC2, I_Si2C,		    /* AX2 */
       I_CF3, I_SiF3, I_SiC3, I_Si3C,		    /* AX3 */
-      I_CF4, I_SiF4, I_SiC4, I_Si4C,		    /* AX4 */
+      I_CF4, I_SiF4, I_SiC4, I_Si4C,  	     /* AX4 */
       NULL_ION};
 
 char * IonIDstr[NULL_ION] =
 {
-    "He", "C", "F", "Ne", "Si", "Ar", "Kr", "Xe", 
+    "He", "C", "F", "Ne", "Si", "Ar", "Kr", "Xe", "I",
     "CC", "FF", "SiSi", 
     "CF", "SiF", "SiC", 
     "CF2", "SiF2", "SiC2", "Si2C", 
     "CF3", "SiF3", "SiC3", "Si3C", 
-    "CF4", "SiF4", "SiC4", "Si4C" 
+    "CF4", "SiF4", "SiC4", "Si4C"
 };
 
 char * IonIDstr_alt[NULL_ION] =
 {
-    "HE", "C", "F", "NE", "SI", "AR", "KR", "XE", 
+    "HE", "C", "F", "NE", "SI", "AR", "KR", "XE", "I",
     "CC", "FF", "SISI", 
     "CF", "SIF", "SIC", 
     "CF2", "SIF2", "SIC2", "SI2C", 
     "CF3", "SIF3", "SIC3", "SI3C", 
-    "CF4", "SIF4", "SIC4", "SI4C" 
+    "CF4", "SIF4", "SIC4", "SI4C"
 };
 
 /* Internal atomic coordinates (ic's) for all ion types.  
@@ -124,6 +124,7 @@ const iic_type IonInternalCoords[NULL_ION] =
     {Ar, 0, 0L},
     {Kr, 0, 0L},
     {Xe, 0, 0L},
+    {I, 0, 0L},
     {C,  1, CC_coord},      /* CC */
     {F,  1, FF_coord},      /* FF */
     {Si, 1, SiSi_coord},    /* SiSi */
@@ -194,6 +195,7 @@ const iic_type IonInternalCoords__A[NULL_ION] =
     {Ar, 0, 0L},
     {Kr, 0, 0L},
     {Xe, 0, 0L},
+    {I, 0, 0L},
     {C,  1, CC_coord__A},      /* CC */
     {F,  1, FF_coord__A},      /* FF */
     {Si, 1, SiSi_coord__A},    /* SiSi */

@@ -92,6 +92,7 @@ void Chem_InitializePeriodicTable (void)
     per_table[Cu].mass	    =	MASS_COPPER;
     per_table[H].mass	    =	MASS_HYDROGEN;
     per_table[C].mass	    =	MASS_CARBON;
+    per_table[I].mass	    =	MASS_IODINE;
 
     per_table[Si].z	    =	Z_Si;
     per_table[Si_0].z	    =	Z_Si;
@@ -108,7 +109,8 @@ void Chem_InitializePeriodicTable (void)
     per_table[Cu].z	    =	Z_Cu;
     per_table[H].z	    =	Z_H;
     per_table[C].z	    =	Z_C;
-        
+    per_table[I].z      = Z_I;
+
     per_table[Si].v         =   V_Si;
     per_table[Si_0].v       =   V_Si;
     per_table[O].v          =   V_O;
@@ -124,7 +126,8 @@ void Chem_InitializePeriodicTable (void)
     per_table[Cu].v         =   V_Cu;
     per_table[H].v          =   V_H;
     per_table[C].v          =   V_C;
-        
+    per_table[I].v          =   V_I;
+
     strcpy(per_table[Si].name,	    "Silicon");
     strcpy(per_table[Si_0].name,    "Silicon");
     strcpy(per_table[O].name,	    "Oxygen");
@@ -140,7 +143,8 @@ void Chem_InitializePeriodicTable (void)
     strcpy(per_table[Cu].name,	    "Copper");
     strcpy(per_table[H].name,	    "Hydrogen");
     strcpy(per_table[C].name,	    "Carbon");
-        
+    strcpy(per_table[I].name,	    "Iodine");
+
     strcpy(per_table[XX].sym,	    "XX");
     strcpy(per_table[Si_0].sym,     "S0");
     strcpy(per_table[Si].sym,	    "Si");
@@ -160,6 +164,7 @@ void Chem_InitializePeriodicTable (void)
     strcpy(per_table[Csp1].sym,	    "C1");
     strcpy(per_table[Csp2].sym,	    "C2");
     strcpy(per_table[Csp3].sym,	    "C3");
+    strcpy(per_table[I].sym,	    "I");
 
     /* Radii below are in SW sigmas (don't ask me why).
      * They are converted to angstroms if required below. 
@@ -227,6 +232,11 @@ void Chem_InitializePeriodicTable (void)
     per_table[Cu].color.g = 0.2;
     per_table[Cu].color.b = 0.2;
     per_table[Cu].radius = 0.61;
+
+    per_table[I].color.r = 0.94;
+    per_table[I].color.g = 0.51;
+    per_table[I].color.b = 0.94;
+    per_table[I].radius = 0.9451;
 
     fp=fopen(cheminp, "r");
     if (fp)

@@ -32,6 +32,7 @@
 #define MASS_COPPER	63.546
 #define MASS_HYDROGEN	1.008
 #define MASS_CARBON	12.011
+#define MASS_IODINE 126.90
 
 #define XX		5
 #define Si_0    	0
@@ -52,6 +53,7 @@
 #define Csp1          17
 #define Csp2          18
 #define Csp3          19
+#define I        6
 
 #define Z_Si      	14
 #define Z_F       	9
@@ -66,6 +68,7 @@
 #define Z_Cu		29
 #define Z_H		1
 #define Z_C		6
+#define Z_I     53 // atomic number
 
 #define V_Si      	4
 #define V_F       	1
@@ -80,6 +83,7 @@
 #define V_Cu		6
 #define V_H		1
 #define V_C		4
+#define V_I     7 // valence electrons
 
 typedef int sym_type;
 typedef enum {APVK, STILLWEB, LENJONES, NULL_UT} unit_type;
