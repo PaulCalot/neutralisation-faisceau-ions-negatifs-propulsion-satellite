@@ -9,7 +9,7 @@ nohup.out
 resources/
 results/
 biblio/
-
+md2_results/
 # jupyter lab
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
