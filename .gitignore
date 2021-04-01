@@ -4,6 +4,7 @@ main/
 resources/
 results/
 .VSCodeCounter/
+md2_results/
 *.o
 __pycache__/
 # jupyter lab
