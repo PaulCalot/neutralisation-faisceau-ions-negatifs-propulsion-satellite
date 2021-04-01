@@ -6,6 +6,7 @@ results/
 .VSCodeCounter/
 md2_results/
 *.o
+.vscode/
 __pycache__/
 # jupyter lab
 .ipynb_checkpoints
