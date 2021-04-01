@@ -1,14 +1,10 @@
 import os
 from pathlib import Path
 
-def clean_and_remake(src_path, paths_to_h):
+def clean_and_remake(src_path):
     #os.chdir(src_path)
     os.system("make -C {}/ clean".format(src_path))
-    cmd = ''
-    if(paths_to_h is not None):
-        for path in paths_to_h:
-            cmd += "-I{}".format(path)
-    os.system("make {} -C {}/ md2".format(cmd, src_path))
+    os.system("make -C {}/ md2".format(src_path))
     
 def init_simulation(src_path, name):
     test_path = src_path/name
@@ -45,7 +41,7 @@ def make_command(params, flags):
     command = "./md2 -oc cfg/####.cfg {} > log &".format(cmd)
     return command
 
-def launch_simulation(name, params, flags, paths_to_h = None):
+def launch_simulation(name, params, flags):
     # name : name of the simulation (under the source folder of the md code)
     # params : a dictionnary containing as keys the items in the command to launch a simu in the C code
     
@@ -54,7 +50,7 @@ def launch_simulation(name, params, flags, paths_to_h = None):
 
     # Preparing config - hypothesis : this notebook is in the same directory that the source MD code.
 
-    clean_and_remake(src_path, paths_to_h)
+    clean_and_remake(src_path)
 
     # all is saved in a new file
     test_path = init_simulation(src_path, name)
