@@ -24,7 +24,7 @@ def init_simulation(src_path, name):
 
 def make_command(params, flags):
     possible_keys = ['-ion','-ionE','-Tset','-ionT','-ionP','-tau','-n','-dt','-i1']
-    possible_flags = ['+dtv']
+    possible_flags = ['+dtv','-q']
     cmd = ''
     
     for (key, value) in params.items():
