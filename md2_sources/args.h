@@ -8,9 +8,9 @@
 #include "ion.h"
 
 #define IGNORE_BADWORDS 0
-#define TRAP_BADWORDS   1
-#define NO_RECURSION    2
-#define MAXCHAR		255
+#define TRAP_BADWORDS 1
+#define NO_RECURSION 2
+#define MAXCHAR	255
 
 void arg_handler (int argc, char * argv[], short bwc);
 void parseline (char * ln, char * argv[], int * argc);
