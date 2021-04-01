@@ -4,6 +4,7 @@ main/
 resources/
 results/
 .VSCodeCounter/
+*.o
 __pycache__/
 # jupyter lab
 .ipynb_checkpoints
