@@ -1,46 +1,10 @@
 import numpy as np
 import os
+from numpy.core.fromnumeric import var
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def coord_initiales_ion(path):
-    lenght_headers = longueur_file(path)
-    file = open(path, "r")
-    
-    found = False
-
-    while not found:
-        line = file.readline()
-
-        if(line == ""): # https://docs.python.org/3.6/tutorial/inputoutput.html#methods-of-file-objects
-            print('End of file reached. Cound not find initial ion coordinates.')
-            return
-    
-        split = line.split(':')
-        if split[0]=="# Initial COM position":
-            file.close()
-            found = True
-            xini,yini,zini = split[1].strip().split(' ')
-            return float(xini), float(yini), float(zini)
-
-    # indice_2_points=0
-    # indice_1er_espace=0
-    # indice_2eme_espace=0
-    # for i in range(len(line)):
-    #     if indice_2_points==0 and line[i]==':':
-    #         indice_2_points=i
-    #     elif indice_1er_espace==0 and indice_2_points!=0 and i>indice_2_points+1 and line[i]==' ':
-    #         indice_1er_espace=i
-    #     elif indice_2eme_espace==0 and indice_1er_espace!=0 and line[i]==' ':
-    #         print(i)
-    #         indice_2eme_espace=i
-            
-    # xini=float(line[indice_2_points+2: indice_1er_espace])
-    # yini=float(line[indice_1er_espace+1: indice_2eme_espace])
-    # zini=float(line[indice_2eme_espace+1:])
-    
-    # return xini,yini,zini
 
 def complementaire(i):
     if i+1<10:
@@ -52,74 +16,51 @@ def complementaire(i):
     else :
         return str(i+1)
     
-def longueur_file(chemin):
-    file = open(chemin, "r")
-    ind=0
-    line = file.readline()
-    while line!="":
+def lenght_file(path):
+    with open(path, "r") as file:
+        ind=0
         line = file.readline()
-        ind+=1
-    file.close()
-    return ind
+        while line!="":
+            line = file.readline()
+            ind+=1
+        file.close()
+        return ind
 
-def longueur_intro(chemin):
-    file = open(chemin, "r")
-    ind=0
-    line = file.readline()
-    while line[0]=="#" or line[0]=="%":
+def lenght_headers(path):
+    with open(path, "r") as file:
+        file = open(path, "r")
+        ind=0
         line = file.readline()
-        ind+=1
-    file.close()
-    return ind
+        while line[0]=="#" or line[0]=="%":
+            line = file.readline()
+            ind+=1
+        file.close()
+        return ind
 
 
-# ---------------------------------------- Extract data ---------------------------------- #
-def extract_data_df(nb_steps, path):
-    l = longueur_intro(path)
-    df=pd.read_csv(path, header=None, skiprows=l, names=['Time step','Integration time','KE/TE_i','internal PE','external PE','d.x','d.y','d.z','norm(d)','#b','imp?'], sep=" ")
-    while(nb_steps+1 < len(df.values)): # because the file is not necessarily written yet even though the previous cell has been completed.
-        df=pd.read_csv(path, header=None, skiprows=l, names=['Time step','Integration time','KE/TE_i','internal PE','external PE','d.x','d.y','d.z','norm(d)','#b','imp?'], sep=" ")
-   
-    xini,yini,zini = coord_initiales_ion(path)
-    df['x']=xini+df['d.x']
-    df['y']=yini+df['d.y']
-    df['z']=zini+df['d.z']
+def scan_directory(dir_path, file_extension):
+        number_of_files = 0
+        names = []
+        for file in os.listdir(dir_path):
+            if file.endswith(file_extension):
+                number_of_files+=1
+                names.append(file)
+        return names, number_of_files
 
-    df.drop(['#b','d.x', 'd.y','d.z'], axis='columns', inplace=True)
-    df.set_index('Time step')
-    return df
-
-def extract_angles(df):
-    dx=df['x'].values[-1]-df['x'].values[-2]
-    dy=df['y'].values[-1]-df['y'].values[-2]
-    dz=df['z'].values[-1]-df['z'].values[-2]
-    dr=np.sqrt(dx**2+dy**2+dz**2)
-
-    phi_sortie = np.nan
-    theta_sortie=np.arccos(dz/dr)*180/np.pi
-    if(dx != 0):
-        phi_sortie=np.arctan(dy/dx)*180/np.pi
-    else :
-        print('Ion did not leave.')
-    return theta_sortie, phi_sortie
-
-def get_df_crystal(path):
-    cols = ['id','type','x',\
-       'y','z','vx','vy','vz','fix ?']
-    df_crystal=pd.read_csv(path, header=None, skiprows=longueur_intro(path), names=cols, sep="\t")
-    return df_crystal
 
 def get_impact_time(df):
     results = np.where(df['imp?']==1)[0] # 1st time imp? = 1
     if len(results)>0: return results[0]
     else: return None
+
 # ------------------------------------ Plotting ----------------------------------- #
+
 def plot_crystal(ax, dataframe, radii, colors, dir1, dir2, alpha = 0.1):
     for index, row in dataframe.iterrows():
         ax.add_patch(plt.Circle((row[dir1], row[dir2]), radii[row['type']], \
                                 color = colors[row['type']], alpha = alpha))
 
-def plot_2D_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
+def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
     
     xmin, xmax = min(np.min(df_crystal['x']),np.min(df_ion['x'])), max(np.max(df_crystal['x']),np.max(df_ion['x']))
     ymin, ymax = min(np.min(df_crystal['y']),np.min(df_ion['y'])), max(np.max(df_crystal['y']),np.max(df_ion['y']))
@@ -159,25 +100,124 @@ def plot_2D_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
 
     plt.show()
 
-# TODO - not sure it is useful though
+
 # ------------------------------------------- Reading results folder ------------------------------- #
+
+class process_results:
+    def __init__(self, path_to_folder):
+        self.path = path_to_folder # path to folder
+        self.ion = process_ion_folder(path_to_folder/'ion')
+        self.crystal = process_crystal_folder(path_to_folder/'cfg')
+        self.log = process_log_file(path_to_folder/'log')
 
 # ------------------------------------------- Reading ion folder ----------------------------------- #
 
+class process_ion_folder :
+    # will process everything in the ion folder (every file with .ion)
+    file_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'd.x', 'd.y', 'd.z', '|d|', '#b', 'imp?']
+    final_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'x', 'y', 'z', '|d|', 'imp?']
+    
+    def __init__(self, path):
+        self.path = path
+        self.dataframes = self.get_dict_df()        
+        self.list_angles = self.extract_angles()
+
+    def get_dict_df(self):
+        self.names, self.simulation_number = scan_directory(self.path, '.ion')
+        df_dict = {}
+        for name in self.names :
+            df_dict[name] = self.get_dataframe_(self.path/name)
+        return df_dict
+
+    def get_dataframe_(self, path):
+        # wait so the ion file can be written before executing this script.
+        l = lenght_headers(path)
+        df=pd.read_csv(path, header=None, skiprows=l, names=self.file_fields, sep=" ")
+
+        xini,yini,zini = self.coord_initiales_ion_(path)
+
+        df['x']=xini+df['d.x']
+        df['y']=yini+df['d.y']
+        df['z']=zini+df['d.z']
+
+        df.drop(['#b','d.x', 'd.y','d.z'], axis='columns', inplace=True)
+        df.set_index('st') # step time as index
+        
+        return df
+
+    def extract_angles(self):
+        list_angles = []
+        for k, df in self.dataframes.items():
+            dx= df['x'].values[-1]- df['x'].values[-2]
+            dy= df['y'].values[-1]- df['y'].values[-2]
+            dz= df['z'].values[-1]- df['z'].values[-2]
+            dr=np.sqrt(dx**2+dy**2+dz**2)
+
+            phi_sortie = np.nan
+            theta_sortie=np.arccos(dz/dr)*180/np.pi
+            if(dx != 0):
+                phi_sortie=np.arctan(dy/dx)*180/np.pi
+            list_angles.append([theta_sortie, phi_sortie])
+        return list_angles
+    
+    def coord_initiales_ion_(self, path):       
+        with open(path, "r") as file:
+            found = False
+            while not found:
+                line = file.readline()
+
+                if(line == ""): # https://docs.python.org/3.6/tutorial/inputoutput.html#methods-of-file-objects
+                    print('End of file reached. Cound not find initial ion coordinates.')
+                    return
+
+                split = line.split(':')
+                if split[0]=="# Initial COM position":
+                    file.close()
+                    found = True
+                    xini,yini,zini = split[1].strip().split(' ')
+                    return float(xini), float(yini), float(zini)
+                
 # ------------------------------------------  Reading crystal folder (cfg) ------------------------------- #
 
+class process_crystal_folder :
+    file_fields = ['id','type','x',\
+        'y','z','vx','vy','vz','fix ?']
+
+    def __init__(self, path):
+        self.path = path
+        self.dataframes = self.get_dict_df()
+
+    def get_dict_df(self):
+        self.names, self.simulation_number = scan_directory(self.path, '.cfg')
+        df_dict = {}
+        for name in self.names :
+            df_dict[name] = self.get_df_crystal_(self.path/name)
+        return df_dict
+
+    def get_df_crystal_(self, path):
+        df_crystal=pd.read_csv(path, header=None, skiprows=lenght_headers(path), names=self.file_fields, sep="\t")
+        return df_crystal
+
+    def plot_crystal(self, ax, radii, colors, dir1, dir2, idx_or_name = 0):
+        if(type(idx_or_name) == int):
+            plot_crystal(ax, self.dataframes[self.names[idx_or_name]], radii, colors, dir1, dir2, alpha = 0.1)
+        elif(idx_or_name in self.names):
+            plot_crystal(ax, self.dataframes[idx_or_name], radii, colors, dir1, dir2, alpha = 0.1)
+        else:
+            print("Name / index not recognized. Should be in {} / lenght [0, {}].".format(self.names, len(self.names)))
 # ------------------------------------------- Reading log file ------------------------------- #
+
 
 class process_log_file:
     
     def __init__(self, path):
         self.path = path
-        self.integration_data, self.other_data  = self.get_data(path)    
+        self.integration_data, self.other_data, self.nb_traj  = self.get_data()    
     
-    def get_data(self, path):
+    def get_data(self):
         int_data = []
         other_data = []
-        with open(path, "r") as file:
+        with open(self.path, "r") as file:
             line = file.readline()
             if(line[0] == "#"):
                 other_data.append(line)
@@ -186,8 +226,7 @@ class process_log_file:
             traj_data = []
             while(line!=""):
                 line = file.readline()
-                
-                if(len(line)>0):
+                if(len(line)==0):
                     continue
 
                 if(line[0] == "#"):
@@ -200,10 +239,19 @@ class process_log_file:
                 else:
                     values_str = line.strip().split('\t')
                     traj_data.append([float(value) for value in values_str])
-        headers = ['t [#]', 'time [ps]', 'KE [eV]', 'PE [eV]', 'E [Ev]', 'Edrift [eV]', '%Edrift [%]', 'T [K]', 'nClst [#]', 'nAicl? [0/1]', 'Plat [GPa]']
+        headers = ['t [#]', 'time [ps]', 'KE [eV]', 'PE [eV]', 'E [eV]', 'Edrift [eV]', '%Edrift [%]', 'T [K]', 'nClst [#]', 'nAicl? [0/1]', 'Plat [GPa]']
         df = [pd.DataFrame(int_data[k], columns = headers) for k in range(idx_traj)]
-        return df, other_data
+        return df, other_data, idx_traj
 
     def plot_instantaneous_temperature_K(self, idx_traj = 0):
-        plt.plot(self.integration_data[idx_traj]['time [ps]'], self.integration_data[idx_traj]['T [K]'])
-        plt.show()
+        self.plot_evolution(idx_traj, 'T [K]')
+        # plt.plot(self.integration_data[idx_traj]['time [ps]'], self.integration_data[idx_traj]['T [K]'])
+
+    def plot_evolution(self, idx_traj, y):
+        # y = f(t)
+        self.plot(idx_traj, 'time [ps]', y)
+        
+    def plot(self, idx_traj, x, y):
+        # plot y as a function of x
+        # where x and y should be either indexes or column labels.
+        plt.plot(self.integration_data[idx_traj][x], self.integration_data[idx_traj][y])
