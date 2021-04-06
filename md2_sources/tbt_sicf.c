@@ -686,7 +686,7 @@ static double a__, af1__, af0__, g0om__, g1om__, af0g1om__,
 	      acc1__, acc2__, acc3__, acc3ik__, xiH_ij__, xiH_ji__, dxi_ijk__, thisPhij;
 static ptPtr f_ij__, f_ji__, f_ik__, f_ki__, f_jk__, f_kj__, f_kl__, f_lk__;
 char * mainForce_d_h_ = "tbt_sicf::mainForce";
-void mainForce (void)
+void 	mainForce (void)
 {
     atomPtr ip = NULL, jp = NULL, kp = NULL, lp = NULL;
     nNodePtr nip = NULL, njp = NULL, nkp = NULL, nlp = NULL, rare_nkp = NULL;
@@ -776,7 +776,7 @@ void mainForce (void)
 		sijk_[k] = gijk_[k] = gijk1_[k] = omijk_[k] = epijk_[k] = 0.0;
 		sjik_[k] = gjik_[k] = gjik1_[k] = omjik_[k] = epjik_[k] = 0.0;
 	    }
-	
+		
 	    js = jp->sym;
 	    TwoBody_SetParameters(is, js);
 	    if (is == C && js == C) cc_ij = 1;

@@ -334,7 +334,7 @@ void cfg_establish (void)
 	nAtom_=cryst_cnt();
 	if (!quiet_) printf("# Creating new crystal: %s (%i, %i, %i) %i\n", 
 	    unitCell_, nCell_.i, nCell_.j, nCell_.k, nAtom_);
-	    	
+
 	cryst_pos();
 	cryst_vel();
 	

@@ -334,6 +334,8 @@ void ion_newion (void)
     /* Using the data in the IonInternalCoords[] array, create
      * the ion with its base atom at (0, 0, 0). */
     a=cfg_newatom();
+    /* J'ajoute : */
+
     ptPtr_clear(a->pos);
     nNode_push(&(ion_.mem), nNode_pop(&(a->bCards)));
     a->sym=IonInternalCoords[ion_.spec].base;
@@ -359,7 +361,15 @@ void ion_newion (void)
 	a->state=IS_PROJECTILE;
 	ion_.mass+=per_table[a->sym].mass;
     }
-        
+
+    // printf("# Specie : %d\n", ion_.spec);
+    // printf("# Selected randomly (1) or set by user (0) : %d\n", ion_.pool);
+    // printf("# Atomic symbol : %s\n", per_table[IonInternalCoords[ion_.spec].base].name);
+    printf("# Period table :\n");
+    for (int count = 0; count<MAXNUMELEMENTS; count++){
+        printf("# %d : Name : %s ; Symbol : %s ; Atomic number : %d ; Valence : %d \n", k, per_table[count].name, per_table[count].sym, per_table[count].z ,per_table[count].v);
+    }
+
     /* Compute scalar ion velocity and cos and sin of incident polar angle */
     if (U_==STILLWEB) ei=ion_.E_i/EV_PER_EPSILON;
     else ei=ion_.E_i;
@@ -651,6 +661,18 @@ void ion_output (void)
 		fprintf(ifp, "%s#%i ", per_table[n->addr->sym].sym, n->addr->id);
 	    fprintf(ifp, "\n");
 	    fprintf(ifp, "# Constituent atom initial configuration\n");
+
+        // fprintf(ifp, "# spec : %f\n", ion_.spec);
+        // fprintf(ifp, "# E_i : %f\n", ion_.E_i);
+        // fprintf(ifp, "# Th_i : %f", ion_.Th_i);
+        // fprintf(ifp, "# P_i : %f\n", ion_.P_i);
+        // fprintf(ifp, "# r0 : %f\n", ion_.r0);
+        // fprintf(ifp, "# imp_ef : %f\n", ion_.imp_ef);
+        // fprintf(ifp, "# k : %f\n", ion_.k);
+        // fprintf(ifp, "# t : %f\n", ion_.t);
+        // fprintf(ifp, "# tex : %f\n", ion_.tex);
+        // fprintf(ifp, "# Dr : %f\n", ion_.Dr);
+
 	    for (n=ion_.mem;n;n=n->next) 
 	    {
 		fprintf(ifp, "# ");

@@ -83,7 +83,6 @@ int main (int argc, char * argv[])
 
      /* Perform initializations */
     Chem_InitializePeriodicTable();
-	printf(per_table[6].name);
     pef_initialize();
     cfg_initialize();
     filenames_initialize();
