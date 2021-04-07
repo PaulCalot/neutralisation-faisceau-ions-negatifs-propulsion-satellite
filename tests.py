@@ -11,17 +11,17 @@ def main(argv):
         opts, args = getopt.getopt(argv,"ht:a:s:p:",['type=', 'archi=', 'sim=', 'proc=']) # h for help
     except getopt.GetoptError:
         print('Usage : ')
-        print('main.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
+        print('tests.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
         sys.exit(2)
 
     if(len(opts)==0):
         print('Usage : ')
-        print('main.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
+        print('tests.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
         sys.exit()
 
     if(opts[0][0] == '-h'):
         print('Usage : ')
-        print('main.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
+        print('tests.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
         sys.exit()
 
     elif opts[0][0] in ('-t','--type'):
@@ -42,7 +42,7 @@ def main(argv):
         else :
             print('Please precise path to cfg files.')
             print('Usage : ')
-            print('main.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
+            print('tests.py -t <type> -a <path_to_cfg_architecture> -s <path_to_cfg_simulation> -p <path_to_cfg_processing>')   
             sys.exit()
     else :
         pass
