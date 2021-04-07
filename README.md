@@ -1,12 +1,23 @@
 # Negative ions ray neutralization for satellite propulsion
 
-This on-going project takes place in Ecole polytechnique (Palaiseau, France) engineering school third year and started in mid-September 2020 until mid-March 2021.
+This project took place in Ecole polytechnique (Palaiseau, France) engineering school third year and started in mid-September 2020 until mid-March 2021. It was then deepened as part of an internship by [one of the author](#PaulCalot).
 
 This project is proposed and tutored by [*Laboratoire de Physique des Plasmas*](https://www.lpp.polytechnique.fr/?lang=fr) (Plasma Physics Laboratory) from Ecole polytechnique. Names of the tutors are given [below](#tutors).
 
+## Short Description
+
+This project studied the neutralization of a ion-ray exciting a satellite grid-thruster through negative-ions accelerating grids which also increase the collision rate and thus allows for a certain percentage of neutralization of the ray. 
+
+A scheme of the thruster grids is given in picture [1](#schemeglobal). This project is composed of three parts in interaction expressed in figure [2](#projectorga).
+
+<p align="center">
+    <img width="500" height="190" src="pictures/Schema_global.png"> <a name="schemeglobal"></a>
+    <img width="400" height="190" src="pictures/schemabloc.png"> <a name="projectorga"></a>
+</p>
+
 ## Installation
 
-We strongly recommend you create a specific *conda* environment to run this project to avoid any compatibility problem.
+Below is detailed the creation of a *conda* environment. It should be noted that problems may arise from *fenics* installation with more recent version (e.g. 2019). If you stick to a *conda* environment as described below, it should work without any issue.
 
 For clarity purpose, we use the environment name : **NIRN** (for *Negative Ions Ray Neutralization*). However, you are completely free to use your own.
 
@@ -38,18 +49,30 @@ To handle animation saving :
 conda install -c conda-forge ffmpeg
 ```
 
+Additionnal packages may be needed if you choose to run the *Molecular Dynamic* (MD) code : 
+
+```shell
+ conda install -c plotly plotly
+ conda install -c conda-forge gcc
+```
+
 **Note : *fenicsy* already contains *numpy* which is consequently installed whith *fenicsy*.**
 
 *Sources* : 
 * [*fenics* documentation](https://fenicsproject.org/documentation/)
-* [*Docker* documentation](https://www.docker.com/)
-* [Understanding *Docker*](http://www.science.smith.edu/dftwiki/index.php/Tutorial:_Docker_Anaconda_Python_--_1)
+
+
+## Use
+
+Basic usage is described in the *jupyter notebook* [tutorial](tutorial.ipynb). 
+
+Note : there are for now no branch with every part of the project in it. 
 
 ## Authors 
 
-[Edouard Roger](https://www.linkedin.com/in/edouard-roger-a03536194/)
+[Paul Calot](https://www.linkedin.com/in/paul-calot-43549814b/)<a name="PaulCalot"></a>
 <br>
-[Paul Calot](https://www.linkedin.com/in/paul-calot-43549814b/)
+[Edouard Roger](https://www.linkedin.com/in/edouard-roger-a03536194/)
 
 ## Tutors <a name="tutors"></a>
 
