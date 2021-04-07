@@ -64,9 +64,13 @@ Additionnal packages may be needed if you choose to run the *Molecular Dynamic* 
 
 ## Use
 
-Basic usage is described in the *jupyter notebook* [tutorial](tutorial.ipynb). 
+Basic usage for the DSMC code is described in the *jupyter notebook* [tutorial](tutorial.ipynb) of the *DMSC* branch. As for the *MD* and trajectory codes, there is no tutorial available at the moment.
 
-Note : there are for now no branch with every part of the project in it. 
+Four branches of the project exists at the moment :
+- *master* : currently this is the *DSMC* branch, but it should recieve at some point a manual with *TRAJandMD*.
+- *DSMC* :  the *Direct Simulation Monte Carlo* code branch.
+- *TRAJandMD* : contains the ions trajectory analysis and geometry optimization along with the *C* MD code and an python interface with it.
+- *old_MD* : you need not concern with this branch which is basically a *save* from *TRAJandMD* to get back to it quickly if necessary. Should be deleted once everything has been tested in *TRAJandMD*.
 
 ## Authors 
 
