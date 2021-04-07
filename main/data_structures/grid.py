@@ -173,28 +173,30 @@ class Grid(object):
                         particles.append(part)
         return particles
 
-    def plot_cell_(self, i, j):
+    def plot_cell_(self, i, j, ax):
         dx, dy = self.lx/self.res[0],self.ly/self.res[1]
         x, y = self.lx*i/self.res[0]-self.offsets.x, self.ly*j/self.res[1]-self.offsets.y
-        plt.plot([x, x+dx, x+dx, x, x], [y, y, y+dy, y+dy, y], color='g', alpha = 0.5)
+        ax.plot([x, x+dx, x+dx, x, x], [y, y, y+dy, y+dy, y], color='g', alpha = 0.5)
 
-    def plot_grid(self):
+    def plot_grid(self, ax):
         # the goal here is to plot the grid 
         for i in range(self.res[0]):
             for j in range(self.res[1]):
                 if(self.sparsed_space_idx == None or [i,j] in self.sparsed_space_idx):
-                    self.plot_cell_(i,j)
+                    self.plot_cell_(i,j, ax)
 
     def plot(self):
+        fig, ax = plt.subplots(dpi = 300)
         particles = self.get_all_particles()
-        print("In grid number of particles {}".format(len(particles)))
+        # print("In grid number of particles {}".format(len(particles)))
         positions = [part.get_pos() for part in particles]
         speed = [part.get_speed() for part in particles]
         norm = [v.norm() for v in speed]
         x_pos, y_pos = [pos.x for pos in positions], [pos.y for pos in positions]
 
-        plt.scatter(x_pos, y_pos, s=2.0, c = norm, cmap='seismic') # problem if offset
-        self.plot_grid()
+        ax.scatter(x_pos, y_pos, s=0.5, c = norm, cmap='seismic') # problem if offset
+        self.plot_grid(ax)
+        return fig, ax
 
     # ------------ Getter and setter ------------- #
 

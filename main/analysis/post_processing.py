@@ -73,8 +73,8 @@ def post_processing(options, recompute = False):
         if(compute_hist_distribution_evolution):
             # speed_norm , speed_norm_squared , vz
             print('\tCompute histrogram distribution evolution...', end = '')
-            data_analyser.draw_hist_distribution('vx',plot_gaussian=True)
-            data_analyser.draw_hist_distribution('vy',plot_gaussian=True)
+            data_analyser.draw_hist_distribution('vx', plot_gaussian=True)
+            data_analyser.draw_hist_distribution('vy', plot_gaussian=True)
             data_analyser.draw_hist_distribution('speed_norm', plot_maxwellian = True)
             data_analyser.draw_hist_distribution('vz', plot_gaussian=True)
             print('\t[OK]')

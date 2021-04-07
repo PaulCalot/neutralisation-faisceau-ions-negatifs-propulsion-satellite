@@ -23,7 +23,7 @@ from collections import OrderedDict
 
 
 def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load=False, verbose=False):
-    debug = True
+    debug = False
     system_cfg = system_cfg_path
     simulation_cfg = simulation_cfg_path
     processing_cfg = processing_cfg_path
@@ -56,10 +56,10 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load=Fal
     # simu params
     params_dict, data_analyser = get_saving_dict(options, system)
 
-    # if(verbose):
-    #     pprint(params_dict)
-    #     system.plot()
-    #     plt.show()
+    if(verbose):
+        pprint(params_dict)
+        system.plot()
+        plt.show()
 
     start = 0
     list_particles = []
@@ -115,8 +115,9 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load=Fal
         t += dt
         list_particles = system.get_list_particles()
         if(verbose and k % saving_period == 0):
-            print('Iteration {} : {} particles.'.format(k, len(list_particles)))
+            # print('Iteration {} : {} particles.'.format(k, len(list_particles)))
             system.plot()
+            plt.show()
         if(save_test and k > saving_offset and (k % saving_period == 0 or (k == MAX_INTEGRATION_STEP-1 and k % saving_period != 0))):
             if(len(list_particles) > 0):
                 data_analyser.save_everything_to_one_csv(
@@ -133,11 +134,10 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load=Fal
         for file in list_cfg_files:
             copy(src=file, dst=dir_saving/"cfg_files/")
 
-    if(debug):
-        print('Ending simulation on {} with {} particles, at time {} s'.format(
-            options['system']['system_type'], len(list_particles), t))
-        system.plot()
-        plt.show()
+    print('Ending simulation on {} with {} particles, at time {:0.3e} s'.format(
+        options['system']['system_type'], len(list_particles), t))
+    system.plot()
+    plt.show()
 
 def processing_only(system_cfg_path, simulation_cfg_path, processing_cfg_path, recompute=False, verbiose=False):
     system_cfg = system_cfg_path

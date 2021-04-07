@@ -89,15 +89,20 @@ class system(ABC):
         return [i/j for i, j in zip(N_particles_real,N_particles_simu)]
 
     def plot(self):
-        self.grid.plot()
+        fig, ax = self.grid.plot()
         # adding now the walls
-        fig = plt.figure(figsize = (10,30))
-        plt.title = 'time = {:e} s'.format(self.t)
+        plt.xticks(fontsize=4)
+        plt.yticks(fontsize=4)
+        plt.xlabel('x (m)', fontsize=5)
+        plt.ylabel('y (m)', fontsize=5)
+
+        ax.set_title('N = {} macro-part ; t = {:0.3e} s'.format(self.get_number_of_particles(), self.t), fontsize = 5)
+
         for wall in self.walls :
             self.plot_wall(wall)
-        self.plot_fluxes()
+
+        self.plot_fluxes(ax)
         plt.axis('scaled')
-        #plt.savefig('thruster_with_arrows.png', dpi = 1200)
 
     def add(self, list_particles): # should not be use
         self.dsmc.add_particles(list_particles)
@@ -120,11 +125,13 @@ class system(ABC):
     def get_offset(self):
         return self.offset
 
-    def plot_wall(self,wall):
+    def plot_wall(self, wall, ax = None):
         # wall = [x1,y1,x2,y2]
         x1,y1,x2,y2 = wall
-        plt.plot([x1,x2], [y1,y2], color = 'k')
-
+        if(ax is None):
+            plt.plot([x1,x2], [y1,y2], color = 'k')
+        else:
+            ax.plot([x1,x2], [y1,y2], color = 'k')
     def get_number_of_particles(self):
         nb = self.grid.get_number_of_particles() if self.flux_params == None else self.dsmc.get_number_of_particles()
         return nb
@@ -255,7 +262,7 @@ class system(ABC):
         if(self.debug):print('My fluxes {}'.format(fluxes))
         return fluxes # particles/s
     
-    def plot_fluxes(self):
+    def plot_fluxes(self, ax = None):
         if(self.flux_params != None):
             in_wall = self.flux_params['in_wall']
             if(in_wall != None):
@@ -263,11 +270,17 @@ class system(ABC):
                 size = np.sqrt((in_wall[2]-in_wall[0])**2+(in_wall[3]-in_wall[1])**2)
                 in_direction = self.flux_params['in_direction']
                 factor = size*0.2
-                plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
+                if(ax is None):
+                    plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
+                else :
+                    ax.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
             out_wall = self.flux_params['out_wall']
             if(out_wall != None):
                 x, y = 0.5*(out_wall[0]+out_wall[2]), 0.5*(out_wall[1]+out_wall[3])
                 size = np.sqrt((out_wall[2]-out_wall[0])**2+(out_wall[3]-out_wall[1])**2)
                 out_direction = self.flux_params['out_direction']
                 factor =  size*0.2
-                plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
+                if(ax is None):
+                    plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
+                else :
+                    ax.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)

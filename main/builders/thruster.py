@@ -59,18 +59,18 @@ class thruster(system):
      [200], self.size, self.resolution, zone = self.zone, offsets = self.offset, verbose = False, debug = self.debug,)[0])
         grid.fill_sparsed_space_from_initial_particles_position(particles_list)
 
-    def plot(self):
-        super().plot()
-        import matplotlib.pyplot as plt
-        fig = plt.gcf()
-        fig.set_size_inches(4, 20)
-        #plt.rcParams["figure.figsize"] = (4,20)       
-        plt.savefig('thruster_grid.png')
-        #from fenics import plot
-        #plot(self.phi)
-        #from fenics import sqrt, dot
-        #Ex, Ey = self.E.split(deepcopy=True)
-        #NE=sqrt(dot(self.E,self.E))
+    # def plot(self):
+        # super().plot()
+        # import matplotlib.pyplot as plt
+        # fig = plt.gcf()
+        # fig.set_size_inches(4, 20)
+        # plt.rcParams["figure.figsize"] = (4,20)       
+        # plt.savefig('thruster_grid.png')
+        # from fenics import plot
+        # plot(self.phi)
+        # from fenics import sqrt, dot
+        # Ex, Ey = self.E.split(deepcopy=True)
+        # NE=sqrt(dot(self.E,self.E))
 
     def get_zone(self):
         return self.zone

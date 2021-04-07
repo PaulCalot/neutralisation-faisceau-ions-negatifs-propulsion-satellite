@@ -233,7 +233,7 @@ class DataAnalyser :
             plt.xlabel(value_name,fontsize=16)
             plt.ylabel("density",fontsize=16)
 
-        fig = plt.figure() # figsize=(10,10)
+        fig, ax = plt.subplots() # figsize=(10,10)
         
         col = lst[0][value_name]
         plt.hist(col, bins = 'auto', density=density, range = range, color = color)
@@ -261,7 +261,8 @@ class DataAnalyser :
             anim.save(self.path_to_saving+'{}_{}_hist_distribution.mp4'.format(self.test_id, value_name))
         else:
             plt.show()
-
+        plt.close()
+        
     def draw_spatial_distribution(self, name = '' , save_animation = True, grid_size = 20, vmin = 0, vmax = 5e3):
         if(self.current == None):
             print("You have to load the test first using command : DataAnalyser.load_test(test_id)")
@@ -301,7 +302,8 @@ class DataAnalyser :
             anim.save(self.path_to_saving+'{}_{}_spatial_distribution_evolution.mp4'.format(self.test_id, name))
         else:
             plt.show()
-      
+        plt.close()
+        
     def draw_particles(self, x_min, x_max, y_min, y_max, save_animation=True):
         # useful : https://stackoverflow.com/questions/9401658/how-to-animate-a-scatter-plot
         # https://matplotlib.org/api/_as_gen/matplotlib.pyplot.scatter.html 
@@ -343,7 +345,7 @@ class DataAnalyser :
             anim.save(self.path_to_saving+'{}_system_evolution.mp4'.format(self.test_id), dpi = 300)
         else:
             plt.show()
-
+        plt.close()
     # --------------------- Draw a frame ------------------------------ #
 
     def draw_hist_distribution_frame(self, which = 'last', value_name = "", save_frame = True, plot_maxwellian = False, plot_gaussian = False, density = True, range = None, color=None):
@@ -388,8 +390,8 @@ class DataAnalyser :
         plt.ylabel("density", fontsize=14)
         plt.xticks(fontsize=12)
         plt.yticks(fontsize=12)
-        if(plot_gaussian or plot_maxwellian):
-            plt.legend(loc='best')
+        # if(plot_gaussian or plot_maxwellian):
+        #    plt.legend(loc='best')
         if(save_frame):
             plt.savefig(self.path_to_saving+'{}_{}_hist_distribution_it_{}.png'.format(self.test_id, value_name,frame+1), dpi=300, bbox_inches = 'tight', pad_inches = 0)
         else:
