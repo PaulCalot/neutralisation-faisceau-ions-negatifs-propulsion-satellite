@@ -406,13 +406,14 @@ class DSMC(object):
 
 
     def update_speed_dsmc(self, part1, part2, v_r_norm):
-        r = random() # uniform deviate in (0,1)
+        r1 = random() # uniform deviate in (0,1)
+        r2 = random()
         # for now, no loss of energy
         # page 5/7 of the Direct Simulation MC method paper
-        q = 2*r-1
+        q = 2*r1-1
         cTheta = q
         sTheta = np.sqrt(1-q*q)
-        phi = 2*math_pi*r
+        phi = 2*math_pi*r2
 
         # computations of the speed
         v_cm = 0.5*(part1.get_speed()+part2.get_speed()) # this quantity is conserved
