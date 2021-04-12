@@ -130,6 +130,16 @@ def collision_frequency_exp(dt, number_of_dt, number_of_collisions):
     return number_of_collisions/(dt*number_of_dt)
 
 
+def collision_frequency(n, sigma_T, c_r):
+    """ Returns the collision frequency per unit of volume (/(V^3 x s)).
+
+    Args:
+        n (float): gas density
+        sigma_T (float): total cross section
+        c_r (float): relative speed
+    """
+    return 0.5*n*n*sigma_T*c_r
+
 def mean_free_path(effective_diameter, particle_density):
     mean_free_path = 1/(np.sqrt(2)*np.pi*effective_diameter*effective_diameter*particle_density)
     return mean_free_path

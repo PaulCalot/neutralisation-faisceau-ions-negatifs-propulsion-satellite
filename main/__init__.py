@@ -3,7 +3,8 @@ from .utils import cfg_tools
 from .utils.utils import segment, get_mass_part, sort_segments, \
     collision_frequency_th_T, collision_frequency_th_V, \
          collision_frequency_exp, get_min_mean_free_path, \
-             available_particles, CONSTANTS, get_maxwellian_params
+             available_particles, CONSTANTS, get_maxwellian_params, \
+                 collision_frequency
 from .utils.utils import convert_list_to_string, convert_string_to_list
 from .utils.utils import get_maxwellian_mean_speed_from_temperature, get_gaussian_params_maxwellian
 from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
