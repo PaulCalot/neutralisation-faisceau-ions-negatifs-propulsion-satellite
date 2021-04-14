@@ -177,7 +177,7 @@ class DSMC(object):
         # and thus we can simply delete the particle if it gets this way
         # but I am not sure it would work better
         for out_wall in self.out_walls:
-            if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(self.out_wall, wall)])):
+            if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(out_wall, wall)])):
                 return False
 
         if(debug): 
