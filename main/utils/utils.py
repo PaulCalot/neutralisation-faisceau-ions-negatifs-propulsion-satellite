@@ -89,7 +89,7 @@ def get_gaussian_params_maxwellian(T,m):
     #a = np.sqrt(BOLTZMAN_CONSTANT*T/m)
     #mu = 2*a*np.sqrt(2.0/np.pi)
     #sigma = a*a*(3*np.pi-8)/np.pi
-    v_mean = np.sqrt(3*BOLTZMAN_CONSTANT*T/m)
+    v_mean = np.sqrt(BOLTZMAN_CONSTANT*T/m) # No "3"
     return v_mean
 
 def get_maxwellian_mean_speed_from_temperature(T,m):

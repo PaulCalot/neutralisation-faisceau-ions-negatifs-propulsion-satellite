@@ -136,19 +136,20 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             
             vx, vy = 0, 0
             if(v_drift.y == 0.0):
-                vx = sigma * np.sqrt(-2*np.log10((1-random())))*direction.x + v_drift.x
+                vx = sigma * np.sqrt(-2*np.log((1-random())))*direction.x # + v_drift.x - so weird to have it here
                 vy = norm.rvs(mu, sigma)
             if(v_drift.x == 0.0):
                 vx = norm.rvs(mu, sigma)
-                vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y + v_drift.y
+                vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y # + v_drift.y
             vz = norm.rvs(mu, sigma)
             my_speed = MyVector(vx, vy, vz)
 
             pos = radius*n+p1+np.random.uniform(0.0,1.0)*(p2-p1-2*radius*n)
             list_pos[k] = pos
-            pos+=(1-random())*dt*my_speed # in theory, since we are updating the particls positions after,
+            pos+=(1-random())*dt*MyVector(my_speed.x*direction.x, my_speed.y*direction.y, 0)
+
+            # in theory, since we are updating the particls positions after,
             # we should not use this speed, but it's okay I guess since it's constant.
-            
             
             list_particles.append(Particule(charge = charge, radius = radius, 
                     mass = mass, part_type = type_, \

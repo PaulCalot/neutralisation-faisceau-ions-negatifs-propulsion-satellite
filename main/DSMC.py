@@ -16,7 +16,7 @@ from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_exp
 class DSMC(object):
     debug = False
 
-    def __init__(self, system, dsmc_params, integration_scheme, f, out_wall = None):
+    def __init__(self, system, dsmc_params, integration_scheme, f, out_walls = None):
         
         self.dsmc_params = dsmc_params
         self.system = system
@@ -47,7 +47,7 @@ class DSMC(object):
         self.vr_max = self.dsmc_params['vr_max']
 
         # out wall for flux
-        self.out_wall = out_wall
+        self.out_walls = out_walls
 
     # --------- adding part to the list ----------- #
     def get_number_of_particles(self):
@@ -176,8 +176,9 @@ class DSMC(object):
         # of the no wall part of the system (we don't include the given wall in that case)
         # and thus we can simply delete the particle if it gets this way
         # but I am not sure it would work better
-        if(self.out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(self.out_wall, wall)])):
-            return False
+        for out_wall in self.out_walls:
+            if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(self.out_wall, wall)])):
+                return False
 
         if(debug): 
             print('Particule : {}'.format(part.to_string()))

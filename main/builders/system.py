@@ -191,8 +191,8 @@ class system(ABC):
             'cell_volume' : lx*ly*lz/(res_x*res_y), # since we are in 2D I don't really know what to add here actually... For now, I add the 3rd dimension rough size, that is l3
             'mean_particles_number_per_cell': sum(self.options['particles_mean_number_per_cell']) # we don't account for the type
         }
-        out_wall = self.flux_params['out_wall'] if self.flux_params != None else None
-        self.dsmc = DSMC(self, dsmc_params, integration_scheme, f, out_wall = out_wall)
+        out_walls = self.flux_params['out_walls'] if self.flux_params != None else None
+        self.dsmc = DSMC(self, dsmc_params, integration_scheme, f, out_walls = out_walls)
 
     # ----------- out / in flux params ------------- #
     def select_wall_(self, criteria):
@@ -221,7 +221,7 @@ class system(ABC):
                 direction = -1.0*direction
         return wall, direction
 
-    def init_flux_params(self, in_flux, out_flux):
+    def init_flux_params(self, in_flux, out_fluxes):
         in_direction = None
         out_direction = None
         if(in_flux == None):
@@ -229,17 +229,26 @@ class system(ABC):
         else:
             in_wall, in_direction = self.select_wall_(criteria = in_flux)
             in_wall = [in_wall[0],in_wall[1],in_wall[2],in_wall[3]]
-        if(out_flux == None):
-            out_wall = None
+
+        
+        if(out_fluxes == None):
+            out_walls = None
         else:
-            out_wall, out_direction = self.select_wall_(criteria = out_flux)
-            out_wall = [out_wall[0],out_wall[1],out_wall[2],out_wall[3]]
-            out_direction = -1.0*out_direction
+            out_walls = []
+            out_directions = []
+            for out_flux in out_fluxes:
+                out_wall, out_direction = self.select_wall_(criteria = out_flux)
+                out_wall = [out_wall[0],out_wall[1],out_wall[2],out_wall[3]]
+                out_direction = -1.0*out_direction
+
+                out_walls.append(out_wall)
+                out_directions.append(out_direction)
+
         return {
             'in_wall':in_wall,
             'in_direction': in_direction,
-            'out_wall':out_wall,
-            'out_direction':out_direction
+            'out_walls':out_walls,
+            'out_directions':out_directions
         }
     
     def init_fluxes(self):
@@ -274,13 +283,15 @@ class system(ABC):
                     plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
                 else :
                     ax.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
-            out_wall = self.flux_params['out_wall']
-            if(out_wall != None):
-                x, y = 0.5*(out_wall[0]+out_wall[2]), 0.5*(out_wall[1]+out_wall[3])
-                size = np.sqrt((out_wall[2]-out_wall[0])**2+(out_wall[3]-out_wall[1])**2)
-                out_direction = self.flux_params['out_direction']
-                factor =  size*0.2
-                if(ax is None):
-                    plt.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
-                else :
-                    ax.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
+            out_walls = self.flux_params['out_walls']
+            if(out_walls is not None):
+                for out_wall in out_walls :
+                    x, y = 0.5*(out_wall[0]+out_wall[2]), 0.5*(out_wall[1]+out_wall[3])
+                    size = np.sqrt((out_wall[2]-out_wall[0])**2+(out_wall[3]-out_wall[1])**2)
+                    out_directions = self.flux_params['out_directions']
+                    for out_direction in out_directions:
+                        factor =  size*0.2
+                        if(ax is None):
+                            plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
+                        else :
+                            ax.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)

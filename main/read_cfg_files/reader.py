@@ -27,7 +27,7 @@ def get_options(cfg_file_paths, verbose = True):
     #particles_radius = list(map(float,main_options.particles_radius.split(',')))
 
     flux_in_wall = cfg_tools.read_args_multiple_types(system_options.flux_in_wall)
-    flux_out_wall = cfg_tools.read_args_multiple_types(system_options.flux_out_wall)
+    flux_out_wall = list(map(cfg_tools.read_args_multiple_types,system_options.flux_out_wall.split(',')))
     temperatures = list(map(cfg_tools.read_args_multiple_types,system_options.temperatures.split(',')))
     drifts = list(map(cfg_tools.read_args_multiple_types,system_options.drifts.split(',')))
 
