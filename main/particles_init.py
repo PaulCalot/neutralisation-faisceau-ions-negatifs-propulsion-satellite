@@ -146,7 +146,7 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
 
             pos = radius*n+p1+np.random.uniform(0.0,1.0)*(p2-p1-2*radius*n)
             list_pos[k] = pos
-            pos+=(1-random())*dt*MyVector(my_speed.x*direction.x, my_speed.y*direction.y, 0)
+            pos+=(1-random())*dt*MyVector(my_speed.x*np.abs(direction.x), my_speed.y*np.abs(direction.y), 0)
 
             # in theory, since we are updating the particls positions after,
             # we should not use this speed, but it's okay I guess since it's constant.
