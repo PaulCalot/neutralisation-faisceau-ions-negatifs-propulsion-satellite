@@ -285,13 +285,11 @@ class system(ABC):
                     ax.arrow(x = x, y = y, dx = factor*in_direction.x, dy = factor*in_direction.y, color = 'r', width = 0.2*factor)
             out_walls = self.flux_params['out_walls']
             if(out_walls is not None):
-                for out_wall in out_walls :
+                for out_wall, out_direction in zip(out_walls, self.flux_params['out_directions']) :
                     x, y = 0.5*(out_wall[0]+out_wall[2]), 0.5*(out_wall[1]+out_wall[3])
                     size = np.sqrt((out_wall[2]-out_wall[0])**2+(out_wall[3]-out_wall[1])**2)
-                    out_directions = self.flux_params['out_directions']
-                    for out_direction in out_directions:
-                        factor =  size*0.2
-                        if(ax is None):
-                            plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
-                        else :
-                            ax.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
+                    factor =  size*0.2
+                    if(ax is None):
+                        plt.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
+                    else :
+                        ax.arrow(x = x, y = y, dx = factor*out_direction.x, dy = factor*out_direction.y, color = 'r', width = 0.2*factor)
