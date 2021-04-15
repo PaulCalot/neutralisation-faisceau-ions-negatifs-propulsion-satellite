@@ -111,6 +111,7 @@ def init_particles_in_system(particles_types, particles_densities, particles_mea
 # TODO : make it work for several particles types ...
 
 def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types, temperatures, drifts, dt):
+    # direction is the vector which indicates the direction of injection
     list_particles=[]
     x1, y1, x2, y2 = wall
 
@@ -125,9 +126,10 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
         radius = available_particles[type_]['effective diameter']/2.0
 
         sigma = get_gaussian_params_maxwellian(temperature, available_particles[type_]['mass'])
-
         mu = 0
-        n = MyVector(direction.y, -direction.x,0)
+
+        n = MyVector(direction.y, -direction.x,0) # vector which should be colinear to the wall
+
         p1, p2 = MyVector(x1,y1,0),MyVector(x2,y2,0)
         for k in range(number_):
             my_speed = None
@@ -135,12 +137,13 @@ def init_particles_flux(wall, direction, nb_particles_to_inject, particles_types
             v_drift = drift*direction
             
             vx, vy = 0, 0
-            if(v_drift.y == 0.0):
-                vx = sigma * np.sqrt(-2*np.log((1-random())))*direction.x # + v_drift.x - so weird to have it here
+            
+            if(direction.y == 0.0):
+                vx = sigma * np.sqrt(-2*np.log((1-random())))*direction.x + v_drift.x
                 vy = norm.rvs(mu, sigma)
-            if(v_drift.x == 0.0):
+            if(direction.x == 0.0):
                 vx = norm.rvs(mu, sigma)
-                vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y # + v_drift.y
+                vy = sigma * np.sqrt(-2*np.log10((1-random())))*direction.y + v_drift.y
             vz = norm.rvs(mu, sigma)
             my_speed = MyVector(vx, vy, vz)
 
