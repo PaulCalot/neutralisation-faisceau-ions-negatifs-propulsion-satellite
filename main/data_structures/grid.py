@@ -65,7 +65,11 @@ class Grid(object):
 
     def remove_(self, particule, pos_in_grid):
         if(self.debug): print("\nRemoving {} in position {}.".format(particule.to_string(), pos_in_grid))
-        self.grid[pos_in_grid[0],pos_in_grid[1]].delete(particule)
+        try:
+            self.grid[pos_in_grid[0],pos_in_grid[1]].delete(particule)
+        except AttributeError: # sometimes self.grid[...] is None for some reason (maybe it was never initialized). => Not a fixe.
+            print('Attribute error : linkedlist not initialized thus it is none and we are trying to remove a particle for the list')
+            return False
 
     def remove_with_old_pos(self,particule,old_postion):
         pos = old_postion+self.offsets
