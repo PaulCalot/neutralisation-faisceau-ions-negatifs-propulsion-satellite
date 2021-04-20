@@ -353,7 +353,7 @@ class DSMC(object):
 
         # POSITION reflection
         old_pos = part.get_pos()
-        new_pos = MyVector(pos_intersect.x, pos_intersect.y, part.get_pos().z) + (0.1*(0.5-random())+1)*time*new_speed_3d
+        new_pos = MyVector(pos_intersect.x, pos_intersect.y, part.get_pos().z)  + time*new_speed_3d # + (0.1*(0.5-random())+1)*time*new_speed_3d
         part.set_pos(new_pos)
 
         if(self.debug):
