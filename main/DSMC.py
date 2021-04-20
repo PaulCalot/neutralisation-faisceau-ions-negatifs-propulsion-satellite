@@ -176,11 +176,12 @@ class DSMC(object):
         # of the no wall part of the system (we don't include the given wall in that case)
         # and thus we can simply delete the particle if it gets this way
         # but I am not sure it would work better
-        for out_wall in self.out_walls:
-            if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(out_wall, wall)])):
-                return False
+        if(self.out_walls is not None):
+            for out_wall in self.out_walls:
+                if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(out_wall, wall)])):
+                    return False
 
-        if(debug): 
+        if(debug):
             print('Particule : {}'.format(part.to_string()))
             print('Collision time : {}, position : {}'.format(min_time, min_pos_intersect))
             print('with wall {}'.format(wall))
