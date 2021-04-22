@@ -12,7 +12,7 @@ from .data_structures.vector import MyVector
 from .data_structures.grid import Grid
 
 from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
-from main import handler_wall_collision
+from handler_collision_with_wall import handler_wall_collision
 
 class DSMC(object):
     debug = False
