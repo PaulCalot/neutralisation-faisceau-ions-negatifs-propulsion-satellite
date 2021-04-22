@@ -91,11 +91,11 @@ def simulate(system_cfg_path, simulation_cfg_path, processing_cfg_path, load=Fal
     if(load):
         previous = pd.read_csv(dir_saving/'params.csv', sep=',', header=0, index_col='id_test')
         system.set_nb_collisions(int(previous.loc[int(params_dict['id_test'])].at['number_of_collisions']))
-    if(debug):
-        print('Launching simulation on {} with {} particles, at time {} s'.format(
-            options['system']['system_type'], len(list_particles), t))
-        system.plot()
-        plt.show()
+
+    print('Launching simulation on {} with {} particles, at time {} s'.format(
+        options['system']['system_type'], len(list_particles), t))
+    system.plot()
+    plt.show()
 
     if(save_test):
         if(load):
