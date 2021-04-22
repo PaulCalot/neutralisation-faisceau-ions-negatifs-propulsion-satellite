@@ -12,5 +12,5 @@ def simulate_perf_analysis(system):
     simulate(system_cfg_path, simulation_cfg_path, processing_simulation_path)
 
 if __name__ == '__main__':
-    simulate_perf_analysis('square')
-    # simulate_perf_analysis('thruster')
+    # simulate_perf_analysis('square')
+    simulate_perf_analysis('thruster')

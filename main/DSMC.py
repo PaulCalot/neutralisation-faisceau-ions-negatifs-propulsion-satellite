@@ -160,38 +160,31 @@ class DSMC(object):
         radius = part.get_radius()
 
         min_time, idx_min_time, min_pos_intersect = 1e15 ,-1, None
-        wall = None
-        liste = []
+        wall_min = None
+        #liste = []
         for i in range(len(self.walls)):
             wall = self.walls[i]
             a = self.walls_vector[i]
             #t_coll, pos_intersect = # self.handler_wall_collision(pos, -1.0*speed, radius, i)
             t_coll, pix, piy = handler_wall_collision(pos.x, pos.y, -speed.x, -speed.y, radius, wall[0], wall[1], wall[2], wall[3], a.x, a.y)
-            pos_intersect = MyVector(pix, piy)
-            liste.append((t_coll, pos_intersect, self.walls[i]))
+            #liste.append((t_coll, (pix, piy), self.walls[i]))
 
-            if(t_coll<min_time):
+            if(pix != None and t_coll<min_time):
                 idx_min_time = i
                 min_time = t_coll
-                min_pos_intersect = pos_intersect
-                wall = self.walls[i]
+                min_pos_intersect = MyVector(pix, piy) # not None consequently
+                wall_min = wall
         
         # in case the particle went out by the "open wall"
         # another way is just to see if the particle is below / top / to the left / to the right 
         # of the no wall part of the system (we don't include the given wall in that case)
         # and thus we can simply delete the particle if it gets this way
         # but I am not sure it would work better
-        if(self.out_walls is not None):
+        if(wall_min is not None and self.out_walls is not None):
             for out_wall in self.out_walls:
-                if(out_wall != None and wall != None and all([l1==l2 for l1, l2 in zip(out_wall, wall)])):
+                if(out_wall != None and all([l1==l2 for l1, l2 in zip(out_wall, wall_min)])):
                     return False
 
-        if(debug):
-            print('Particule : {}'.format(part.to_string()))
-            print('Collision time : {}, position : {}'.format(min_time, min_pos_intersect))
-            print('with wall {}'.format(wall))
-            print('Other walls : ')
-            pprint(liste)
         # reflect position / speed of part with respect to wall idx_min_time
         if(min_pos_intersect != None):
             self.reflect_particle(part, min_time, idx_min_time, min_pos_intersect)

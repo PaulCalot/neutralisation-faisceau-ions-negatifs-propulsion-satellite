@@ -1692,7 +1692,7 @@ static PyObject *__pyx_n_s_x1;
 static PyObject *__pyx_n_s_x2;
 static PyObject *__pyx_n_s_y1;
 static PyObject *__pyx_n_s_y2;
-static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_x2, double __pyx_v_y1, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay); /* proto */
+static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_y1, double __pyx_v_x2, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_float_1e15;
@@ -1711,15 +1711,14 @@ static PyObject *__pyx_codeobj__10;
 /* "main/handler_collision_with_wall.pyx":9
  * @cython.boundscheck(False)  # Deactivate bounds checking
  * @cython.wraparound(False)   # Deactivate negative indexing.
- * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double x2, double y1, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
- *         """ Determine if there is a collision between the particule which position, speed and radius
- *         are given in parameters and the wall of index wall_indx.
+ * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double y1, double x2, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
+ * 
+ *         # p index of the part
  */
 
 /* Python wrapper */
 static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4main_27handler_collision_with_wall_handler_wall_collision[] = " Determine if there is a collision between the particule which position, speed and radius \n        are given in parameters and the wall of index wall_indx.\n        If there is, it compute the time to collision and update the events table. \n        \n        We suppose the particule is caracterized by its position (x,y), its speed (vx, vy) and its radius r.\n        The wall is caracterized by its two extremities : (x1,y1), (x2,y2) where x1 <= x2, if x1=x2, then y1 < y2.\n        This allows to compute the directing vector of the wall (x2-x1, y2-y1) which has been normalized and \n        stored in *self.walls_vector[wall_indx]*. We note the normalized vector *a*.\n\n        The formula which is used is to compute the possible collision time is : \n            t_coll_1/2 = (-A sgn(B) +/- r)/|B| = (-A +/- r)/B\n        where :\n            * A = -x sin(theta) + y cos(theta)\n            * B = -vx sin(theta) + vy cos(theta)\n            * theta = sgn(ay) arccos(ax)\n            \n        Note that theses times give the moment the disk crosses the infinite line formed from the wall,\n        not strictly the wall...\n\n        If B = 0 : we consider that there is not collision and return t_coll = np.nan\n        \n        If B != O : then a necessary condition is to have both t_coll_1 > 0 and t_coll_2 > 0.\n        Indeed : * The first time the particule collides, is when its closest point to the wall collides with it. \n                 * The second time is for when the furthest point to the wall collided with it.\n        In such a case, we have to verify that the disk crossing the line occurs on the portion of the line \n        which is the wall. To do that, we compute the position of the particule at the time of collision and verify that it \n        is on the \"wall\" segment. If it is we return t_coll = min(t_coll_1, t_coll_2). Else, np.nan.\n\n        Args:\n            part_indx (int): index of the particule in self.particules\n            position (MyVector""): position of the particule\n            speed (MyVector): speed of the particule\n            radius (float): radius of the particule\n            wall_indx (int): index of the wall in self.walls\n\n        Returns:\n            int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. \n        ";
-static PyMethodDef __pyx_mdef_4main_27handler_collision_with_wall_1handler_wall_collision = {"handler_wall_collision", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4main_27handler_collision_with_wall_handler_wall_collision};
+static PyMethodDef __pyx_mdef_4main_27handler_collision_with_wall_1handler_wall_collision = {"handler_wall_collision", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   double __pyx_v_px;
   double __pyx_v_py;
@@ -1727,8 +1726,8 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   double __pyx_v_vy;
   double __pyx_v_radius;
   double __pyx_v_x1;
-  double __pyx_v_x2;
   double __pyx_v_y1;
+  double __pyx_v_x2;
   double __pyx_v_y2;
   CYTHON_UNUSED double __pyx_v_ax;
   CYTHON_UNUSED double __pyx_v_ay;
@@ -1739,7 +1738,7 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("handler_wall_collision (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_px,&__pyx_n_s_py,&__pyx_n_s_vx,&__pyx_n_s_vy,&__pyx_n_s_radius,&__pyx_n_s_x1,&__pyx_n_s_x2,&__pyx_n_s_y1,&__pyx_n_s_y2,&__pyx_n_s_ax,&__pyx_n_s_ay,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_px,&__pyx_n_s_py,&__pyx_n_s_vx,&__pyx_n_s_vy,&__pyx_n_s_radius,&__pyx_n_s_x1,&__pyx_n_s_y1,&__pyx_n_s_x2,&__pyx_n_s_y2,&__pyx_n_s_ax,&__pyx_n_s_ay,0};
     PyObject* values[11] = {0,0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -1807,13 +1806,13 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
         }
         CYTHON_FALLTHROUGH;
         case  6:
-        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x2)) != 0)) kw_args--;
+        if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y1)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("handler_wall_collision", 1, 11, 11, 6); __PYX_ERR(0, 9, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
-        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_y1)) != 0)) kw_args--;
+        if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_x2)) != 0)) kw_args--;
         else {
           __Pyx_RaiseArgtupleInvalid("handler_wall_collision", 1, 11, 11, 7); __PYX_ERR(0, 9, __pyx_L3_error)
         }
@@ -1860,8 +1859,8 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
     __pyx_v_vy = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_vy == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_radius = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_radius == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_x1 = __pyx_PyFloat_AsDouble(values[5]); if (unlikely((__pyx_v_x1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
-    __pyx_v_x2 = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_x2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
-    __pyx_v_y1 = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v_y1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+    __pyx_v_y1 = __pyx_PyFloat_AsDouble(values[6]); if (unlikely((__pyx_v_y1 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
+    __pyx_v_x2 = __pyx_PyFloat_AsDouble(values[7]); if (unlikely((__pyx_v_x2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_y2 = __pyx_PyFloat_AsDouble(values[8]); if (unlikely((__pyx_v_y2 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_ax = __pyx_PyFloat_AsDouble(values[9]); if (unlikely((__pyx_v_ax == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
     __pyx_v_ay = __pyx_PyFloat_AsDouble(values[10]); if (unlikely((__pyx_v_ay == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 9, __pyx_L3_error)
@@ -1874,14 +1873,14 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(__pyx_self, __pyx_v_px, __pyx_v_py, __pyx_v_vx, __pyx_v_vy, __pyx_v_radius, __pyx_v_x1, __pyx_v_x2, __pyx_v_y1, __pyx_v_y2, __pyx_v_ax, __pyx_v_ay);
+  __pyx_r = __pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(__pyx_self, __pyx_v_px, __pyx_v_py, __pyx_v_vx, __pyx_v_vy, __pyx_v_radius, __pyx_v_x1, __pyx_v_y1, __pyx_v_x2, __pyx_v_y2, __pyx_v_ax, __pyx_v_ay);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_x2, double __pyx_v_y1, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay) {
+static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_y1, double __pyx_v_x2, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay) {
   double __pyx_v_sTheta;
   double __pyx_v_cTheta;
   double __pyx_v_A_prime;
@@ -1911,7 +1910,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("handler_wall_collision", 0);
 
-  /* "main/handler_collision_with_wall.pyx":61
+  /* "main/handler_collision_with_wall.pyx":23
  * 
  *         # A and B
  *         if(x2-x1 > 0):             # <<<<<<<<<<<<<<
@@ -1921,7 +1920,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   __pyx_t_1 = (((__pyx_v_x2 - __pyx_v_x1) > 0.0) != 0);
   if (__pyx_t_1) {
 
-    /* "main/handler_collision_with_wall.pyx":62
+    /* "main/handler_collision_with_wall.pyx":24
  *         # A and B
  *         if(x2-x1 > 0):
  *             sTheta, cTheta = y2-y1, x2-x1             # <<<<<<<<<<<<<<
@@ -1933,7 +1932,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     __pyx_v_sTheta = __pyx_t_2;
     __pyx_v_cTheta = __pyx_t_3;
 
-    /* "main/handler_collision_with_wall.pyx":61
+    /* "main/handler_collision_with_wall.pyx":23
  * 
  *         # A and B
  *         if(x2-x1 > 0):             # <<<<<<<<<<<<<<
@@ -1943,7 +1942,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     goto __pyx_L3;
   }
 
-  /* "main/handler_collision_with_wall.pyx":64
+  /* "main/handler_collision_with_wall.pyx":26
  *             sTheta, cTheta = y2-y1, x2-x1
  *         else:
  *             sTheta, cTheta = y1-y2, x2-x1             # <<<<<<<<<<<<<<
@@ -1958,28 +1957,28 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   }
   __pyx_L3:;
 
-  /* "main/handler_collision_with_wall.pyx":66
+  /* "main/handler_collision_with_wall.pyx":28
  *             sTheta, cTheta = y1-y2, x2-x1
  * 
  *         B = -vx*sTheta+vy*cTheta             # <<<<<<<<<<<<<<
  *         if B == 0.0 :
- *             return 1e15, None, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
+ *             #print("B=0")
  */
   __pyx_v_B = (((-__pyx_v_vx) * __pyx_v_sTheta) + (__pyx_v_vy * __pyx_v_cTheta));
 
-  /* "main/handler_collision_with_wall.pyx":67
+  /* "main/handler_collision_with_wall.pyx":29
  * 
  *         B = -vx*sTheta+vy*cTheta
  *         if B == 0.0 :             # <<<<<<<<<<<<<<
+ *             #print("B=0")
  *             return 1e15, None, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
- * 
  */
   __pyx_t_1 = ((__pyx_v_B == 0.0) != 0);
   if (__pyx_t_1) {
 
-    /* "main/handler_collision_with_wall.pyx":68
- *         B = -vx*sTheta+vy*cTheta
+    /* "main/handler_collision_with_wall.pyx":31
  *         if B == 0.0 :
+ *             #print("B=0")
  *             return 1e15, None, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...             # <<<<<<<<<<<<<<
  * 
  *         # A = -position[0]*sTheta+position[1]*cTheta
@@ -1989,55 +1988,55 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     __pyx_r = __pyx_tuple_;
     goto __pyx_L0;
 
-    /* "main/handler_collision_with_wall.pyx":67
+    /* "main/handler_collision_with_wall.pyx":29
  * 
  *         B = -vx*sTheta+vy*cTheta
  *         if B == 0.0 :             # <<<<<<<<<<<<<<
+ *             #print("B=0")
  *             return 1e15, None, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
- * 
  */
   }
 
-  /* "main/handler_collision_with_wall.pyx":73
+  /* "main/handler_collision_with_wall.pyx":36
  *         # new position of the wall in the new base
  *         # y1_new_base = -wall[0]*sTheta+wall[1]*cTheta
- *         A_prime =  -px*sTheta+py*cTheta+x1*sTheta-y1*cTheta             # <<<<<<<<<<<<<<
+ *         A_prime =  -px*sTheta + py*cTheta + x1*sTheta - y1*cTheta             # <<<<<<<<<<<<<<
+ *         #print(f"A_prime = {A_prime}")
  *         # possible collision time :
- *         t1 = (-A_prime-radius)/B
  */
   __pyx_v_A_prime = (((((-__pyx_v_px) * __pyx_v_sTheta) + (__pyx_v_py * __pyx_v_cTheta)) + (__pyx_v_x1 * __pyx_v_sTheta)) - (__pyx_v_y1 * __pyx_v_cTheta));
 
-  /* "main/handler_collision_with_wall.pyx":75
- *         A_prime =  -px*sTheta+py*cTheta+x1*sTheta-y1*cTheta
+  /* "main/handler_collision_with_wall.pyx":39
+ *         #print(f"A_prime = {A_prime}")
  *         # possible collision time :
- *         t1 = (-A_prime-radius)/B             # <<<<<<<<<<<<<<
- *         t2 = (-A_prime+radius)/B
- *         if(t1>t2):
+ *         t1 = (-A_prime-2*radius)/B             # <<<<<<<<<<<<<<
+ *         t2 = (-A_prime+2*radius)/B
+ * 
  */
-  __pyx_t_2 = ((-__pyx_v_A_prime) - __pyx_v_radius);
+  __pyx_t_2 = ((-__pyx_v_A_prime) - (2.0 * __pyx_v_radius));
   if (unlikely(__pyx_v_B == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 75, __pyx_L1_error)
+    __PYX_ERR(0, 39, __pyx_L1_error)
   }
   __pyx_v_t1 = (__pyx_t_2 / __pyx_v_B);
 
-  /* "main/handler_collision_with_wall.pyx":76
+  /* "main/handler_collision_with_wall.pyx":40
  *         # possible collision time :
- *         t1 = (-A_prime-radius)/B
- *         t2 = (-A_prime+radius)/B             # <<<<<<<<<<<<<<
+ *         t1 = (-A_prime-2*radius)/B
+ *         t2 = (-A_prime+2*radius)/B             # <<<<<<<<<<<<<<
+ * 
  *         if(t1>t2):
- *             t_intersect = t1
  */
-  __pyx_t_2 = ((-__pyx_v_A_prime) + __pyx_v_radius);
+  __pyx_t_2 = ((-__pyx_v_A_prime) + (2.0 * __pyx_v_radius));
   if (unlikely(__pyx_v_B == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 76, __pyx_L1_error)
+    __PYX_ERR(0, 40, __pyx_L1_error)
   }
   __pyx_v_t2 = (__pyx_t_2 / __pyx_v_B);
 
-  /* "main/handler_collision_with_wall.pyx":77
- *         t1 = (-A_prime-radius)/B
- *         t2 = (-A_prime+radius)/B
+  /* "main/handler_collision_with_wall.pyx":42
+ *         t2 = (-A_prime+2*radius)/B
+ * 
  *         if(t1>t2):             # <<<<<<<<<<<<<<
  *             t_intersect = t1
  *         else:
@@ -2045,8 +2044,8 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   __pyx_t_1 = ((__pyx_v_t1 > __pyx_v_t2) != 0);
   if (__pyx_t_1) {
 
-    /* "main/handler_collision_with_wall.pyx":78
- *         t2 = (-A_prime+radius)/B
+    /* "main/handler_collision_with_wall.pyx":43
+ * 
  *         if(t1>t2):
  *             t_intersect = t1             # <<<<<<<<<<<<<<
  *         else:
@@ -2054,9 +2053,9 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
  */
     __pyx_v_t_intersect = __pyx_v_t1;
 
-    /* "main/handler_collision_with_wall.pyx":77
- *         t1 = (-A_prime-radius)/B
- *         t2 = (-A_prime+radius)/B
+    /* "main/handler_collision_with_wall.pyx":42
+ *         t2 = (-A_prime+2*radius)/B
+ * 
  *         if(t1>t2):             # <<<<<<<<<<<<<<
  *             t_intersect = t1
  *         else:
@@ -2064,20 +2063,20 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     goto __pyx_L5;
   }
 
-  /* "main/handler_collision_with_wall.pyx":80
+  /* "main/handler_collision_with_wall.pyx":45
  *             t_intersect = t1
  *         else:
  *             t_intersect = t2             # <<<<<<<<<<<<<<
  * 
- * 
+ *         if(t_intersect > 0):
  */
   /*else*/ {
     __pyx_v_t_intersect = __pyx_v_t2;
   }
   __pyx_L5:;
 
-  /* "main/handler_collision_with_wall.pyx":83
- * 
+  /* "main/handler_collision_with_wall.pyx":47
+ *             t_intersect = t2
  * 
  *         if(t_intersect > 0):             # <<<<<<<<<<<<<<
  *             # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
@@ -2086,7 +2085,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   __pyx_t_1 = ((__pyx_v_t_intersect > 0.0) != 0);
   if (__pyx_t_1) {
 
-    /* "main/handler_collision_with_wall.pyx":86
+    /* "main/handler_collision_with_wall.pyx":50
  *             # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
  *             # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
  *             pix = px + t_intersect * vx             # <<<<<<<<<<<<<<
@@ -2095,7 +2094,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
  */
     __pyx_v_pix = (__pyx_v_px + (__pyx_v_t_intersect * __pyx_v_vx));
 
-    /* "main/handler_collision_with_wall.pyx":87
+    /* "main/handler_collision_with_wall.pyx":51
  *             # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
  *             pix = px + t_intersect * vx
  *             piy = py + t_intersect * vy             # <<<<<<<<<<<<<<
@@ -2104,44 +2103,44 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
  */
     __pyx_v_piy = (__pyx_v_py + (__pyx_v_t_intersect * __pyx_v_vy));
 
-    /* "main/handler_collision_with_wall.pyx":90
+    /* "main/handler_collision_with_wall.pyx":54
  * 
  *             # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
  *             dP1x = x2-x1             # <<<<<<<<<<<<<<
  *             dP1y = y2-y1
- *             dP2x = x1-pix
+ *             dP2x = pix-x1
  */
     __pyx_v_dP1x = (__pyx_v_x2 - __pyx_v_x1);
 
-    /* "main/handler_collision_with_wall.pyx":91
+    /* "main/handler_collision_with_wall.pyx":55
  *             # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
  *             dP1x = x2-x1
  *             dP1y = y2-y1             # <<<<<<<<<<<<<<
- *             dP2x = x1-pix
- *             dP2y = y1-piy
+ *             dP2x = pix-x1
+ *             dP2y = piy-y1
  */
     __pyx_v_dP1y = (__pyx_v_y2 - __pyx_v_y1);
 
-    /* "main/handler_collision_with_wall.pyx":92
+    /* "main/handler_collision_with_wall.pyx":56
  *             dP1x = x2-x1
  *             dP1y = y2-y1
- *             dP2x = x1-pix             # <<<<<<<<<<<<<<
- *             dP2y = y1-piy
+ *             dP2x = pix-x1             # <<<<<<<<<<<<<<
+ *             dP2y = piy-y1
  * 
  */
-    __pyx_v_dP2x = (__pyx_v_x1 - __pyx_v_pix);
+    __pyx_v_dP2x = (__pyx_v_pix - __pyx_v_x1);
 
-    /* "main/handler_collision_with_wall.pyx":93
+    /* "main/handler_collision_with_wall.pyx":57
  *             dP1y = y2-y1
- *             dP2x = x1-pix
- *             dP2y = y1-piy             # <<<<<<<<<<<<<<
+ *             dP2x = pix-x1
+ *             dP2y = piy-y1             # <<<<<<<<<<<<<<
  * 
  *             qty=(dP1x*dP2x+dP1y*dP2y)/(dP1x*dP1x+dP1y*dP1y) # norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)
  */
-    __pyx_v_dP2y = (__pyx_v_y1 - __pyx_v_piy);
+    __pyx_v_dP2y = (__pyx_v_piy - __pyx_v_y1);
 
-    /* "main/handler_collision_with_wall.pyx":95
- *             dP2y = y1-piy
+    /* "main/handler_collision_with_wall.pyx":59
+ *             dP2y = piy-y1
  * 
  *             qty=(dP1x*dP2x+dP1y*dP2y)/(dP1x*dP1x+dP1y*dP1y) # norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)             # <<<<<<<<<<<<<<
  *             if(qty < 1 and qty > 0):
@@ -2151,16 +2150,16 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     __pyx_t_3 = ((__pyx_v_dP1x * __pyx_v_dP1x) + (__pyx_v_dP1y * __pyx_v_dP1y));
     if (unlikely(__pyx_t_3 == 0)) {
       PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      __PYX_ERR(0, 95, __pyx_L1_error)
+      __PYX_ERR(0, 59, __pyx_L1_error)
     }
     __pyx_v_qty = (__pyx_t_2 / __pyx_t_3);
 
-    /* "main/handler_collision_with_wall.pyx":96
+    /* "main/handler_collision_with_wall.pyx":60
  * 
  *             qty=(dP1x*dP2x+dP1y*dP2y)/(dP1x*dP1x+dP1y*dP1y) # norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)
  *             if(qty < 1 and qty > 0):             # <<<<<<<<<<<<<<
  *                 return t_intersect, pix, piy
- *         return 1e15, None, None
+ *         #print("Default")
  */
     __pyx_t_4 = ((__pyx_v_qty < 1.0) != 0);
     if (__pyx_t_4) {
@@ -2173,20 +2172,21 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     __pyx_L8_bool_binop_done:;
     if (__pyx_t_1) {
 
-      /* "main/handler_collision_with_wall.pyx":97
+      /* "main/handler_collision_with_wall.pyx":61
  *             qty=(dP1x*dP2x+dP1y*dP2y)/(dP1x*dP1x+dP1y*dP1y) # norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)
  *             if(qty < 1 and qty > 0):
  *                 return t_intersect, pix, piy             # <<<<<<<<<<<<<<
+ *         #print("Default")
  *         return 1e15, None, None
  */
       __Pyx_XDECREF(__pyx_r);
-      __pyx_t_5 = PyFloat_FromDouble(__pyx_v_t_intersect); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_5 = PyFloat_FromDouble(__pyx_v_t_intersect); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = PyFloat_FromDouble(__pyx_v_pix); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_6 = PyFloat_FromDouble(__pyx_v_pix); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_7 = PyFloat_FromDouble(__pyx_v_piy); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_7 = PyFloat_FromDouble(__pyx_v_piy); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 97, __pyx_L1_error)
+      __pyx_t_8 = PyTuple_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 61, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_GIVEREF(__pyx_t_5);
       PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5);
@@ -2201,17 +2201,17 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
       __pyx_t_8 = 0;
       goto __pyx_L0;
 
-      /* "main/handler_collision_with_wall.pyx":96
+      /* "main/handler_collision_with_wall.pyx":60
  * 
  *             qty=(dP1x*dP2x+dP1y*dP2y)/(dP1x*dP1x+dP1y*dP1y) # norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)
  *             if(qty < 1 and qty > 0):             # <<<<<<<<<<<<<<
  *                 return t_intersect, pix, piy
- *         return 1e15, None, None
+ *         #print("Default")
  */
     }
 
-    /* "main/handler_collision_with_wall.pyx":83
- * 
+    /* "main/handler_collision_with_wall.pyx":47
+ *             t_intersect = t2
  * 
  *         if(t_intersect > 0):             # <<<<<<<<<<<<<<
  *             # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
@@ -2219,9 +2219,9 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
  */
   }
 
-  /* "main/handler_collision_with_wall.pyx":98
- *             if(qty < 1 and qty > 0):
+  /* "main/handler_collision_with_wall.pyx":63
  *                 return t_intersect, pix, piy
+ *         #print("Default")
  *         return 1e15, None, None             # <<<<<<<<<<<<<<
  */
   __Pyx_XDECREF(__pyx_r);
@@ -2232,9 +2232,9 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   /* "main/handler_collision_with_wall.pyx":9
  * @cython.boundscheck(False)  # Deactivate bounds checking
  * @cython.wraparound(False)   # Deactivate negative indexing.
- * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double x2, double y1, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
- *         """ Determine if there is a collision between the particule which position, speed and radius
- *         are given in parameters and the wall of index wall_indx.
+ * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double y1, double x2, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
+ * 
+ *         # p index of the part
  */
 
   /* function exit code */
@@ -4810,14 +4810,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "main/handler_collision_with_wall.pyx":68
- *         B = -vx*sTheta+vy*cTheta
+  /* "main/handler_collision_with_wall.pyx":31
  *         if B == 0.0 :
+ *             #print("B=0")
  *             return 1e15, None, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...             # <<<<<<<<<<<<<<
  * 
  *         # A = -position[0]*sTheta+position[1]*cTheta
  */
-  __pyx_tuple_ = PyTuple_Pack(3, __pyx_float_1e15, Py_None, Py_None); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(3, __pyx_float_1e15, Py_None, Py_None); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -4901,11 +4901,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "main/handler_collision_with_wall.pyx":9
  * @cython.boundscheck(False)  # Deactivate bounds checking
  * @cython.wraparound(False)   # Deactivate negative indexing.
- * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double x2, double y1, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
- *         """ Determine if there is a collision between the particule which position, speed and radius
- *         are given in parameters and the wall of index wall_indx.
+ * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double y1, double x2, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
+ * 
+ *         # p index of the part
  */
-  __pyx_tuple__9 = PyTuple_Pack(25, __pyx_n_s_px, __pyx_n_s_py, __pyx_n_s_vx, __pyx_n_s_vy, __pyx_n_s_radius, __pyx_n_s_x1, __pyx_n_s_x2, __pyx_n_s_y1, __pyx_n_s_y2, __pyx_n_s_ax, __pyx_n_s_ay, __pyx_n_s_sTheta, __pyx_n_s_cTheta, __pyx_n_s_A_prime, __pyx_n_s_B, __pyx_n_s_t_intersect, __pyx_n_s_pix, __pyx_n_s_piy, __pyx_n_s_dP1x, __pyx_n_s_dP1y, __pyx_n_s_dP2x, __pyx_n_s_dP2y, __pyx_n_s_qty, __pyx_n_s_t1, __pyx_n_s_t2); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(25, __pyx_n_s_px, __pyx_n_s_py, __pyx_n_s_vx, __pyx_n_s_vy, __pyx_n_s_radius, __pyx_n_s_x1, __pyx_n_s_y1, __pyx_n_s_x2, __pyx_n_s_y2, __pyx_n_s_ax, __pyx_n_s_ay, __pyx_n_s_sTheta, __pyx_n_s_cTheta, __pyx_n_s_A_prime, __pyx_n_s_B, __pyx_n_s_t_intersect, __pyx_n_s_pix, __pyx_n_s_piy, __pyx_n_s_dP1x, __pyx_n_s_dP1y, __pyx_n_s_dP2x, __pyx_n_s_dP2y, __pyx_n_s_qty, __pyx_n_s_t1, __pyx_n_s_t2); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__9);
   __Pyx_GIVEREF(__pyx_tuple__9);
   __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(11, 0, 25, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_handler_collision_with_wall_pyx, __pyx_n_s_handler_wall_collision, 9, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 9, __pyx_L1_error)
@@ -5251,9 +5251,9 @@ if (!__Pyx_RefNanny) {
   /* "main/handler_collision_with_wall.pyx":9
  * @cython.boundscheck(False)  # Deactivate bounds checking
  * @cython.wraparound(False)   # Deactivate negative indexing.
- * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double x2, double y1, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
- *         """ Determine if there is a collision between the particule which position, speed and radius
- *         are given in parameters and the wall of index wall_indx.
+ * def handler_wall_collision(double px, double py, double vx, double vy, double radius, double x1, double y1, double x2, double y2, double ax, double ay):             # <<<<<<<<<<<<<<
+ * 
+ *         # p index of the part
  */
   __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_4main_27handler_collision_with_wall_1handler_wall_collision, NULL, __pyx_n_s_main_handler_collision_with_wall); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);

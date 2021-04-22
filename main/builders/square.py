@@ -22,6 +22,6 @@ class square(system):
         return walls
 
     def make_grid(self): # called second
-        return Grid(self.size[0],self.size[1],[self.resolution[0],self.resolution[1]], dtype = 'LinkedList')
+        return Grid(self.size[0],self.size[1],[self.resolution[0],self.resolution[1]])
 
     

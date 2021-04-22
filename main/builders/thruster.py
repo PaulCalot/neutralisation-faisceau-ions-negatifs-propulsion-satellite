@@ -47,7 +47,7 @@ class thruster(system):
         self.resolution = self.options['general']['resolution']
         res_x, res_y = self.resolution[0], self.resolution[1]
         offset_x, offset_y = self.offset[0], self.offset[1]
-        grid = Grid(lx,ly,[res_x,res_y], offsets = [offset_x,offset_y], dtype = 'LinkedList') # LinkedList , DynamicArray
+        grid = Grid(lx,ly,[res_x,res_y], offsets = [offset_x,offset_y]) # LinkedList , DynamicArray
         self.set_sparsed_space(grid)
         return grid
 

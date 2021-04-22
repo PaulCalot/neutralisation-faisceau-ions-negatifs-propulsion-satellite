@@ -393,11 +393,10 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <pre class="cython line score-0">&#xA0;<span class="">06</span>: <span class="k">cimport</span> <span class="nn">cython</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">07</span>: <span class="nd">@cython</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>  <span class="c"># Deactivate bounds checking</span></pre>
 <pre class="cython line score-0">&#xA0;<span class="">08</span>: <span class="nd">@cython</span><span class="o">.</span><span class="n">wraparound</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>   <span class="c"># Deactivate negative indexing.</span></pre>
-<pre class="cython line score-205" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">09</span>: <span class="k">def</span> <span class="nf">handler_wall_collision</span><span class="p">(</span><span class="n">double</span> <span class="n">px</span><span class="p">,</span> <span class="n">double</span> <span class="n">py</span><span class="p">,</span> <span class="n">double</span> <span class="n">vx</span><span class="p">,</span> <span class="n">double</span> <span class="n">vy</span><span class="p">,</span> <span class="n">double</span> <span class="n">radius</span><span class="p">,</span> <span class="n">double</span> <span class="n">x1</span><span class="p">,</span> <span class="n">double</span> <span class="n">x2</span><span class="p">,</span> <span class="n">double</span> <span class="n">y1</span><span class="p">,</span> <span class="n">double</span> <span class="n">y2</span><span class="p">,</span> <span class="n">double</span> <span class="n">ax</span><span class="p">,</span> <span class="n">double</span> <span class="n">ay</span><span class="p">):</span></pre>
+<pre class="cython line score-205" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">09</span>: <span class="k">def</span> <span class="nf">handler_wall_collision</span><span class="p">(</span><span class="n">double</span> <span class="n">px</span><span class="p">,</span> <span class="n">double</span> <span class="n">py</span><span class="p">,</span> <span class="n">double</span> <span class="n">vx</span><span class="p">,</span> <span class="n">double</span> <span class="n">vy</span><span class="p">,</span> <span class="n">double</span> <span class="n">radius</span><span class="p">,</span> <span class="n">double</span> <span class="n">x1</span><span class="p">,</span> <span class="n">double</span> <span class="n">y1</span><span class="p">,</span> <span class="n">double</span> <span class="n">x2</span><span class="p">,</span> <span class="n">double</span> <span class="n">y2</span><span class="p">,</span> <span class="n">double</span> <span class="n">ax</span><span class="p">,</span> <span class="n">double</span> <span class="n">ay</span><span class="p">):</span></pre>
 <pre class='cython code score-205 '>/* Python wrapper */
 static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_4main_27handler_collision_with_wall_handler_wall_collision[] = " Determine if there is a collision between the particule which position, speed and radius \n        are given in parameters and the wall of index wall_indx.\n        If there is, it compute the time to collision and update the events table. \n        \n        We suppose the particule is caracterized by its position (x,y), its speed (vx, vy) and its radius r.\n        The wall is caracterized by its two extremities : (x1,y1), (x2,y2) where x1 &lt;= x2, if x1=x2, then y1 &lt; y2.\n        This allows to compute the directing vector of the wall (x2-x1, y2-y1) which has been normalized and \n        stored in *self.walls_vector[wall_indx]*. We note the normalized vector *a*.\n\n        The formula which is used is to compute the possible collision time is : \n            t_coll_1/2 = (-A sgn(B) +/- r)/|B| = (-A +/- r)/B\n        where :\n            * A = -x sin(theta) + y cos(theta)\n            * B = -vx sin(theta) + vy cos(theta)\n            * theta = sgn(ay) arccos(ax)\n            \n        Note that theses times give the moment the disk crosses the infinite line formed from the wall,\n        not strictly the wall...\n\n        If B = 0 : we consider that there is not collision and return t_coll = np.nan\n        \n        If B != O : then a necessary condition is to have both t_coll_1 &gt; 0 and t_coll_2 &gt; 0.\n        Indeed : * The first time the particule collides, is when its closest point to the wall collides with it. \n                 * The second time is for when the furthest point to the wall collided with it.\n        In such a case, we have to verify that the disk crossing the line occurs on the portion of the line \n        which is the wall. To do that, we compute the position of the particule at the time of collision and verify that it \n        is on the \"wall\" segment. If it is we return t_coll = min(t_coll_1, t_coll_2). Else, np.nan.\n\n        Args:\n            part_indx (int): index of the particule in self.particules\n            position (MyVector""): position of the particule\n            speed (MyVector): speed of the particule\n            radius (float): radius of the particule\n            wall_indx (int): index of the wall in self.walls\n\n        Returns:\n            int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. \n        ";
-static PyMethodDef __pyx_mdef_4main_27handler_collision_with_wall_1handler_wall_collision = {"handler_wall_collision", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision, METH_VARARGS|METH_KEYWORDS, __pyx_doc_4main_27handler_collision_with_wall_handler_wall_collision};
+static PyMethodDef __pyx_mdef_4main_27handler_collision_with_wall_1handler_wall_collision = {"handler_wall_collision", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision, METH_VARARGS|METH_KEYWORDS, 0};
 static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_collision(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   double __pyx_v_px;
   double __pyx_v_py;
@@ -405,8 +404,8 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   double __pyx_v_vy;
   double __pyx_v_radius;
   double __pyx_v_x1;
-  double __pyx_v_x2;
   double __pyx_v_y1;
+  double __pyx_v_x2;
   double __pyx_v_y2;
   CYTHON_UNUSED double __pyx_v_ax;
   CYTHON_UNUSED double __pyx_v_ay;
@@ -414,7 +413,7 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   <span class='refnanny'>__Pyx_RefNannyDeclarations</span>
   <span class='refnanny'>__Pyx_RefNannySetupContext</span>("handler_wall_collision (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&amp;__pyx_n_s_px,&amp;__pyx_n_s_py,&amp;__pyx_n_s_vx,&amp;__pyx_n_s_vy,&amp;__pyx_n_s_radius,&amp;__pyx_n_s_x1,&amp;__pyx_n_s_x2,&amp;__pyx_n_s_y1,&amp;__pyx_n_s_y2,&amp;__pyx_n_s_ax,&amp;__pyx_n_s_ay,0};
+    static PyObject **__pyx_pyargnames[] = {&amp;__pyx_n_s_px,&amp;__pyx_n_s_py,&amp;__pyx_n_s_vx,&amp;__pyx_n_s_vy,&amp;__pyx_n_s_radius,&amp;__pyx_n_s_x1,&amp;__pyx_n_s_y1,&amp;__pyx_n_s_x2,&amp;__pyx_n_s_y2,&amp;__pyx_n_s_ax,&amp;__pyx_n_s_ay,0};
     PyObject* values[11] = {0,0,0,0,0,0,0,0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
@@ -482,13 +481,13 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
         }
         CYTHON_FALLTHROUGH;
         case  6:
-        if (likely((values[6] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_x2)) != 0)) kw_args--;
+        if (likely((values[6] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_y1)) != 0)) kw_args--;
         else {
           <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("handler_wall_collision", 1, 11, 11, 6); <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
         }
         CYTHON_FALLTHROUGH;
         case  7:
-        if (likely((values[7] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_y1)) != 0)) kw_args--;
+        if (likely((values[7] = <span class='pyx_c_api'>__Pyx_PyDict_GetItemStr</span>(__pyx_kwds, __pyx_n_s_x2)) != 0)) kw_args--;
         else {
           <span class='pyx_c_api'>__Pyx_RaiseArgtupleInvalid</span>("handler_wall_collision", 1, 11, 11, 7); <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
         }
@@ -535,8 +534,8 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
     __pyx_v_vy = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[3]); if (unlikely((__pyx_v_vy == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
     __pyx_v_radius = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[4]); if (unlikely((__pyx_v_radius == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
     __pyx_v_x1 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[5]); if (unlikely((__pyx_v_x1 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
-    __pyx_v_x2 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[6]); if (unlikely((__pyx_v_x2 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
-    __pyx_v_y1 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[7]); if (unlikely((__pyx_v_y1 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
+    __pyx_v_y1 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[6]); if (unlikely((__pyx_v_y1 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
+    __pyx_v_x2 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[7]); if (unlikely((__pyx_v_x2 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
     __pyx_v_y2 = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[8]); if (unlikely((__pyx_v_y2 == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
     __pyx_v_ax = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[9]); if (unlikely((__pyx_v_ax == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
     __pyx_v_ay = __pyx_<span class='py_c_api'>PyFloat_AsDouble</span>(values[10]); if (unlikely((__pyx_v_ay == (double)-1) &amp;&amp; <span class='py_c_api'>PyErr_Occurred</span>())) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L3_error)</span>
@@ -549,7 +548,7 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   <span class='refnanny'>__Pyx_RefNannyFinishContext</span>();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(__pyx_self, __pyx_v_px, __pyx_v_py, __pyx_v_vx, __pyx_v_vy, __pyx_v_radius, __pyx_v_x1, __pyx_v_x2, __pyx_v_y1, __pyx_v_y2, __pyx_v_ax, __pyx_v_ay);
+  __pyx_r = __pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(__pyx_self, __pyx_v_px, __pyx_v_py, __pyx_v_vx, __pyx_v_vy, __pyx_v_radius, __pyx_v_x1, __pyx_v_y1, __pyx_v_x2, __pyx_v_y2, __pyx_v_ax, __pyx_v_ay);
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -559,7 +558,7 @@ static PyObject *__pyx_pw_4main_27handler_collision_with_wall_1handler_wall_coll
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_x2, double __pyx_v_y1, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay) {
+static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_collision(CYTHON_UNUSED PyObject *__pyx_self, double __pyx_v_px, double __pyx_v_py, double __pyx_v_vx, double __pyx_v_vy, double __pyx_v_radius, double __pyx_v_x1, double __pyx_v_y1, double __pyx_v_x2, double __pyx_v_y2, CYTHON_UNUSED double __pyx_v_ax, CYTHON_UNUSED double __pyx_v_ay) {
   double __pyx_v_sTheta;
   double __pyx_v_cTheta;
   double __pyx_v_A_prime;
@@ -592,7 +591,7 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   return __pyx_r;
 }
 /* … */
-  __pyx_tuple__9 = <span class='py_c_api'>PyTuple_Pack</span>(25, __pyx_n_s_px, __pyx_n_s_py, __pyx_n_s_vx, __pyx_n_s_vy, __pyx_n_s_radius, __pyx_n_s_x1, __pyx_n_s_x2, __pyx_n_s_y1, __pyx_n_s_y2, __pyx_n_s_ax, __pyx_n_s_ay, __pyx_n_s_sTheta, __pyx_n_s_cTheta, __pyx_n_s_A_prime, __pyx_n_s_B, __pyx_n_s_t_intersect, __pyx_n_s_pix, __pyx_n_s_piy, __pyx_n_s_dP1x, __pyx_n_s_dP1y, __pyx_n_s_dP2x, __pyx_n_s_dP2y, __pyx_n_s_qty, __pyx_n_s_t1, __pyx_n_s_t2);<span class='error_goto'> if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 9, __pyx_L1_error)</span>
+  __pyx_tuple__9 = <span class='py_c_api'>PyTuple_Pack</span>(25, __pyx_n_s_px, __pyx_n_s_py, __pyx_n_s_vx, __pyx_n_s_vy, __pyx_n_s_radius, __pyx_n_s_x1, __pyx_n_s_y1, __pyx_n_s_x2, __pyx_n_s_y2, __pyx_n_s_ax, __pyx_n_s_ay, __pyx_n_s_sTheta, __pyx_n_s_cTheta, __pyx_n_s_A_prime, __pyx_n_s_B, __pyx_n_s_t_intersect, __pyx_n_s_pix, __pyx_n_s_piy, __pyx_n_s_dP1x, __pyx_n_s_dP1y, __pyx_n_s_dP2x, __pyx_n_s_dP2y, __pyx_n_s_qty, __pyx_n_s_t1, __pyx_n_s_t2);<span class='error_goto'> if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 9, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple__9);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple__9);
 /* … */
@@ -600,70 +599,32 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_2);
   if (<span class='py_c_api'>PyDict_SetItem</span>(__pyx_d, __pyx_n_s_handler_wall_collision, __pyx_t_2) &lt; 0) <span class='error_goto'>__PYX_ERR(0, 9, __pyx_L1_error)</span>
   <span class='pyx_macro_api'>__Pyx_DECREF</span>(__pyx_t_2); __pyx_t_2 = 0;
-</pre><pre class="cython line score-0">&#xA0;<span class="">10</span>:         <span class="sd">&quot;&quot;&quot; Determine if there is a collision between the particule which position, speed and radius </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">11</span>: <span class="sd">        are given in parameters and the wall of index wall_indx.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">12</span>: <span class="sd">        If there is, it compute the time to collision and update the events table. </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">13</span>: <span class="sd">        </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">14</span>: <span class="sd">        We suppose the particule is caracterized by its position (x,y), its speed (vx, vy) and its radius r.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">15</span>: <span class="sd">        The wall is caracterized by its two extremities : (x1,y1), (x2,y2) where x1 &lt;= x2, if x1=x2, then y1 &lt; y2.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">16</span>: <span class="sd">        This allows to compute the directing vector of the wall (x2-x1, y2-y1) which has been normalized and </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">17</span>: <span class="sd">        stored in *self.walls_vector[wall_indx]*. We note the normalized vector *a*.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">18</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">19</span>: <span class="sd">        The formula which is used is to compute the possible collision time is : </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">20</span>: <span class="sd">            t_coll_1/2 = (-A sgn(B) +/- r)/|B| = (-A +/- r)/B</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">21</span>: <span class="sd">        where :</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">22</span>: <span class="sd">            * A = -x sin(theta) + y cos(theta)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">23</span>: <span class="sd">            * B = -vx sin(theta) + vy cos(theta)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">24</span>: <span class="sd">            * theta = sgn(ay) arccos(ax)</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">25</span>: <span class="sd">            </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">26</span>: <span class="sd">        Note that theses times give the moment the disk crosses the infinite line formed from the wall,</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">27</span>: <span class="sd">        not strictly the wall...</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">28</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">29</span>: <span class="sd">        If B = 0 : we consider that there is not collision and return t_coll = np.nan</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">30</span>: <span class="sd">        </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">31</span>: <span class="sd">        If B != O : then a necessary condition is to have both t_coll_1 &gt; 0 and t_coll_2 &gt; 0.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">32</span>: <span class="sd">        Indeed : * The first time the particule collides, is when its closest point to the wall collides with it. </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">33</span>: <span class="sd">                 * The second time is for when the furthest point to the wall collided with it.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">34</span>: <span class="sd">        In such a case, we have to verify that the disk crossing the line occurs on the portion of the line </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">35</span>: <span class="sd">        which is the wall. To do that, we compute the position of the particule at the time of collision and verify that it </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">36</span>: <span class="sd">        is on the &quot;wall&quot; segment. If it is we return t_coll = min(t_coll_1, t_coll_2). Else, np.nan.</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">37</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">38</span>: <span class="sd">        Args:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">39</span>: <span class="sd">            part_indx (int): index of the particule in self.particules</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">40</span>: <span class="sd">            position (MyVector): position of the particule</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">41</span>: <span class="sd">            speed (MyVector): speed of the particule</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">42</span>: <span class="sd">            radius (float): radius of the particule</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">43</span>: <span class="sd">            wall_indx (int): index of the wall in self.walls</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">44</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">45</span>: <span class="sd">        Returns:</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">46</span>: <span class="sd">            int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. </span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">47</span>: <span class="sd">        &quot;&quot;&quot;</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">48</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">49</span>:         <span class="c"># p index of the part</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">50</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">sTheta</span><span class="p">,</span> <span class="nf">cTheta</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">51</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">A_prime</span><span class="p">,</span> <span class="nf">B</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">52</span>:         <span class="c"># cdef double y1_new_base</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">53</span>:         <span class="c"># cdef double t_coll_1, t_coll_2</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">54</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">t_intersect</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">55</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">pix</span><span class="p">,</span> <span class="nf">piy</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">56</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">dP1x</span><span class="p">,</span> <span class="nf">dP1y</span><span class="p">,</span> <span class="nf">dP2x</span><span class="p">,</span> <span class="nf">dP2y</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">57</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">qty</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">58</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">t1</span><span class="p">,</span> <span class="nf">t2</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">59</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">60</span>:         <span class="c"># A and B</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">61</span>:         <span class="k">if</span><span class="p">(</span><span class="n">x2</span><span class="o">-</span><span class="n">x1</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">10</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">11</span>:         <span class="c"># p index of the part</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">12</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">sTheta</span><span class="p">,</span> <span class="nf">cTheta</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">13</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">A_prime</span><span class="p">,</span> <span class="nf">B</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">14</span>:         <span class="c"># cdef double y1_new_base</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">15</span>:         <span class="c"># cdef double t_coll_1, t_coll_2</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">16</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">t_intersect</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">17</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">pix</span><span class="p">,</span> <span class="nf">piy</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">18</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">dP1x</span><span class="p">,</span> <span class="nf">dP1y</span><span class="p">,</span> <span class="nf">dP2x</span><span class="p">,</span> <span class="nf">dP2y</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">19</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">qty</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">20</span>:         <span class="k">cdef</span> <span class="kt">double</span> <span class="nf">t1</span><span class="p">,</span> <span class="nf">t2</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">21</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">22</span>:         <span class="c"># A and B</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">23</span>:         <span class="k">if</span><span class="p">(</span><span class="n">x2</span><span class="o">-</span><span class="n">x1</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = (((__pyx_v_x2 - __pyx_v_x1) &gt; 0.0) != 0);
   if (__pyx_t_1) {
 /* … */
     goto __pyx_L3;
   }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">62</span>:             <span class="n">sTheta</span><span class="p">,</span> <span class="n">cTheta</span> <span class="o">=</span> <span class="n">y2</span><span class="o">-</span><span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">24</span>:             <span class="n">sTheta</span><span class="p">,</span> <span class="n">cTheta</span> <span class="o">=</span> <span class="n">y2</span><span class="o">-</span><span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
 <pre class='cython code score-0 '>    __pyx_t_2 = (__pyx_v_y2 - __pyx_v_y1);
     __pyx_t_3 = (__pyx_v_x2 - __pyx_v_x1);
     __pyx_v_sTheta = __pyx_t_2;
     __pyx_v_cTheta = __pyx_t_3;
-</pre><pre class="cython line score-0">&#xA0;<span class="">63</span>:         <span class="k">else</span><span class="p">:</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">64</span>:             <span class="n">sTheta</span><span class="p">,</span> <span class="n">cTheta</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">y2</span><span class="p">,</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">25</span>:         <span class="k">else</span><span class="p">:</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">26</span>:             <span class="n">sTheta</span><span class="p">,</span> <span class="n">cTheta</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">y2</span><span class="p">,</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
 <pre class='cython code score-0 '>  /*else*/ {
     __pyx_t_3 = (__pyx_v_y1 - __pyx_v_y2);
     __pyx_t_2 = (__pyx_v_x2 - __pyx_v_x1);
@@ -671,91 +632,93 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     __pyx_v_cTheta = __pyx_t_2;
   }
   __pyx_L3:;
-</pre><pre class="cython line score-0">&#xA0;<span class="">65</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">66</span>:         <span class="n">B</span> <span class="o">=</span> <span class="o">-</span><span class="n">vx</span><span class="o">*</span><span class="n">sTheta</span><span class="o">+</span><span class="n">vy</span><span class="o">*</span><span class="n">cTheta</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">27</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">28</span>:         <span class="n">B</span> <span class="o">=</span> <span class="o">-</span><span class="n">vx</span><span class="o">*</span><span class="n">sTheta</span><span class="o">+</span><span class="n">vy</span><span class="o">*</span><span class="n">cTheta</span></pre>
 <pre class='cython code score-0 '>  __pyx_v_B = (((-__pyx_v_vx) * __pyx_v_sTheta) + (__pyx_v_vy * __pyx_v_cTheta));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">67</span>:         <span class="k">if</span> <span class="n">B</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="p">:</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">29</span>:         <span class="k">if</span> <span class="n">B</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="p">:</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = ((__pyx_v_B == 0.0) != 0);
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">68</span>:             <span class="k">return</span> <span class="mf">1e15</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span> <span class="c"># TODO : should we add a tolerance ? It will never be equals to zero exactly...</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">30</span>:             <span class="c">#print(&quot;B=0&quot;)</span></pre>
+<pre class="cython line score-7" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">31</span>:             <span class="k">return</span> <span class="mf">1e15</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span> <span class="c"># TODO : should we add a tolerance ? It will never be equals to zero exactly...</span></pre>
 <pre class='cython code score-7 '>    <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
     <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_tuple_);
     __pyx_r = __pyx_tuple_;
     goto __pyx_L0;
 /* … */
-  __pyx_tuple_ = <span class='py_c_api'>PyTuple_Pack</span>(3, __pyx_float_1e15, Py_None, Py_None);<span class='error_goto'> if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 68, __pyx_L1_error)</span>
+  __pyx_tuple_ = <span class='py_c_api'>PyTuple_Pack</span>(3, __pyx_float_1e15, Py_None, Py_None);<span class='error_goto'> if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 31, __pyx_L1_error)</span>
   <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_tuple_);
   <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_tuple_);
-</pre><pre class="cython line score-0">&#xA0;<span class="">69</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">70</span>:         <span class="c"># A = -position[0]*sTheta+position[1]*cTheta</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">71</span>:         <span class="c"># new position of the wall in the new base</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">72</span>:         <span class="c"># y1_new_base = -wall[0]*sTheta+wall[1]*cTheta</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">73</span>:         <span class="n">A_prime</span> <span class="o">=</span>  <span class="o">-</span><span class="n">px</span><span class="o">*</span><span class="n">sTheta</span><span class="o">+</span><span class="n">py</span><span class="o">*</span><span class="n">cTheta</span><span class="o">+</span><span class="n">x1</span><span class="o">*</span><span class="n">sTheta</span><span class="o">-</span><span class="n">y1</span><span class="o">*</span><span class="n">cTheta</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">32</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">33</span>:         <span class="c"># A = -position[0]*sTheta+position[1]*cTheta</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">34</span>:         <span class="c"># new position of the wall in the new base</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">35</span>:         <span class="c"># y1_new_base = -wall[0]*sTheta+wall[1]*cTheta</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">36</span>:         <span class="n">A_prime</span> <span class="o">=</span>  <span class="o">-</span><span class="n">px</span><span class="o">*</span><span class="n">sTheta</span> <span class="o">+</span> <span class="n">py</span><span class="o">*</span><span class="n">cTheta</span> <span class="o">+</span> <span class="n">x1</span><span class="o">*</span><span class="n">sTheta</span> <span class="o">-</span> <span class="n">y1</span><span class="o">*</span><span class="n">cTheta</span></pre>
 <pre class='cython code score-0 '>  __pyx_v_A_prime = (((((-__pyx_v_px) * __pyx_v_sTheta) + (__pyx_v_py * __pyx_v_cTheta)) + (__pyx_v_x1 * __pyx_v_sTheta)) - (__pyx_v_y1 * __pyx_v_cTheta));
-</pre><pre class="cython line score-0">&#xA0;<span class="">74</span>:         <span class="c"># possible collision time :</span></pre>
-<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">75</span>:         <span class="n">t1</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">A_prime</span><span class="o">-</span><span class="n">radius</span><span class="p">)</span><span class="o">/</span><span class="n">B</span></pre>
-<pre class='cython code score-5 '>  __pyx_t_2 = ((-__pyx_v_A_prime) - __pyx_v_radius);
+</pre><pre class="cython line score-0">&#xA0;<span class="">37</span>:         <span class="c">#print(f&quot;A_prime = {A_prime}&quot;)</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">38</span>:         <span class="c"># possible collision time :</span></pre>
+<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">39</span>:         <span class="n">t1</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">A_prime</span><span class="o">-</span><span class="mf">2</span><span class="o">*</span><span class="n">radius</span><span class="p">)</span><span class="o">/</span><span class="n">B</span></pre>
+<pre class='cython code score-5 '>  __pyx_t_2 = ((-__pyx_v_A_prime) - (2.0 * __pyx_v_radius));
   if (unlikely(__pyx_v_B == 0)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_ZeroDivisionError, "float division");
-    <span class='error_goto'>__PYX_ERR(0, 75, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 39, __pyx_L1_error)</span>
   }
   __pyx_v_t1 = (__pyx_t_2 / __pyx_v_B);
-</pre><pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">76</span>:         <span class="n">t2</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">A_prime</span><span class="o">+</span><span class="n">radius</span><span class="p">)</span><span class="o">/</span><span class="n">B</span></pre>
-<pre class='cython code score-5 '>  __pyx_t_2 = ((-__pyx_v_A_prime) + __pyx_v_radius);
+</pre><pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">40</span>:         <span class="n">t2</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">A_prime</span><span class="o">+</span><span class="mf">2</span><span class="o">*</span><span class="n">radius</span><span class="p">)</span><span class="o">/</span><span class="n">B</span></pre>
+<pre class='cython code score-5 '>  __pyx_t_2 = ((-__pyx_v_A_prime) + (2.0 * __pyx_v_radius));
   if (unlikely(__pyx_v_B == 0)) {
     <span class='py_c_api'>PyErr_SetString</span>(PyExc_ZeroDivisionError, "float division");
-    <span class='error_goto'>__PYX_ERR(0, 76, __pyx_L1_error)</span>
+    <span class='error_goto'>__PYX_ERR(0, 40, __pyx_L1_error)</span>
   }
   __pyx_v_t2 = (__pyx_t_2 / __pyx_v_B);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">77</span>:         <span class="k">if</span><span class="p">(</span><span class="n">t1</span><span class="o">&gt;</span><span class="n">t2</span><span class="p">):</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">41</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">42</span>:         <span class="k">if</span><span class="p">(</span><span class="n">t1</span><span class="o">&gt;</span><span class="n">t2</span><span class="p">):</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = ((__pyx_v_t1 &gt; __pyx_v_t2) != 0);
   if (__pyx_t_1) {
 /* … */
     goto __pyx_L5;
   }
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">78</span>:             <span class="n">t_intersect</span> <span class="o">=</span> <span class="n">t1</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">43</span>:             <span class="n">t_intersect</span> <span class="o">=</span> <span class="n">t1</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_t_intersect = __pyx_v_t1;
-</pre><pre class="cython line score-0">&#xA0;<span class="">79</span>:         <span class="k">else</span><span class="p">:</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">80</span>:             <span class="n">t_intersect</span> <span class="o">=</span> <span class="n">t2</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">44</span>:         <span class="k">else</span><span class="p">:</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">45</span>:             <span class="n">t_intersect</span> <span class="o">=</span> <span class="n">t2</span></pre>
 <pre class='cython code score-0 '>  /*else*/ {
     __pyx_v_t_intersect = __pyx_v_t2;
   }
   __pyx_L5:;
-</pre><pre class="cython line score-0">&#xA0;<span class="">81</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">82</span>: </pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">83</span>:         <span class="k">if</span><span class="p">(</span><span class="n">t_intersect</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">46</span>: </pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">47</span>:         <span class="k">if</span><span class="p">(</span><span class="n">t_intersect</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
 <pre class='cython code score-0 '>  __pyx_t_1 = ((__pyx_v_t_intersect &gt; 0.0) != 0);
   if (__pyx_t_1) {
 /* … */
   }
-</pre><pre class="cython line score-0">&#xA0;<span class="">84</span>:             <span class="c"># t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore</span></pre>
-<pre class="cython line score-0">&#xA0;<span class="">85</span>:             <span class="c"># t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">86</span>:             <span class="n">pix</span> <span class="o">=</span> <span class="n">px</span> <span class="o">+</span> <span class="n">t_intersect</span> <span class="o">*</span> <span class="n">vx</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">48</span>:             <span class="c"># t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore</span></pre>
+<pre class="cython line score-0">&#xA0;<span class="">49</span>:             <span class="c"># t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">50</span>:             <span class="n">pix</span> <span class="o">=</span> <span class="n">px</span> <span class="o">+</span> <span class="n">t_intersect</span> <span class="o">*</span> <span class="n">vx</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_pix = (__pyx_v_px + (__pyx_v_t_intersect * __pyx_v_vx));
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">87</span>:             <span class="n">piy</span> <span class="o">=</span> <span class="n">py</span> <span class="o">+</span> <span class="n">t_intersect</span> <span class="o">*</span> <span class="n">vy</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">51</span>:             <span class="n">piy</span> <span class="o">=</span> <span class="n">py</span> <span class="o">+</span> <span class="n">t_intersect</span> <span class="o">*</span> <span class="n">vy</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_piy = (__pyx_v_py + (__pyx_v_t_intersect * __pyx_v_vy));
-</pre><pre class="cython line score-0">&#xA0;<span class="">88</span>: </pre>
-<pre class="cython line score-0">&#xA0;<span class="">89</span>:             <span class="c"># the reason why were are not using pos_intersect.norm is that it should be a 3D vector.</span></pre>
-<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">90</span>:             <span class="n">dP1x</span> <span class="o">=</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">52</span>: </pre>
+<pre class="cython line score-0">&#xA0;<span class="">53</span>:             <span class="c"># the reason why were are not using pos_intersect.norm is that it should be a 3D vector.</span></pre>
+<pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">54</span>:             <span class="n">dP1x</span> <span class="o">=</span> <span class="n">x2</span><span class="o">-</span><span class="n">x1</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_dP1x = (__pyx_v_x2 - __pyx_v_x1);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">91</span>:             <span class="n">dP1y</span> <span class="o">=</span> <span class="n">y2</span><span class="o">-</span><span class="n">y1</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">55</span>:             <span class="n">dP1y</span> <span class="o">=</span> <span class="n">y2</span><span class="o">-</span><span class="n">y1</span></pre>
 <pre class='cython code score-0 '>    __pyx_v_dP1y = (__pyx_v_y2 - __pyx_v_y1);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">92</span>:             <span class="n">dP2x</span> <span class="o">=</span> <span class="n">x1</span><span class="o">-</span><span class="n">pix</span></pre>
-<pre class='cython code score-0 '>    __pyx_v_dP2x = (__pyx_v_x1 - __pyx_v_pix);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">93</span>:             <span class="n">dP2y</span> <span class="o">=</span> <span class="n">y1</span><span class="o">-</span><span class="n">piy</span></pre>
-<pre class='cython code score-0 '>    __pyx_v_dP2y = (__pyx_v_y1 - __pyx_v_piy);
-</pre><pre class="cython line score-0">&#xA0;<span class="">94</span>: </pre>
-<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">95</span>:             <span class="n">qty</span><span class="o">=</span><span class="p">(</span><span class="n">dP1x</span><span class="o">*</span><span class="n">dP2x</span><span class="o">+</span><span class="n">dP1y</span><span class="o">*</span><span class="n">dP2y</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">dP1x</span><span class="o">*</span><span class="n">dP1x</span><span class="o">+</span><span class="n">dP1y</span><span class="o">*</span><span class="n">dP1y</span><span class="p">)</span> <span class="c"># norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">56</span>:             <span class="n">dP2x</span> <span class="o">=</span> <span class="n">pix</span><span class="o">-</span><span class="n">x1</span></pre>
+<pre class='cython code score-0 '>    __pyx_v_dP2x = (__pyx_v_pix - __pyx_v_x1);
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">57</span>:             <span class="n">dP2y</span> <span class="o">=</span> <span class="n">piy</span><span class="o">-</span><span class="n">y1</span></pre>
+<pre class='cython code score-0 '>    __pyx_v_dP2y = (__pyx_v_piy - __pyx_v_y1);
+</pre><pre class="cython line score-0">&#xA0;<span class="">58</span>: </pre>
+<pre class="cython line score-5" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">59</span>:             <span class="n">qty</span><span class="o">=</span><span class="p">(</span><span class="n">dP1x</span><span class="o">*</span><span class="n">dP2x</span><span class="o">+</span><span class="n">dP1y</span><span class="o">*</span><span class="n">dP2y</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">dP1x</span><span class="o">*</span><span class="n">dP1x</span><span class="o">+</span><span class="n">dP1y</span><span class="o">*</span><span class="n">dP1y</span><span class="p">)</span> <span class="c"># norm_1 cant be 0 because wall segments are not on same points. # np.vdot(dP1,dP2)</span></pre>
 <pre class='cython code score-5 '>    __pyx_t_2 = ((__pyx_v_dP1x * __pyx_v_dP2x) + (__pyx_v_dP1y * __pyx_v_dP2y));
     __pyx_t_3 = ((__pyx_v_dP1x * __pyx_v_dP1x) + (__pyx_v_dP1y * __pyx_v_dP1y));
     if (unlikely(__pyx_t_3 == 0)) {
       <span class='py_c_api'>PyErr_SetString</span>(PyExc_ZeroDivisionError, "float division");
-      <span class='error_goto'>__PYX_ERR(0, 95, __pyx_L1_error)</span>
+      <span class='error_goto'>__PYX_ERR(0, 59, __pyx_L1_error)</span>
     }
     __pyx_v_qty = (__pyx_t_2 / __pyx_t_3);
-</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">96</span>:             <span class="k">if</span><span class="p">(</span><span class="n">qty</span> <span class="o">&lt;</span> <span class="mf">1</span> <span class="ow">and</span> <span class="n">qty</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
+</pre><pre class="cython line score-0" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">60</span>:             <span class="k">if</span><span class="p">(</span><span class="n">qty</span> <span class="o">&lt;</span> <span class="mf">1</span> <span class="ow">and</span> <span class="n">qty</span> <span class="o">&gt;</span> <span class="mf">0</span><span class="p">):</span></pre>
 <pre class='cython code score-0 '>    __pyx_t_4 = ((__pyx_v_qty &lt; 1.0) != 0);
     if (__pyx_t_4) {
     } else {
@@ -768,15 +731,15 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
     if (__pyx_t_1) {
 /* … */
     }
-</pre><pre class="cython line score-24" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">97</span>:                 <span class="k">return</span> <span class="n">t_intersect</span><span class="p">,</span> <span class="n">pix</span><span class="p">,</span> <span class="n">piy</span></pre>
+</pre><pre class="cython line score-24" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">61</span>:                 <span class="k">return</span> <span class="n">t_intersect</span><span class="p">,</span> <span class="n">pix</span><span class="p">,</span> <span class="n">piy</span></pre>
 <pre class='cython code score-24 '>      <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
-      __pyx_t_5 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_t_intersect);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error)</span>
+      __pyx_t_5 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_t_intersect);<span class='error_goto'> if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_5);
-      __pyx_t_6 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_pix);<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 97, __pyx_L1_error)</span>
+      __pyx_t_6 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_pix);<span class='error_goto'> if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 61, __pyx_L1_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_6);
-      __pyx_t_7 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_piy);<span class='error_goto'> if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)</span>
+      __pyx_t_7 = <span class='py_c_api'>PyFloat_FromDouble</span>(__pyx_v_piy);<span class='error_goto'> if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 61, __pyx_L1_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_7);
-      __pyx_t_8 = <span class='py_c_api'>PyTuple_New</span>(3);<span class='error_goto'> if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 97, __pyx_L1_error)</span>
+      __pyx_t_8 = <span class='py_c_api'>PyTuple_New</span>(3);<span class='error_goto'> if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 61, __pyx_L1_error)</span>
       <span class='refnanny'>__Pyx_GOTREF</span>(__pyx_t_8);
       <span class='refnanny'>__Pyx_GIVEREF</span>(__pyx_t_5);
       <span class='py_macro_api'>PyTuple_SET_ITEM</span>(__pyx_t_8, 0, __pyx_t_5);
@@ -790,7 +753,8 @@ static PyObject *__pyx_pf_4main_27handler_collision_with_wall_handler_wall_colli
       __pyx_r = __pyx_t_8;
       __pyx_t_8 = 0;
       goto __pyx_L0;
-</pre><pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">98</span>:         <span class="k">return</span> <span class="mf">1e15</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span></pre>
+</pre><pre class="cython line score-0">&#xA0;<span class="">62</span>:         <span class="c">#print(&quot;Default&quot;)</span></pre>
+<pre class="cython line score-2" onclick="(function(s){s.display=s.display==='block'?'none':'block'})(this.nextElementSibling.style)">+<span class="">63</span>:         <span class="k">return</span> <span class="mf">1e15</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span></pre>
 <pre class='cython code score-2 '>  <span class='pyx_macro_api'>__Pyx_XDECREF</span>(__pyx_r);
   <span class='pyx_macro_api'>__Pyx_INCREF</span>(__pyx_tuple_);
   __pyx_r = __pyx_tuple_;
