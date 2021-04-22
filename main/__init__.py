@@ -33,6 +33,11 @@ from .read_cfg_files.reader import get_options
 # system builders
 from .builders.square import square
 from .builders.thruster import thruster
- 
+
+# cython
+from .handler_collision_with_wall import handler_wall_collision
+
 from .main import simulate, processing_only
+
+
 
