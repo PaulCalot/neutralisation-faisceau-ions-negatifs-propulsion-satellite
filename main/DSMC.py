@@ -12,6 +12,7 @@ from .data_structures.vector import MyVector
 from .data_structures.grid import Grid
 
 from .utils.integration_schemes import scipy_integrate_solve_ivp, rk4, euler_explicit
+from .handler_collision_with_wall import handler_wall_collision
 
 class DSMC(object):
     debug = False
@@ -162,7 +163,11 @@ class DSMC(object):
         wall = None
         liste = []
         for i in range(len(self.walls)):
-            t_coll, pos_intersect = self.handler_wall_collision(pos, -1.0*speed, radius, i)
+            wall = self.walls[i]
+            a = self.walls_vector[i]
+            #t_coll, pos_intersect = # self.handler_wall_collision(pos, -1.0*speed, radius, i)
+            t_coll, pix, piy = handler_wall_collision(pos.x, pos.y, -speed.x, -speed.y, radius, wall[0], wall[1], wall[2], wall[3], a.x, a.y)
+            pos_intersect = MyVector(pix, piy)
             liste.append((t_coll, pos_intersect, self.walls[i]))
 
             if(t_coll<min_time):
@@ -196,142 +201,142 @@ class DSMC(object):
             #print("No wall nearby.")
             return False
 
-    def handler_wall_collision(self, position, speed, radius, wall_indx):
-        """ Determine if there is a collision between the particule which position, speed and radius 
-        are given in parameters and the wall of index wall_indx.
-        If there is, it compute the time to collision and update the events table. 
+    # def handler_wall_collision(self, position, speed, radius, wall_indx):
+    #     """ Determine if there is a collision between the particule which position, speed and radius 
+    #     are given in parameters and the wall of index wall_indx.
+    #     If there is, it compute the time to collision and update the events table. 
         
-        We suppose the particule is caracterized by its position (x,y), its speed (vx, vy) and its radius r.
-        The wall is caracterized by its two extremities : (x1,y1), (x2,y2) where x1 <= x2, if x1=x2, then y1 < y2.
-        This allows to compute the directing vector of the wall (x2-x1, y2-y1) which has been normalized and 
-        stored in *self.walls_vector[wall_indx]*. We note the normalized vector *a*.
+    #     We suppose the particule is caracterized by its position (x,y), its speed (vx, vy) and its radius r.
+    #     The wall is caracterized by its two extremities : (x1,y1), (x2,y2) where x1 <= x2, if x1=x2, then y1 < y2.
+    #     This allows to compute the directing vector of the wall (x2-x1, y2-y1) which has been normalized and 
+    #     stored in *self.walls_vector[wall_indx]*. We note the normalized vector *a*.
 
-        The formula which is used is to compute the possible collision time is : 
-            t_coll_1/2 = (-A sgn(B) +/- r)/|B| = (-A +/- r)/B
-        where :
-            * A = -x sin(theta) + y cos(theta)
-            * B = -vx sin(theta) + vy cos(theta)
-            * theta = sgn(ay) arccos(ax)
+    #     The formula which is used is to compute the possible collision time is : 
+    #         t_coll_1/2 = (-A sgn(B) +/- r)/|B| = (-A +/- r)/B
+    #     where :
+    #         * A = -x sin(theta) + y cos(theta)
+    #         * B = -vx sin(theta) + vy cos(theta)
+    #         * theta = sgn(ay) arccos(ax)
             
-        Note that theses times give the moment the disk crosses the infinite line formed from the wall,
-        not strictly the wall...
+    #     Note that theses times give the moment the disk crosses the infinite line formed from the wall,
+    #     not strictly the wall...
 
-        If B = 0 : we consider that there is not collision and return t_coll = np.nan
+    #     If B = 0 : we consider that there is not collision and return t_coll = np.nan
         
-        If B != O : then a necessary condition is to have both t_coll_1 > 0 and t_coll_2 > 0.
-        Indeed : * The first time the particule collides, is when its closest point to the wall collides with it. 
-                 * The second time is for when the furthest point to the wall collided with it.
-        In such a case, we have to verify that the disk crossing the line occurs on the portion of the line 
-        which is the wall. To do that, we compute the position of the particule at the time of collision and verify that it 
-        is on the "wall" segment. If it is we return t_coll = min(t_coll_1, t_coll_2). Else, np.nan.
+    #     If B != O : then a necessary condition is to have both t_coll_1 > 0 and t_coll_2 > 0.
+    #     Indeed : * The first time the particule collides, is when its closest point to the wall collides with it. 
+    #              * The second time is for when the furthest point to the wall collided with it.
+    #     In such a case, we have to verify that the disk crossing the line occurs on the portion of the line 
+    #     which is the wall. To do that, we compute the position of the particule at the time of collision and verify that it 
+    #     is on the "wall" segment. If it is we return t_coll = min(t_coll_1, t_coll_2). Else, np.nan.
 
-        Args:
-            part_indx (int): index of the particule in self.particules
-            position (MyVector): position of the particule
-            speed (MyVector): speed of the particule
-            radius (float): radius of the particule
-            wall_indx (int): index of the wall in self.walls
+    #     Args:
+    #         part_indx (int): index of the particule in self.particules
+    #         position (MyVector): position of the particule
+    #         speed (MyVector): speed of the particule
+    #         radius (float): radius of the particule
+    #         wall_indx (int): index of the wall in self.walls
 
-        Returns:
-            int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. 
-        """
-        debug = False
-        # p index of the part
-        wall_directing_vector = self.walls_vector[wall_indx]
-        x1, y1, x2, y2 = self.walls[wall_indx] # x1<=x2 etc.
+    #     Returns:
+    #         int, MyVector: the time before the wall and particule collides. Return np.nan is no collision is possible. 
+    #     """
+    #     debug = False
+    #     # p index of the part
+    #     wall_directing_vector = self.walls_vector[wall_indx]
+    #     x1, y1, x2, y2 = self.walls[wall_indx] # x1<=x2 etc.
 
-        # angle
-        theta = np.sign(wall_directing_vector.y)*np.arccos(wall_directing_vector.x)
+    #     # angle
+    #     theta = np.sign(wall_directing_vector.y)*np.arccos(wall_directing_vector.x)
 
-        # A and B
-        sTheta, cTheta = np.sin(theta), np.cos(theta)
-        B = -speed.x*sTheta+speed.y*cTheta
-        if B == 0.0 : 
-            if(debug): print('B==0.0')
-            return np.nan, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
-        A = -position.x*sTheta+position.y*cTheta
+    #     # A and B
+    #     sTheta, cTheta = np.sin(theta), np.cos(theta)
+    #     B = -speed.x*sTheta+speed.y*cTheta
+    #     if B == 0.0 : 
+    #         if(debug): print('B==0.0')
+    #         return np.nan, None # TODO : should we add a tolerance ? It will never be equals to zero exactly...
+    #     A = -position.x*sTheta+position.y*cTheta
         
-        # new position of the wall in the new base
-        y1_new_base = -x1*sTheta+y1*cTheta
-        if(debug):
-            y2_new_base = -x2*sTheta+y2*cTheta
-            assert(abs(y1_new_base-y2_new_base)<1e-6)
-        A_prime = A-y1_new_base
-        # possible collision time :
-        t_coll_1 = (-A_prime-radius)/B
-        t_coll_2 = (-A_prime+radius)/B
-        if(debug): print("Collision time with wall : {} or {}".format(t_coll_1, t_coll_2))
+    #     # new position of the wall in the new base
+    #     y1_new_base = -x1*sTheta+y1*cTheta
+    #     if(debug):
+    #         y2_new_base = -x2*sTheta+y2*cTheta
+    #         assert(abs(y1_new_base-y2_new_base)<1e-6)
+    #     A_prime = A-y1_new_base
+    #     # possible collision time :
+    #     t_coll_1 = (-A_prime-radius)/B
+    #     t_coll_2 = (-A_prime+radius)/B
+    #     if(debug): print("Collision time with wall : {} or {}".format(t_coll_1, t_coll_2))
         
-        t_intersect = max(t_coll_1, t_coll_2)
+    #     t_intersect = max(t_coll_1, t_coll_2)
         
-        if(t_intersect > 0):
-            # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
-            # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
-            pos_intersect = position + t_intersect * speed
+    #     if(t_intersect > 0):
+    #         # t_intersect = max(t_coll_1, t_coll_2) # because we are not anticipating them anymore
+    #         # t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
+    #         pos_intersect = position + t_intersect * speed
 
-            wall_extrimity1_coordinates = MyVector(x1,y1)
-            wall_extrimity2_coordinates = MyVector(x2,y2)
-            # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
-            dP1, dP2, dP3 = wall_extrimity2_coordinates-wall_extrimity1_coordinates, \
-                pos_intersect-wall_extrimity1_coordinates, wall_extrimity2_coordinates-pos_intersect 
-            norm_1 = dP1.norm()
-            norm_2 = dP2.norm()
-            # norm_3 = dP3.norm()
-            qty=dP1.inner(dP2)/(norm_1*norm_1) # norm_1 cant be 0 because wall segments are not on same points.
-            if(qty < 1 and qty > 0):
-                return t_intersect, pos_intersect
-            # else:
-            #     print("\nQty : {} ".format(qty))
-            #     print(self.walls[wall_indx])
-            #     print(wall_extrimity1_coordinates)
-            #     print(wall_extrimity2_coordinates)
-            #     print(pos_intersect)
-            #     print('\n')
-        else:
-            if(debug):
-                print(t_intersect)
-        # if(t_coll_1 > 0 and t_coll_2 > 0):
+    #         wall_extrimity1_coordinates = MyVector(x1,y1)
+    #         wall_extrimity2_coordinates = MyVector(x2,y2)
+    #         # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
+    #         dP1, dP2, dP3 = wall_extrimity2_coordinates-wall_extrimity1_coordinates, \
+    #             pos_intersect-wall_extrimity1_coordinates, wall_extrimity2_coordinates-pos_intersect 
+    #         norm_1 = dP1.norm()
+    #         norm_2 = dP2.norm()
+    #         # norm_3 = dP3.norm()
+    #         qty=dP1.inner(dP2)/(norm_1*norm_1) # norm_1 cant be 0 because wall segments are not on same points.
+    #         if(qty < 1 and qty > 0):
+    #             return t_intersect, pos_intersect
+    #         # else:
+    #         #     print("\nQty : {} ".format(qty))
+    #         #     print(self.walls[wall_indx])
+    #         #     print(wall_extrimity1_coordinates)
+    #         #     print(wall_extrimity2_coordinates)
+    #         #     print(pos_intersect)
+    #         #     print('\n')
+    #     else:
+    #         if(debug):
+    #             print(t_intersect)
+    #     # if(t_coll_1 > 0 and t_coll_2 > 0):
 
-        #     t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
-        #     pos_intersect = position + t_intersect * speed 
+    #     #     t_intersect = -A_prime/B # the time at which the disk crosses the line if its radius were radius=0.
+    #     #     pos_intersect = position + t_intersect * speed 
             
-        #     if(self.debug): print("Intersection position with wall : {}, {}".format(pos_intersect.x, pos_intersect.y))
+    #     #     if(self.debug): print("Intersection position with wall : {}, {}".format(pos_intersect.x, pos_intersect.y))
 
-        #     wall_extrimity1_coordinates = MyVector(x1,y1)
-        #     wall_extrimity2_coordinates = MyVector(x2,y2)
-        #     # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
-        #     dP1, dP2, dP3 = wall_extrimity2_coordinates-wall_extrimity1_coordinates, \
-        #         pos_intersect-wall_extrimity1_coordinates, wall_extrimity2_coordinates-pos_intersect 
-        #     norm_1 = dP1.norm()
-        #     norm_2 = dP2.norm()
-        #     # norm_3 = dP3.norm()
-        #     if(norm_2 != 0.0):
-        #         cosAngle = dP1.inner(dP2)/(norm_1*norm_2)
-        #         distance_pos_intersect_to_wall = norm_2*np.sqrt(1-cosAngle*cosAngle)
-        #         tol = 1.0 # for now
-        #         if(self.debug): print('Distance intersection to wall vs radius : {} vs {}'.format(distance_pos_intersect_to_wall, radius))
-        #         if(distance_pos_intersect_to_wall<radius*tol):
-        #             if(self.debug):
-        #                 print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
-        #             return min(t_coll_1, t_coll_2), pos_intersect
-        #     else:
-        #         # means the two are exactly the same which should virtually never happen
-        #         if(self.debug): 
-        #             print('Wall extremity one and intersection are the same.')
-        #             print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
-        #         #return min(t_coll_1, t_coll_2), pos_intersect
+    #     #     wall_extrimity1_coordinates = MyVector(x1,y1)
+    #     #     wall_extrimity2_coordinates = MyVector(x2,y2)
+    #     #     # the reason why were are not using pos_intersect.norm is that it should be a 3D vector.
+    #     #     dP1, dP2, dP3 = wall_extrimity2_coordinates-wall_extrimity1_coordinates, \
+    #     #         pos_intersect-wall_extrimity1_coordinates, wall_extrimity2_coordinates-pos_intersect 
+    #     #     norm_1 = dP1.norm()
+    #     #     norm_2 = dP2.norm()
+    #     #     # norm_3 = dP3.norm()
+    #     #     if(norm_2 != 0.0):
+    #     #         cosAngle = dP1.inner(dP2)/(norm_1*norm_2)
+    #     #         distance_pos_intersect_to_wall = norm_2*np.sqrt(1-cosAngle*cosAngle)
+    #     #         tol = 1.0 # for now
+    #     #         if(self.debug): print('Distance intersection to wall vs radius : {} vs {}'.format(distance_pos_intersect_to_wall, radius))
+    #     #         if(distance_pos_intersect_to_wall<radius*tol):
+    #     #             if(self.debug):
+    #     #                 print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
+    #     #             return min(t_coll_1, t_coll_2), pos_intersect
+    #     #     else:
+    #     #         # means the two are exactly the same which should virtually never happen
+    #     #         if(self.debug): 
+    #     #             print('Wall extremity one and intersection are the same.')
+    #     #             print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
+    #     #         #return min(t_coll_1, t_coll_2), pos_intersect
 
-            # if(self.debug): print("Wall position : ({}, {}) - ({}, {})".format(x1,y1,x2,y2))
-            # if(self.debug): print("Norm : 1, 2, 3: {}, {}, {} \t - \t diff vs radius : {} vs {}.".format(norm_1,norm_2,norm_3,abs(norm_1-norm_2-norm_3), radius))
-            # # TODO : should we use a tolerance here too ?
-            # if(abs(norm_1-norm_2-norm_3)<radius): # TODO : depending on the computation time - it may not "see" the wall
-            #     # because we are too far from the theoretical position ?
-            #     # If we want something very stable, we should make the tolerance bigger than radius
-            #     if(self.debug):
-            #         print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
-            #     return min(t_coll_1, t_coll_2), pos_intersect
-        if(debug): print('Default out.')
-        return np.nan, None
+    #         # if(self.debug): print("Wall position : ({}, {}) - ({}, {})".format(x1,y1,x2,y2))
+    #         # if(self.debug): print("Norm : 1, 2, 3: {}, {}, {} \t - \t diff vs radius : {} vs {}.".format(norm_1,norm_2,norm_3,abs(norm_1-norm_2-norm_3), radius))
+    #         # # TODO : should we use a tolerance here too ?
+    #         # if(abs(norm_1-norm_2-norm_3)<radius): # TODO : depending on the computation time - it may not "see" the wall
+    #         #     # because we are too far from the theoretical position ?
+    #         #     # If we want something very stable, we should make the tolerance bigger than radius
+    #         #     if(self.debug):
+    #         #         print('Next collision in {} s at position {}'.format(min(t_coll_1, t_coll_2),pos_intersect))
+    #         #     return min(t_coll_1, t_coll_2), pos_intersect
+    #     if(debug): print('Default out.')
+    #     return np.nan, None
 
     def reflect_particle(self, part, time, idx, pos_intersect):
         wall_directing_vector = self.walls_vector[idx]
