@@ -24,7 +24,6 @@ from .data_structures.grid import Grid
 
 # cython # must be imported beforte DSMC as it is imported in DSMC from there
 from .handler_collision_with_wall import handler_wall_collision
-
 # my modules imports
 from .collisions_handler import CollisionHandler
 from .DSMC import DSMC
