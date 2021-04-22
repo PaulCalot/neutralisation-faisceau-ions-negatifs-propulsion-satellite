@@ -22,6 +22,9 @@ from .data_structures.linkedList import LinkedList
 from .data_structures.vector import MyVector
 from .data_structures.grid import Grid
 
+# cython # must be imported beforte DSMC as it is imported in DSMC from there
+from .handler_collision_with_wall import handler_wall_collision
+
 # my modules imports
 from .collisions_handler import CollisionHandler
 from .DSMC import DSMC
@@ -34,8 +37,6 @@ from .read_cfg_files.reader import get_options
 from .builders.square import square
 from .builders.thruster import thruster
 
-# cython
-from .handler_collision_with_wall import handler_wall_collision
 
 from .main import simulate, processing_only
 
