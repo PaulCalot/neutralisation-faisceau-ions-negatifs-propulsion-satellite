@@ -28,7 +28,9 @@ modules/__pycache__/
 *$py.class
 
 # C extensions
-#*.so
+*.so
+*.c
+*.o
 
 # Distribution / packaging
 .Python
