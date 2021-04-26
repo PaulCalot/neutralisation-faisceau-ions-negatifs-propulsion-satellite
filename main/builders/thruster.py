@@ -55,7 +55,7 @@ class thruster(system):
         return self.zone
     
     def set_sparsed_space(self, grid):
-        particles_list = list(init_particles_in_system(['I'], [1e20], [100], ['gaussian'], [200],\
+        particles_list = list(init_particles_in_system(['I'], [1e20], [1000], ['gaussian'], [200],\
      [200], self.size, self.resolution, zone = self.zone, offsets = self.offset, verbose = False, debug = self.debug,)[0])
         grid.fill_sparsed_space_from_initial_particles_position(particles_list)
 
