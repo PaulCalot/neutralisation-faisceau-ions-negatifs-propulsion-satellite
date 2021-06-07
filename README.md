@@ -33,6 +33,13 @@ conda install -c conda-forge tqdm # progress bar
 conda install pandas=1.0.5 
 ```
 
+or more simple :
+
+```shell
+conda create --name NIRN -c conda-forge fenics=2018 mshr=2018  python pandas numpy matplotlib tqdm notebook jupyter lab
+```
+
+
 If you want to use *jupyter notebook* or *jupyter lab*, please install : 
 ```shell
 conda install -c conda-forge notebook
