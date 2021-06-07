@@ -36,7 +36,7 @@ conda install pandas=1.0.5
 or more simple :
 
 ```shell
-conda create --name NIRN -c conda-forge fenics=2018 mshr=2018  python pandas numpy matplotlib tqdm notebook jupyter lab
+conda create --name NIRN -c conda-forge fenics=2018 mshr=2018  python pandas numpy matplotlib tqdm notebook jupyterlab
 ```
 
 
