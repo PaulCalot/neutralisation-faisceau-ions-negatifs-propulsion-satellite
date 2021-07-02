@@ -21,7 +21,7 @@
 
 #define MASS_HELIUM	4.002
 #define MASS_NEON	20.179
-#define MASS_ARGON	39.948
+#define MASS_ARGON	37.0 //126.90 // 39.948
 #define MASS_KRYPTON	83.80
 #define MASS_XENON      131.30
 #define MASS_OXYGEN     15.999
@@ -58,7 +58,7 @@
 #define Z_Si      	14
 #define Z_F       	9
 #define Z_O       	8 
-#define Z_Ar      	18 
+#define Z_Ar      	53 // 18 
 #define Z_Br      	35
 #define Z_Cl      	17
 #define Z_He      	2
@@ -73,7 +73,7 @@
 #define V_Si      	4
 #define V_F       	1
 #define V_O       	2 
-#define V_Ar      	0
+#define V_Ar      	7 // 0
 #define V_Br      	1
 #define V_Cl      	1
 #define V_He      	0

@@ -23,7 +23,7 @@ def init_simulation(src_path, name):
     return test_path
 
 def make_command(params, flags):
-    possible_keys = ['-ion','-ionE','-Tset','-ionT','-ionP','-tau','-n','-dt','-i1']
+    possible_keys = ['-ion','-ionE','-Tset','-ionT','-ionP','-tau','-n','-dt','-i1','-ionCOMr','-iui','-oi']
     possible_flags = ['+dtv','-q']
     cmd = ''
     
@@ -31,7 +31,7 @@ def make_command(params, flags):
         if(key not in possible_keys):
             print('Parameter should be in {}. But {} is not.'.format(possible_keys, key))
             break
-        cmd += '{} {} '.format(key,      value)
+        cmd += '{} {} '.format(key, value)
         
     for flag in flags:
         if(flag not in possible_flags):
@@ -41,7 +41,7 @@ def make_command(params, flags):
     command = "./md2 -oc cfg/####.cfg {} > log &".format(cmd)
     return command
 
-def launch_simulation(name, params, flags):
+def launch_simulation(name, params, flags, launches = 1, verbose = False):
     # name : name of the simulation (under the source folder of the md code)
     # params : a dictionnary containing as keys the items in the command to launch a simu in the C code
     
@@ -55,9 +55,42 @@ def launch_simulation(name, params, flags):
     # all is saved in a new file
     test_path = init_simulation(src_path, name)
     
-    # issuing command
-    command = make_command(params, flags)
-    print(command)
-    os.chdir(test_path)
-    os.system(command)
-    os.chdir(current_dir)
+    # issuing command(s)
+    for launch in range(launches):
+        params['-oi'] = "ion/{:0>4}.ion".format(launch)
+        command = make_command(params, flags)
+
+        if(verbose):
+            print(command)
+
+        os.chdir(test_path)
+        os.system(command)
+        os.chdir(current_dir)
+
+def launch_on_doe(name, params, flags, keys, design_of_experiments, clean = False):
+    # name : name of the simulation (under the source folder of the md code)
+    # params : a dictionnary containing as keys the items in the command to launch a simu in the C code
+    current_dir = Path.cwd()
+    src_path = current_dir/'md2_sources' # path to src folder
+
+    if(clean):
+        # Preparing config - hypothesis : this notebook is in the same directory that the source MD code.
+        clean_and_remake(src_path)
+
+        # all is saved in a new file
+        test_path = init_simulation(src_path, name)
+    
+    # issuing command(s)
+    for k in range(design_of_experiments.shape[0]):
+        exp = design_of_experiments[k]
+
+        params['-oi'] = "ion/{:0>4}.ion".format(k)
+
+        for idx, key in enumerate(keys):
+            params[key] = exp[idx]
+        
+        command = make_command(params, flags)
+        print(command)
+        os.chdir(test_path)
+        os.system(command)
+        os.chdir(current_dir)

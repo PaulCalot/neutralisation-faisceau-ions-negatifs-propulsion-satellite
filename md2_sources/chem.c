@@ -196,7 +196,7 @@ void Chem_InitializePeriodicTable (void)
     per_table[Ar].color.r = 0.9;
     per_table[Ar].color.g = 0.9;
     per_table[Ar].color.b = 0.0;
-    per_table[Ar].radius = 0.6;
+    per_table[Ar].radius = 0.9451; // 0.6;
 
     per_table[Ne].color.r = 1.00;
     per_table[Ne].color.g = .431;

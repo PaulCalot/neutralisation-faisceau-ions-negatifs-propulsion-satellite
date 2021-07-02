@@ -31,7 +31,7 @@ def lenght_headers(path):
         file = open(path, "r")
         ind=0
         line = file.readline()
-        while line[0]=="#" or line[0]=="%":
+        while line!="" and (line[0]=="#" or line[0]=="%"):
             line = file.readline()
             ind+=1
         file.close()
@@ -60,7 +60,7 @@ def plot_crystal(ax, dataframe, radii, colors, dir1, dir2, alpha = 0.1):
         ax.add_patch(plt.Circle((row[dir1], row[dir2]), radii[row['type']], \
                                 color = colors[row['type']], alpha = alpha))
 
-def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
+def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True, xlim = None, ylim = None):
     
     xmin, xmax = min(np.min(df_crystal['x']),np.min(df_ion['x'])), max(np.max(df_crystal['x']),np.max(df_ion['x']))
     ymin, ymax = min(np.min(df_crystal['y']),np.min(df_ion['y'])), max(np.max(df_crystal['y']),np.max(df_ion['y']))
@@ -68,7 +68,15 @@ def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
 
     fig, axes = plt.subplots(1,2, figsize = (20,10))
     axes[0].axis('equal')
-    axes[0].set(xlim=(xmin, xmax), ylim = (zmin, zmax))
+    if(xlim is None and ylim is None):
+        axes[0].set(xlim=(xmin, xmax), ylim = (zmin, zmax))
+    elif(xlim is not None and ylim is None):
+        axes[0].set(xlim=xlim, ylim = (zmin, zmax))
+    elif(ylim is not None and xlim is None):
+        axes[0].set(xlim=(xmin, xmax), ylim = ylim)
+    else:
+        axes[0].set(xlim=xlim, ylim = ylim)
+
     plot_crystal(axes[0], df_crystal, radii, colors, 'x', 'z', alpha = 0.1)
     axes[0].set_xlabel(r'x ($\AA$)', fontsize = 14)
     axes[0].set_ylabel(r'z ($\AA$)', fontsize = 14)
@@ -94,7 +102,7 @@ def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
     if(impact_time is not None):
         # there has been an impact
         row_impact = df_ion.iloc[impact_time]
-        print('Impact time : {} ps.'.format(row_impact['Integration time']))
+        print('Impact time : {} ps.'.format(row_impact['t']))
         axes[0].plot(row_impact['x'],row_impact['z'], 'x', color = 'r', markersize = 20)
         axes[1].plot(row_impact['y'],row_impact['z'], 'x', color = 'r', markersize = 20)
 
@@ -104,26 +112,40 @@ def plot_2d_simu(type_ion, df_ion, df_crystal, radii, colors, start = True):
 # ------------------------------------------- Reading results folder ------------------------------- #
 
 class process_results:
-    def __init__(self, path_to_folder):
+    def __init__(self, path_to_folder, process_ions = True, process_crystal = True, process_log = True, args_ions = {}):
         self.path = path_to_folder # path to folder
-        self.ion = process_ion_folder(path_to_folder/'ion')
-        self.crystal = process_crystal_folder(path_to_folder/'cfg')
-        self.log = process_log_file(path_to_folder/'log')
+
+        if process_ions : self.ion = process_ion_folder(path_to_folder/'ion', **args_ions)
+        if process_crystal : self.crystal = process_crystal_folder(path_to_folder/'cfg')
+        if process_log : self.log = process_log_file(path_to_folder/'log')
 
 # ------------------------------------------- Reading ion folder ----------------------------------- #
 
 class process_ion_folder :
     # will process everything in the ion folder (every file with .ion)
+    # time step - time (ps) - kinetic NRJ/init_kinetic_NRJ - internal potentila nrj (eV) - external potential nrj (eV) - 
+    # imp ? - has impact occured - yes if 1.
     file_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'd.x', 'd.y', 'd.z', '|d|', '#b', 'imp?']
     final_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'x', 'y', 'z', '|d|', 'imp?']
-    
-    def __init__(self, path):
+    units = ['#','ps','','eV','eV','Å','Å','Å','Å','']
+    def __init__(self, path, low_memory = True, crystal_height = None):
         self.path = path
-        self.dataframes = self.get_dict_df()        
-        self.list_angles = self.extract_angles()
+        self.names, self.simulation_number = scan_directory(self.path, '.ion')
+        self.crystal_height = crystal_height
+        self.low_memory = low_memory
+        if(not low_memory):
+            self.dataframes = self.get_dict_df()        
+        else:
+            self.current_name = None
+            self.current_df = None
+        self.angles = self.extract_angles()
+
+    def load(self, name):
+        self.current_name = name
+        self.current_df = self.get_dataframe_(self.path/name)
+        # self.angles[name] = self.extract_angles_(self.current_df) 
 
     def get_dict_df(self):
-        self.names, self.simulation_number = scan_directory(self.path, '.ion')
         df_dict = {}
         for name in self.names :
             df_dict[name] = self.get_dataframe_(self.path/name)
@@ -145,20 +167,34 @@ class process_ion_folder :
         
         return df
 
-    def extract_angles(self):
-        list_angles = []
-        for k, df in self.dataframes.items():
-            dx= df['x'].values[-1]- df['x'].values[-2]
-            dy= df['y'].values[-1]- df['y'].values[-2]
-            dz= df['z'].values[-1]- df['z'].values[-2]
+    def extract_angles_(self, df):
+        # TODO : add the dependance on z (to be sure that we are in fact out of the crystal)
+        # it could simply be : dz > 0
+        # but you still need to add the z > z_top_crystal
+        dx = df['x'].values[-1] - df['x'].values[-2]
+        dy = df['y'].values[-1] - df['y'].values[-2]
+        dz = df['z'].values[-1] - df['z'].values[-2]
+        if(dz > 0 and df['z'].values[-1] > self.crystal_height):
             dr=np.sqrt(dx**2+dy**2+dz**2)
 
             phi_sortie = np.nan
             theta_sortie=np.arccos(dz/dr)*180/np.pi
             if(dx != 0):
                 phi_sortie=np.arctan(dy/dx)*180/np.pi
-            list_angles.append([theta_sortie, phi_sortie])
-        return list_angles
+            return [theta_sortie, phi_sortie]
+        else:
+            return [np.nan, np.nan]
+
+    def extract_angles(self):
+        angles = {}
+        if(self.low_memory):
+            for name in self.names:
+                df = self.get_dataframe_(self.path/name)
+                angles[name] = self.extract_angles_(df)
+        else:
+            for k, df in self.dataframes.items():
+                angles[self.names[k]] = self.extract_angles_(df)
+        return angles
     
     def coord_initiales_ion_(self, path):       
         with open(path, "r") as file:
@@ -176,7 +212,13 @@ class process_ion_folder :
                     found = True
                     xini,yini,zini = split[1].strip().split(' ')
                     return float(xini), float(yini), float(zini)
-                
+    
+    def get_output_angles(self, verbose = True):
+        if verbose:
+            print('Angle - azimutal angle (θ)- polar angle (φ)')
+            for k, v in self.angles.items():
+                print('{} : θ = {:.2} ; φ = {:.2}'.format(k, v[0], v[1]))
+        return self.angles
 # ------------------------------------------  Reading crystal folder (cfg) ------------------------------- #
 
 class process_crystal_folder :
