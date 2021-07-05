@@ -247,9 +247,9 @@ class process_ion_folder :
     
     def get_output_angles(self, verbose = True):
         if verbose:
-            print('Angle - azimutal angle (θ)- polar angle (φ)')
+            print('Angle - polar angle (θ) - azimutal angle (φ)')
             for k, v in self.angles.items():
-                print('{} : θ = {:.2} ; φ = {:.2}'.format(k, v[0], v[1]))
+                print('{} : φ = {:.2} ; θ = {:.2}'.format(k, v[0], v[1]))
         return self.angles
 # ------------------------------------------  Reading crystal folder (cfg) ------------------------------- #
 
