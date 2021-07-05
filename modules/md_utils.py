@@ -128,6 +128,7 @@ class process_ion_folder :
     file_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'd.x', 'd.y', 'd.z', '|d|', '#b', 'imp?']
     final_fields = ['st', 't', 'ke/E_i', 'ipe', 'epe', 'x', 'y', 'z', '|d|', 'imp?']
     units = ['#','ps','','eV','eV','Å','Å','Å','Å','']
+
     def __init__(self, path, low_memory = True, crystal_height = None):
         self.path = path
         self.names, self.simulation_number = scan_directory(self.path, '.ion')
@@ -138,7 +139,8 @@ class process_ion_folder :
         else:
             self.current_name = None
             self.current_df = None
-        self.angles = self.extract_angles()
+
+        self.angles, self.nrjs = self.extract_output_value()
 
     def load(self, name):
         self.current_name = name
@@ -167,6 +169,22 @@ class process_ion_folder :
         
         return df
 
+    # --------------- extract value of interest ----------------- #
+    def extract_output_value(self):
+        nrjs = {}
+        angles = {}
+        if(self.low_memory):
+            for name in self.names:
+                df = self.get_dataframe_(self.path/name)
+                angles[name] = self.extract_angles_(df)
+                nrjs[name] = df['ke/E_i'].values[-1] 
+        else:
+            for k, df in self.dataframes.items():
+                angles[self.names[k]] = self.extract_angles_(df)
+                nrjs[self.names[k]] = df['ke/E_i'].values[-1]
+        return angles, nrjs
+
+    # ---------------- angles ------------------ #
     def extract_angles_(self, df):
         # TODO : add the dependance on z (to be sure that we are in fact out of the crystal)
         # it could simply be : dz > 0
@@ -196,6 +214,20 @@ class process_ion_folder :
                 angles[self.names[k]] = self.extract_angles_(df)
         return angles
     
+    # ------------------ kinetic NRJ/init_kinetic_NRJ --------------------- #
+
+    def extract_ratio_energies(self, df):
+        nrjs = {}
+        if(self.low_memory):
+            for name in self.names:
+                df = self.get_dataframe_(self.path/name)
+                nrjs[name] = df['ke/E_i']
+        else:
+            for k, df in self.dataframes.items():
+                nrjs[self.names[k]] = df['ke/E_i']
+        return nrjs
+
+
     def coord_initiales_ion_(self, path):       
         with open(path, "r") as file:
             found = False
