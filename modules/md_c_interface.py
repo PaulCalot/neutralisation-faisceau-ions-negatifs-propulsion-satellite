@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+from tqdm import tqdm
+import subprocess
 
 def clean_and_remake(src_path):
     #os.chdir(src_path)
@@ -38,7 +40,7 @@ def make_command(params, flags):
             print('Flag should be in {} but {} is not'.format(possible_flags, flag))
             break
         cmd += '{} '.format(flag)
-    command = "./md2 -oc cfg/####.cfg {} > log &".format(cmd)
+    command = "./md2 -oc cfg/####.cfg {}".format(cmd)
     return command
 
 def launch_simulation(name, params, flags, launches = 1, verbose = False):
@@ -67,7 +69,7 @@ def launch_simulation(name, params, flags, launches = 1, verbose = False):
         os.system(command)
         os.chdir(current_dir)
 
-def launch_on_doe(name, params, flags, keys, design_of_experiments, clean = False):
+def launch_on_doe(name, params, flags, keys, design_of_experiments, clean = False, verbose = False):
     # name : name of the simulation (under the source folder of the md code)
     # params : a dictionnary containing as keys the items in the command to launch a simu in the C code
     current_dir = Path.cwd()
@@ -81,7 +83,7 @@ def launch_on_doe(name, params, flags, keys, design_of_experiments, clean = Fals
         test_path = init_simulation(src_path, name)
     
     # issuing command(s)
-    for k in range(design_of_experiments.shape[0]):
+    for k in tqdm(range(design_of_experiments.shape[0])):
         exp = design_of_experiments[k]
 
         params['-oi'] = "ion/{:0>4}.ion".format(k)
@@ -90,7 +92,9 @@ def launch_on_doe(name, params, flags, keys, design_of_experiments, clean = Fals
             params[key] = exp[idx]
         
         command = make_command(params, flags)
-        print(command)
+        if(verbose):
+            print(command)
         os.chdir(test_path)
-        os.system(command)
+        with open('log', 'w') as f:
+            res = subprocess.run(command.split(), stdout=f)
         os.chdir(current_dir)
