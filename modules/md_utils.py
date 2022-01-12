@@ -180,8 +180,9 @@ class process_ion_folder :
                 nrjs[name] = df['ke/E_i'].values[-1] 
         else:
             for k, df in self.dataframes.items():
-                angles[self.names[k]] = self.extract_angles_(df)
-                nrjs[self.names[k]] = df['ke/E_i'].values[-1]
+                print(k,df)
+                angles[k] = self.extract_angles_(df)
+                nrjs[k] = df['ke/E_i'].values[-1]
         return angles, nrjs
 
     # ---------------- angles ------------------ #

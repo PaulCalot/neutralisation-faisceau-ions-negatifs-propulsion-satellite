@@ -40,7 +40,7 @@ def make_command(params, flags):
             print('Flag should be in {} but {} is not'.format(possible_flags, flag))
             break
         cmd += '{} '.format(flag)
-    command = "./md2 -oc cfg/####.cfg {}".format(cmd)
+    command = "./md2 -oc cfg/####.cfg {} >> log".format(cmd)
     return command
 
 def launch_simulation(name, params, flags, launches = 1, verbose = False):
